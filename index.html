@@ -598,6 +598,8 @@ function setCrouch(p, on) {
   p.g.scale.y = on ? 0.72 : 1;
 }
 function loadNpcModels() {
+  const prog1 = (e) => { if (e.total > 0) { loadProgress = Math.round(15 + 40 * e.loaded / e.total); updateLoad(); } };
+  const prog2 = (e) => { if (e.total > 0) { loadProgress = Math.round(55 + 45 * e.loaded / e.total); updateLoad(); } };
   loader.load('models/npc_01.glb', (gltf) => {
     npcSource = gltf.scene;
     npcClips = {
@@ -616,8 +618,8 @@ function loadNpcModels() {
       loadProgress = 100;
       updateLoad();
       finishLoading();
-    }, undefined, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
-  }, undefined, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
+    }, prog2, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
+  }, prog1, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
 }
 function updateLoad() {
   loadFill.style.width = loadProgress + '%';
@@ -801,8 +803,8 @@ function updateCamera(dt) {
   if (!player) return;
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  const dist = 7.5;
-  const h = 3.2 + camPitch * 4;
+  const dist = 9.5;
+  const h = 3.8 + camPitch * 4;
   const cx = px + Math.sin(camYaw) * dist;
   const cz = pz + Math.cos(camYaw) * dist;
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
@@ -826,7 +828,7 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camera.position.set(player.g.position.x, 5, player.g.position.z + 8);
+  camera.position.set(player.g.position.x, 6, player.g.position.z + 10);
   camera.lookAt(player.g.position.x, 1.4, player.g.position.z);
 }
 function startMode(m) {
@@ -847,9 +849,9 @@ function startMode(m) {
   if (!audioCtx) sfx('go');
   if (m === 'hide') {
     player = makePerson('မင်း', 0x4caf50, '#4caf50', 1);
-    player.g.position.set(0, 0, 4);
+    player.g.position.set(0, 0, 9);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 2);
-    seeker.g.position.set(0, 0, -2);
+    seeker.g.position.set(0, 0, -5);
     seeker.isSeeker = true;
     seeker.heading = Math.PI;
     seeker.g.rotation.y = Math.PI;
