@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ပုန်းတမ်း — Hide &amp; Seek</title>
+<meta property="og:title" content="ပုန်းတမ်း — Hide & Seek">
+<meta property="og:description" content="မြန်မာရွာထဲမှာ တူတူပုန်းတမ်းဆော့ပါ — ပုန်းသူ၊ ရှာသူ၊ သူငယ်ချင်းနဲ့ တူတူဆော့တဲ့ မုဒ်တွေပါတယ်။">
+<meta property="og:type" content="website">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#79a85b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#hud{position:fixed;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
+.pill{background:rgba(0,0,0,.65);color:#fff;padding:7px 12px;border-radius:16px;font-size:14px;font-weight:600}
+.pill b{color:#ffd54a}
+#warn{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:9px 16px;border-radius:14px;font-size:16px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
+#hint{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:12px;font-size:13px;z-index:5;white-space:nowrap;pointer-events:none}
+#joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none}
+#knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+#btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
+#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35);padding:0 14px}
+#runBtn{background:#1565c0}
+#sneakBtn{background:#5d4037}
+#sneakBtn.on{background:#ef6c00}
+#actBtn{background:#2e7d32;display:none}
+#findBtn{background:#c62828;display:none}
+#muteBtn{position:fixed;top:8px;right:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.card{background:#fffbe8;border-radius:22px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card h1{margin:0 0 4px;font-size:30px}
+.card h2{margin:0 0 8px;font-size:24px}
+.card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
+.modeBtn{display:block;width:100%;margin-top:10px;padding:14px;border:none;border-radius:14px;font-size:17px;font-weight:700;color:#fff;text-align:left}
+.modeBtn small{display:block;font-size:13px;font-weight:400;opacity:.92;margin-top:2px}
+#modeHide{background:#2e7d32}
+#modeSeek{background:#1565c0}
+#modeHot{background:#ef6c00}
+.bigBtn{width:100%;margin-top:12px;padding:14px;border:none;border-radius:14px;font-size:18px;font-weight:700;color:#fff;background:#2e7d32}
+.ghostBtn{width:100%;margin-top:8px;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#333;background:#eee}
+#best{font-size:13px;color:#555;margin-top:10px;line-height:1.6}
+#load{position:fixed;inset:0;background:#79a85b;z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;padding:20px;text-align:center}
+#load h1{font-size:32px;margin:0}
+#loadBar{width:220px;height:12px;background:rgba(255,255,255,.35);border-radius:6px;margin-top:16px;overflow:hidden}
+#loadFill{height:100%;width:5%;background:#fff;border-radius:6px}
+#loadTxt{margin-top:10px;font-size:14px}
+@media(pointer:fine){#joy{display:none}#hint{display:block}}
+@media(max-width:700px){#hint{display:none}}
+</style>
+<script type="importmap">{"imports":{"three":"./js/three.module.js","three/addons/":"./js/addons/"}}</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud">
+  <div class="pill" id="modePill">ပုန်းတမ်း</div>
+  <div class="pill">⏱ <b id="timePill">0:00</b></div>
+  <div class="pill" id="scorePill">တွေ့တာ 0/5</div>
+</div>
+<div id="warn"></div>
+<div id="hint">Joystick နဲ့ လမ်း — ညာဘက်ကို ပွတ်ပြီး ကင်မရာ လှည့်</div>
+<button id="muteBtn" title="အသံ">🔊</button>
+<div id="joy"><div id="knob"></div></div>
+<div id="btns">
+  <button id="findBtn">👀 တွေ့ပြီ!</button>
+  <button id="actBtn">🫣 ပုန်းမယ်</button>
+  <button id="sneakBtn">🐢 ချောင်းပြီး သွားမယ်</button>
+  <button id="runBtn">🏃 ပြေးမယ်</button>
+</div>
+<div id="load">
+  <h1>🙈 ပုန်းတမ်း</h1>
+  <p>ရွာထဲကို တည်ဆောက်နေတယ်...</p>
+  <div id="loadBar"><div id="loadFill"></div></div>
+  <div id="loadTxt">စတင်နေတယ်</div>
+</div>
+<div class="overlay" id="start" style="display:none">
+  <div class="card">
+    <h1>🙈 ပုန်းတမ်း</h1>
+    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
+    <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
+    <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
+    <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းနဲ့ တူတူဆော့မယ်<small>ဖုန်းတစ်လုံးတည်း လှည့်ဆော့ — တစ်ယောက်ပုန်း၊ တစ်ယောက်ရှာ</small></button>
+    <p id="best"></p>
+    <p style="font-size:13px;color:#666">လမ်းလျှောက်: Joystick / WASD • ပြေး: ပြေးမယ် ခလုတ် / Shift • ချောင်းသွား: C • ပုန်း/တွေ့ပြီ: E</p>
+  </div>
+</div>
+<div class="overlay" id="pass" style="display:none">
+  <div class="card">
+    <h2>📱 ဖုန်းကို လွှဲလိုက်ပါ</h2>
+    <p id="passTxt">P1 ပုန်းပြီးပြီ။ P2 ကို ဖုန်းပေးလိုက်ပြီး အောက်က ခလုတ်ကို နှိပ်ပါ။ P1 ပုန်းတဲ့နေရာကို P2 မမြင်ရဘူး။</p>
+    <button class="bigBtn" id="passGo">P2 ရှာမယ် — စမယ်</button>
+  </div>
+</div>
+<div class="overlay" id="end" style="display:none">
+  <div class="card">
+    <h2 id="endTitle">နိုင်ပြီ!</h2>
+    <p id="endTxt"></p>
+    <button class="bigBtn" id="againBtn">တစ်ပွဲထပ်ဆော့မယ်</button>
+    <button class="ghostBtn" id="menuBtn">မုဒ်ရွေးမယ်</button>
+  </div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
+
+// ---------- state (all declared before any use) ----------
+const BOUND = 26;
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setSize(window.innerWidth, window.innerHeight);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x9fd3e8, 55, 110);
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 200);
+const clock = new THREE.Clock();
+const loader = new GLTFLoader();
+let gameState = 'loading';
+let mode = 'hide';
+let hotPhase = '';
+let timeLeft = 90;
+let countT = 0;
+let elapsed = 0;
+let foundCount = 0;
+let roundOver = false;
+let camYaw = 0;
+let camPitch = 0.32;
+let muted = false;
+let audioCtx = null;
+let modelsReady = false;
+let npcSource = null;
+let npcSource2 = null;
+let npcClips = null;
+let npcClips2 = null;
+let loadProgress = 0;
+const colliders = [];
+const hideSpots = [];
+const trees = [];
+const people = [];
+let player = null;
+let seeker = null;
+let hiders = [];
+let hotHider = null;
+let hotHiderPos = null;
+let lastNoiseT = 0;
+let giggleT = 8;
+let warnT = 0;
+let seekerMemory = null;
+let seekerLoseT = 0;
+let chaseT = 0;
+const keys = {};
+const joy = { active: false, x: 0, y: 0, id: null };
+let dragId = null;
+let dragX = 0;
+let dragY = 0;
+let runHeld = false;
+let sneakOn = false;
+let hiddenSpot = null;
+let nearestSpot = null;
+let nearestHider = null;
+let findHoldT = 0;
+let bestHide = parseInt(localStorage.getItem('hs_best_hide') || '0', 10);
+let bestSeek = parseInt(localStorage.getItem('hs_best_seek') || '0', 10);
+let hotWins = { p1: parseInt(localStorage.getItem('hs_hot_p1') || '0', 10), p2: parseInt(localStorage.getItem('hs_hot_p2') || '0', 10) };
+
+// ---------- dom ----------
+const $ = (id) => document.getElementById(id);
+const timePill = $('timePill');
+const scorePill = $('scorePill');
+const modePill = $('modePill');
+const warnEl = $('warn');
+const loadEl = $('load');
+const loadFill = $('loadFill');
+const loadTxt = $('loadTxt');
+const startEl = $('start');
+const passEl = $('pass');
+const endEl = $('end');
+
+// ---------- audio (tiny synth, no files) ----------
+function beep(freq, dur, type, vol, when) {
+  if (muted || !audioCtx) return;
+  const t = audioCtx.currentTime + (when || 0);
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(vol || 0.15, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+function sfx(name) {
+  if (muted) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) { return; }
+  if (name === 'count') beep(660, 0.12, 'sine', 0.18);
+  else if (name === 'go') { beep(523, 0.15, 'sine', 0.2); beep(784, 0.25, 'sine', 0.2, 0.12); }
+  else if (name === 'found') { beep(880, 0.12, 'triangle', 0.2); beep(1175, 0.2, 'triangle', 0.2, 0.1); }
+  else if (name === 'caught') { beep(220, 0.3, 'sawtooth', 0.15); beep(165, 0.4, 'sawtooth', 0.15, 0.15); }
+  else if (name === 'giggle') { beep(980, 0.08, 'sine', 0.12); beep(1240, 0.08, 'sine', 0.12, 0.09); beep(980, 0.1, 'sine', 0.12, 0.18); }
+  else if (name === 'win') { [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.22, 'triangle', 0.2, i * 0.13)); }
+  else if (name === 'hide') beep(392, 0.15, 'sine', 0.15);
+}
+function showWarn(txt, secs) {
+  warnEl.textContent = txt;
+  warnEl.style.display = 'block';
+  warnT = secs || 1.6;
+}
+function fmtTime(s) {
+  s = Math.max(0, Math.ceil(s));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// ---------- canvas textures ----------
+function canvasTex(size, draw) {
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  draw(c.getContext('2d'), size);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+function grassTexture() {
+  return canvasTex(512, (g, s) => {
+    g.fillStyle = '#6da344';
+    g.fillRect(0, 0, s, s);
+    for (let i = 0; i < 9000; i++) {
+      const shades = ['#5d8f3a', '#7cb34e', '#86bd58', '#557f33'];
+      g.fillStyle = shades[i % 4];
+      g.globalAlpha = 0.25 + Math.random() * 0.4;
+      g.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 4, 2 + Math.random() * 4);
+    }
+    g.globalAlpha = 1;
+    g.strokeStyle = '#b59a6a';
+    g.lineWidth = 26;
+    g.beginPath();
+    g.moveTo(s * 0.5, 0);
+    g.lineTo(s * 0.5, s);
+    g.stroke();
+    g.beginPath();
+    g.moveTo(0, s * 0.5);
+    g.lineTo(s, s * 0.5);
+    g.stroke();
+    g.strokeStyle = '#a68a5c';
+    g.lineWidth = 10;
+    g.beginPath();
+    g.moveTo(s * 0.12, s * 0.88);
+    g.lineTo(s * 0.5, s * 0.5);
+    g.lineTo(s * 0.88, s * 0.12);
+    g.stroke();
+  });
+}
+function strawTexture() {
+  return canvasTex(256, (g, s) => {
+    g.fillStyle = '#d9a441';
+    g.fillRect(0, 0, s, s);
+    for (let i = 0; i < 500; i++) {
+      g.strokeStyle = i % 2 ? '#c08a2e' : '#e8bc5a';
+      g.lineWidth = 2;
+      const x = Math.random() * s;
+      g.beginPath();
+      g.moveTo(x, 0);
+      g.lineTo(x + (Math.random() * 20 - 10), s);
+      g.stroke();
+    }
+  });
+}
+function woodTexture() {
+  return canvasTex(256, (g, s) => {
+    g.fillStyle = '#8d6e4a';
+    g.fillRect(0, 0, s, s);
+    for (let y = 0; y < s; y += 42) {
+      g.fillStyle = '#7a5c3c';
+      g.fillRect(0, y, s, 4);
+      g.fillStyle = '#a08055';
+      g.fillRect(0, y + 4, s, 38);
+    }
+    for (let i = 0; i < 40; i++) {
+      g.fillStyle = 'rgba(60,40,20,.25)';
+      g.fillRect(Math.random() * s, Math.random() * s, 3, 20 + Math.random() * 30);
+    }
+  });
+}
+function leafTexture() {
+  return canvasTex(256, (g, s) => {
+    g.fillStyle = '#3e7d2e';
+    g.fillRect(0, 0, s, s);
+    for (let i = 0; i < 800; i++) {
+      g.fillStyle = ['#4c9440', '#356b28', '#5da84e'][i % 3];
+      g.globalAlpha = 0.5;
+      g.beginPath();
+      g.arc(Math.random() * s, Math.random() * s, 3 + Math.random() * 7, 0, 7);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  });
+}
+function nameSprite(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(0,0,0,.62)';
+  g.beginPath();
+  g.roundRect(28, 8, 200, 44, 22);
+  g.fill();
+  g.fillStyle = color;
+  g.beginPath();
+  g.arc(52, 30, 10, 0, 7);
+  g.fill();
+  g.fillStyle = '#fff';
+  g.font = 'bold 26px system-ui, sans-serif';
+  g.textBaseline = 'middle';
+  g.fillText(text, 72, 32);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: true, transparent: true }));
+  sp.scale.set(2.4, 0.6, 1);
+  return sp;
+}
+function bubbleSprite(text) {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 80;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(255,255,255,.95)';
+  g.beginPath();
+  g.roundRect(8, 6, 240, 56, 26);
+  g.fill();
+  g.fillStyle = '#333';
+  g.font = 'bold 30px system-ui, sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(text, 128, 36);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
+  sp.scale.set(2.2, 0.69, 1);
+  return sp;
+}
+
+// ---------- lights + ground + fence ----------
+const hemi = new THREE.HemisphereLight(0xbfe3ff, 0x5d8f3a, 0.95);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff2d0, 1.6);
+sun.position.set(30, 45, 20);
+scene.add(sun);
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(62, 62),
+  new THREE.MeshLambertMaterial({ map: grassTexture() })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = false;
+scene.add(ground);
+function addBoxCollider(x, z, hx, hz) {
+  colliders.push({ minX: x - hx, maxX: x + hx, minZ: z - hz, maxZ: z + hz, circle: false });
+}
+function addCircleCollider(x, z, r) {
+  colliders.push({ x, z, r, circle: true });
+}
+const fenceMat = new THREE.MeshLambertMaterial({ map: woodTexture() });
+for (let i = -27; i <= 27; i += 3) {
+  for (const [fx, fz, rot] of [[i, -27, 0], [i, 27, 0], [-27, i, Math.PI / 2], [27, i, Math.PI / 2]]) {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.5, 0.25), fenceMat);
+    post.position.set(fx, 0.75, fz);
+    scene.add(post);
+  }
+}
+for (const [ry, len, px, pz, rot] of [[0.55, 54, 0, -27, 0], [1.15, 54, 0, -27, 0], [0.55, 54, 0, 27, 0], [1.15, 54, 0, 27, 0], [0.55, 54, -27, 0, Math.PI / 2], [1.15, 54, -27, 0, Math.PI / 2], [0.55, 54, 27, 0, Math.PI / 2], [1.15, 54, 27, 0, Math.PI / 2]]) {
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.14, 0.08), fenceMat);
+  rail.position.set(px, ry, pz);
+  rail.rotation.y = rot;
+  scene.add(rail);
+}
+
+// ---------- houses (real GLB, Box3-normalized) ----------
+const HOUSE_DEFS = [
+  { file: 'models/house-real-1s.glb', x: -18, z: -15, w: 10 },
+  { file: 'models/house-real-2s.glb', x: 17, z: -16, w: 9 },
+  { file: 'models/house-real-3s.glb', x: -17, z: 16, w: 10 },
+];
+for (const h of HOUSE_DEFS) {
+  addBoxCollider(h.x, h.z, h.w / 2, 4);
+  loader.load(h.file, (gltf) => {
+    const g = gltf.scene;
+    const junk = [];
+    g.traverse((o) => { if (o.isMesh && /Area Light|Cobblestone|Ground Material|Grass_Grass/i.test(o.name)) junk.push(o); });
+    for (const o of junk) if (o.parent) o.parent.remove(o);
+    const bb = new THREE.Box3().setFromObject(g);
+    const sc = h.w / Math.max(0.1, bb.max.x - bb.min.x, bb.max.z - bb.min.z);
+    g.scale.setScalar(sc);
+    g.position.set(h.x - (bb.max.x + bb.min.x) / 2 * sc, 0.05 - bb.min.y * sc, h.z - (bb.max.z + bb.min.z) / 2 * sc);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+    scene.add(g);
+  }, undefined, () => {});
+}
+
+// ---------- trees (real GLB variants) ----------
+const TREE_SPOTS = [[-8, -6], [5, -14], [-2, 6], [12, 8], [-10, 10], [20, 12], [8, 20], [-24, 6], [24, -4], [0, 22], [-4, -18], [14, -2]];
+for (const [tx, tz] of TREE_SPOTS) addCircleCollider(tx, tz, 0.7);
+loader.load('models/tree-tropics-real.glb', (gltf) => {
+  const variants = [];
+  for (const nm of ['Tree_0', 'Tree_1', 'Tree_2']) {
+    const v = gltf.scene.getObjectByName(nm);
+    if (v) variants.push(v);
+  }
+  if (!variants.length) return;
+  TREE_SPOTS.forEach(([tx, tz], i) => {
+    const src = variants[i % variants.length];
+    const cl = src.clone(true);
+    const bb = new THREE.Box3().setFromObject(cl);
+    const hgt = Math.max(0.1, bb.max.y - bb.min.y);
+    const s = 7 / hgt;
+    cl.scale.setScalar(s);
+    cl.rotation.y = (i * 2.4) % (Math.PI * 2);
+    cl.position.set(tx - (bb.max.x + bb.min.x) / 2 * s, -bb.min.y * s, tz - (bb.max.z + bb.min.z) / 2 * s);
+    scene.add(cl);
+  });
+}, undefined, () => {});
+
+// ---------- haystacks, crates, bushes (textured props) ----------
+const HAY_SPOTS = [[8, 10], [-6, 20], [20, 4]];
+const strawMat = new THREE.MeshLambertMaterial({ map: strawTexture() });
+for (const [hx, hz] of HAY_SPOTS) {
+  addCircleCollider(hx, hz, 1.5);
+  const hay = new THREE.Mesh(new THREE.ConeGeometry(1.7, 3.2, 12), strawMat);
+  hay.position.set(hx, 1.6, hz);
+  scene.add(hay);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.9, 0.5, 12), strawMat);
+  base.position.set(hx, 0.25, hz);
+  scene.add(base);
+}
+const crateMat = new THREE.MeshLambertMaterial({ map: woodTexture() });
+const CRATE_SPOTS = [[0, -8], [12, 18], [-20, 2]];
+for (const [cx, cz] of CRATE_SPOTS) {
+  addBoxCollider(cx, cz, 1.3, 1.3);
+  const c1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), crateMat);
+  c1.position.set(cx, 0.8, cz);
+  c1.rotation.y = 0.3;
+  scene.add(c1);
+  const c2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), crateMat);
+  c2.position.set(cx + 0.4, 2.2, cz - 0.3);
+  c2.rotation.y = 0.9;
+  scene.add(c2);
+}
+const leafMat = new THREE.MeshLambertMaterial({ map: leafTexture() });
+const BUSH_SPOTS = [[-4, -18], [14, -2], [4, 14], [-14, -2]];
+for (const [bx, bz] of BUSH_SPOTS) {
+  addCircleCollider(bx, bz, 1.0);
+  const bush = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8), leafMat);
+  bush.scale.y = 0.75;
+  bush.position.set(bx, 0.8, bz);
+  scene.add(bush);
+}
+
+// ---------- hide spots ----------
+const SPOT_DEFS = [
+  [-18, -9.8, 'အိမ်နောက်'], [17, -10.8, 'အိမ်နောက်'], [-17, 10.8, 'အိမ်နောက်'],
+  [-8, -4.4, 'သစ်ပင်နောက်'], [5, -12.4, 'သစ်ပင်နောက်'], [12, 9.6, 'သစ်ပင်နောက်'],
+  [8, 11.9, 'ကောက်ရိုးပုံနောက်'], [-6, 21.9, 'ကောက်ရိုးပုံနောက်'], [20, 5.9, 'ကောက်ရိုးပုံနောက်'],
+  [1.9, -8, 'သေတ္တာနောက်'], [13.9, 18, 'သေတ္တာနောက်'], [-4, -16.1, 'ချုံနောက်'],
+];
+for (const [sx, sz, label] of SPOT_DEFS) hideSpots.push({ x: sx, z: sz, label, taken: false });
+function dist2(ax, az, bx, bz) {
+  const dx = ax - bx;
+  const dz = az - bz;
+  return Math.sqrt(dx * dx + dz * dz);
+}
+function blockedByCollider(x, z, r) {
+  if (Math.abs(x) > BOUND - r || Math.abs(z) > BOUND - r) return true;
+  for (const c of colliders) {
+    if (c.circle) {
+      if (dist2(x, z, c.x, c.z) < c.r + r) return true;
+    } else if (x > c.minX - r && x < c.maxX + r && z > c.minZ - r && z < c.maxZ + r) return true;
+  }
+  return false;
+}
+function losBlocked(ax, az, bx, bz) {
+  for (const c of colliders) {
+    if (c.circle) {
+      if (segCircle(ax, az, bx, bz, c.x, c.z, c.r)) return true;
+    } else if (segBox(ax, az, bx, bz, c)) return true;
+  }
+  return false;
+}
+function segCircle(ax, az, bx, bz, cx, cz, r) {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const len2 = dx * dx + dz * dz;
+  let t = len2 ? ((cx - ax) * dx + (cz - az) * dz) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const px = ax + dx * t;
+  const pz = az + dz * t;
+  return dist2(px, pz, cx, cz) < r;
+}
+function segBox(ax, az, bx, bz, c) {
+  let tmin = 0;
+  let tmax = 1;
+  const dx = bx - ax;
+  const dz = bz - az;
+  const slabs = [[ax, dx, c.minX, c.maxX], [az, dz, c.minZ, c.maxZ]];
+  for (const [o, d, mn, mx] of slabs) {
+    if (Math.abs(d) < 1e-9) {
+      if (o < mn || o > mx) return false;
+    } else {
+      let t1 = (mn - o) / d;
+      let t2 = (mx - o) / d;
+      if (t1 > t2) { const tmp = t1; t1 = t2; t2 = tmp; }
+      tmin = Math.max(tmin, t1);
+      tmax = Math.min(tmax, t2);
+      if (tmin > tmax) return false;
+    }
+  }
+  return true;
+}
+
+// ---------- people (real GLB, cloned; capsule fallback only if load fails) ----------
+function fallbackBody(color) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.9, 4, 10), mat);
+  body.position.y = 1.05;
+  g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 10), new THREE.MeshLambertMaterial({ color: 0xe8b98a }));
+  head.position.y = 1.85;
+  g.add(head);
+  return g;
+}
+function makePerson(name, colorHex, colorCss, modelKind) {
+  const g = new THREE.Group();
+  g.position.set(0, 0, 4);
+  scene.add(g);
+  const tag = nameSprite(name, colorCss);
+  tag.position.y = 2.35;
+  g.add(tag);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.68, 24), new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }));
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.03;
+  g.add(ring);
+  const bubble = bubbleSprite('ဟီးဟီး 🤭');
+  bubble.position.y = 3.0;
+  bubble.visible = false;
+  g.add(bubble);
+  const p = {
+    g, tag, ring, bubble, name, colorHex,
+    mixer: null, idleA: null, walkA: null, curClip: '',
+    speed: 0, moving: false, crouched: false, hidden: false,
+    heading: 0, homeSpot: null, state: 'idle', target: null, waitT: 0,
+    giggleT: 6 + Math.random() * 8, bubbleT: 0, found: false, isSeeker: false,
+  };
+  const src = modelKind === 2 ? npcSource2 : npcSource;
+  const clips = modelKind === 2 ? npcClips2 : npcClips;
+  if (src) {
+    const body = cloneSkinned(src);
+    const bb = new THREE.Box3().setFromObject(body);
+    const hgt = Math.max(0.1, bb.max.y - bb.min.y);
+    const sc = 1.7 / hgt;
+    body.scale.setScalar(sc);
+    body.rotation.y = -Math.PI / 2;
+    body.position.y = -bb.min.y * sc + 0.02;
+    body.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+    g.add(body);
+    if (clips) {
+      p.mixer = new THREE.AnimationMixer(body);
+      if (clips.idle) { p.idleA = p.mixer.clipAction(clips.idle); p.idleA.play(); p.curClip = 'idle'; }
+      if (clips.walk) p.walkA = p.mixer.clipAction(clips.walk);
+    }
+  } else {
+    g.add(fallbackBody(colorHex));
+  }
+  people.push(p);
+  return p;
+}
+function setClip(p, want) {
+  if (!p.mixer || p.curClip === want) return;
+  const from = p.curClip === 'walk' ? p.walkA : p.idleA;
+  const to = want === 'walk' ? p.walkA : p.idleA;
+  if (from) from.stop();
+  if (to) { to.reset(); to.play(); }
+  p.curClip = want;
+}
+function setCrouch(p, on) {
+  p.crouched = on;
+  p.g.scale.y = on ? 0.72 : 1;
+}
+function loadNpcModels() {
+  loader.load('models/npc_01.glb', (gltf) => {
+    npcSource = gltf.scene;
+    npcClips = {
+      idle: gltf.animations.find((a) => /idle/i.test(a.name)) || null,
+      walk: gltf.animations.find((a) => /walk/i.test(a.name)) || gltf.animations[0] || null,
+    };
+    loadProgress = Math.max(loadProgress, 55);
+    updateLoad();
+    loader.load('models/npc_02.glb', (g2) => {
+      npcSource2 = g2.scene;
+      npcClips2 = {
+        idle: g2.animations.find((a) => /idle/i.test(a.name)) || null,
+        walk: g2.animations.find((a) => /walk/i.test(a.name)) || g2.animations[0] || null,
+      };
+      modelsReady = true;
+      loadProgress = 100;
+      updateLoad();
+      finishLoading();
+    }, undefined, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
+  }, undefined, () => { modelsReady = true; loadProgress = 100; updateLoad(); finishLoading(); });
+}
+function updateLoad() {
+  loadFill.style.width = loadProgress + '%';
+  loadTxt.textContent = modelsReady ? 'ပြီးပြီ!' : 'လူတွေ တင်နေတယ်... ' + loadProgress + '%';
+}
+function finishLoading() {
+  if (gameState !== 'loading') return;
+  gameState = 'menu';
+  loadEl.style.display = 'none';
+  startEl.style.display = 'flex';
+  updateBest();
+}
+function updateBest() {
+  const lines = [];
+  if (bestHide > 0) lines.push('🙈 ပုန်းသူ အကောင်းဆုံး: ' + bestHide + ' စက္ကန့် မတွေ့အောင် နေခဲ့တယ်');
+  if (bestSeek > 0) lines.push('🔍 ရှာသူ အကောင်းဆုံး: ' + bestSeek + ' စက္ကန့်နဲ့ အကုန်တွေ့ခဲ့တယ်');
+  if (hotWins.p1 + hotWins.p2 > 0) lines.push('👥 တူတူဆော့: P1 ' + hotWins.p1 + ' ပွဲ — P2 ' + hotWins.p2 + ' ပွဲ');
+  $('best').innerHTML = lines.join('<br>');
+}
+
+// ---------- input: joystick, camera drag, keys, buttons ----------
+const joyEl = $('joy');
+const knobEl = $('knob');
+function joyStart(t) {
+  joy.active = true;
+  joy.id = t.identifier;
+  joyMove(t);
+}
+function joyMove(t) {
+  if (!joy.active || t.identifier !== joy.id) return;
+  const r = joyEl.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  let dx = (t.clientX - cx) / (r.width / 2);
+  let dy = (t.clientY - cy) / (r.height / 2);
+  const len = Math.hypot(dx, dy);
+  if (len > 1) { dx /= len; dy /= len; }
+  joy.x = dx;
+  joy.y = dy;
+  knobEl.style.left = (39 + dx * 34) + 'px';
+  knobEl.style.top = (39 + dy * 34) + 'px';
+}
+function joyEnd(t) {
+  if (t.identifier !== joy.id) return;
+  joy.active = false;
+  joy.x = 0;
+  joy.y = 0;
+  knobEl.style.left = '39px';
+  knobEl.style.top = '39px';
+}
+joyEl.addEventListener('touchstart', (e) => { e.preventDefault(); joyStart(e.changedTouches[0]); }, { passive: false });
+window.addEventListener('touchmove', (e) => {
+  for (const t of e.changedTouches) {
+    if (joy.active && t.identifier === joy.id) { e.preventDefault(); joyMove(t); }
+    else if (dragId !== null && t.identifier === dragId) {
+      camYaw -= (t.clientX - dragX) * 0.006;
+      camPitch = Math.max(0.08, Math.min(0.9, camPitch + (t.clientY - dragY) * 0.004));
+      dragX = t.clientX;
+      dragY = t.clientY;
+    }
+  }
+}, { passive: false });
+window.addEventListener('touchend', (e) => {
+  for (const t of e.changedTouches) {
+    joyEnd(t);
+    if (t.identifier === dragId) dragId = null;
+  }
+});
+canvas.addEventListener('touchstart', (e) => {
+  const t = e.changedTouches[0];
+  if (t.clientX > window.innerWidth * 0.35) { dragId = t.identifier; dragX = t.clientX; dragY = t.clientY; }
+}, { passive: true });
+window.addEventListener('keydown', (e) => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key.toLowerCase() === 'c') toggleSneak();
+  if (e.key.toLowerCase() === 'e') doAction();
+  if (e.key === 'Shift') runHeld = true;
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.key.toLowerCase()] = false;
+  if (e.key === 'Shift') runHeld = false;
+});
+let mouseDown = false;
+canvas.addEventListener('mousedown', (e) => { mouseDown = true; dragX = e.clientX; dragY = e.clientY; });
+window.addEventListener('mousemove', (e) => {
+  if (!mouseDown) return;
+  camYaw -= (e.clientX - dragX) * 0.006;
+  camPitch = Math.max(0.08, Math.min(0.9, camPitch + (e.clientY - dragY) * 0.004));
+  dragX = e.clientX;
+  dragY = e.clientY;
+});
+window.addEventListener('mouseup', () => { mouseDown = false; });
+function toggleSneak() {
+  if (gameState !== 'playing' || !player) return;
+  sneakOn = !sneakOn;
+  setCrouch(player, sneakOn);
+  $('sneakBtn').classList.toggle('on', sneakOn);
+  $('sneakBtn').textContent = sneakOn ? '🐢 ချောင်းနေတယ်' : '🐢 ချောင်းပြီး သွားမယ်';
+}
+$('sneakBtn').addEventListener('click', toggleSneak);
+$('runBtn').addEventListener('touchstart', (e) => { e.preventDefault(); runHeld = true; }, { passive: false });
+$('runBtn').addEventListener('touchend', () => { runHeld = false; });
+$('runBtn').addEventListener('mousedown', () => { runHeld = true; });
+$('runBtn').addEventListener('mouseup', () => { runHeld = false; });
+$('actBtn').addEventListener('click', doAction);
+$('findBtn').addEventListener('click', doFind);
+$('muteBtn').addEventListener('click', () => {
+  muted = !muted;
+  $('muteBtn').textContent = muted ? '🔇' : '🔊';
+});
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------- movement + collision ----------
+function tryMove(p, dx, dz) {
+  const r = 0.45;
+  let nx = p.g.position.x + dx;
+  let nz = p.g.position.z;
+  if (!blockedByCollider(nx, nz, r)) p.g.position.x = nx;
+  nx = p.g.position.x;
+  nz = p.g.position.z + dz;
+  if (!blockedByCollider(nx, nz, r)) p.g.position.z = nz;
+}
+function moveToward(p, tx, tz, speed, dt) {
+  const dx = tx - p.g.position.x;
+  const dz = tz - p.g.position.z;
+  const d = Math.hypot(dx, dz);
+  if (d < 0.15) { p.moving = false; setClip(p, 'idle'); return true; }
+  const step = Math.min(d, speed * dt);
+  tryMove(p, dx / d * step, dz / d * step);
+  p.heading = Math.atan2(dx, dz);
+  p.g.rotation.y = p.heading;
+  p.moving = true;
+  setClip(p, 'walk');
+  if (p.mixer) p.mixer.update(dt);
+  return false;
+}
+function playerMoveInput(dt) {
+  if (!player || (gameState !== 'playing' && gameState !== 'countdown')) return;
+  {
+    let ix = joy.x;
+    let iy = joy.y;
+    if (keys['w'] || keys['arrowup']) iy -= 1;
+    if (keys['s'] || keys['arrowdown']) iy += 1;
+    if (keys['a'] || keys['arrowleft']) ix -= 1;
+    if (keys['d'] || keys['arrowright']) ix += 1;
+    const len = Math.hypot(ix, iy);
+    if (len > 0.01) {
+      const nx = ix / Math.max(1, len);
+      const ny = iy / Math.max(1, len);
+      const sin = Math.sin(camYaw);
+      const cos = Math.cos(camYaw);
+      const wx = nx * cos - ny * sin;
+      const wz = nx * sin + ny * cos;
+      const speed = player.crouched ? 1.8 : (runHeld ? 6.4 : 4.0);
+      tryMove(player, wx * speed * dt, wz * speed * dt);
+      player.heading = Math.atan2(wx, wz);
+      player.g.rotation.y = player.heading;
+      player.moving = true;
+      setClip(player, 'walk');
+      if (player.hidden) {
+        player.hidden = false;
+        showWarn('ရွှေ့လိုက်ပြီ — ထပ်ပုန်းဖို့ နေရာရှာ!', 1.4);
+      }
+      if (runHeld && !player.crouched && elapsed - lastNoiseT > 1.2) {
+        lastNoiseT = elapsed;
+        if (mode === 'hide' && seeker) seekerMemory = { x: player.g.position.x, z: player.g.position.z };
+      }
+    } else {
+      player.moving = false;
+      setClip(player, 'idle');
+    }
+    if (player.mixer && player.moving) player.mixer.update(dt);
+  }
+}
+function updateCamera(dt) {
+  if (!player) return;
+  const px = player.g.position.x;
+  const pz = player.g.position.z;
+  const dist = 7.5;
+  const h = 3.2 + camPitch * 4;
+  const cx = px + Math.sin(camYaw) * dist;
+  const cz = pz + Math.cos(camYaw) * dist;
+  camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
+  camera.position.y += (h - camera.position.y) * Math.min(1, dt * 6);
+  camera.position.z += (cz - camera.position.z) * Math.min(1, dt * 6);
+  camera.lookAt(px, 1.4, pz);
+}
+
+// ---------- game flow ----------
+let lastCountInt = 11;
+function clearPeople() {
+  for (const p of people) scene.remove(p.g);
+  people.length = 0;
+  hiders = [];
+  seeker = null;
+  player = null;
+  hotHider = null;
+  nearestHider = null;
+  nearestSpot = null;
+}
+function snapCameraBehind() {
+  if (!player) return;
+  camYaw = 0;
+  camera.position.set(player.g.position.x, 5, player.g.position.z + 8);
+  camera.lookAt(player.g.position.x, 1.4, player.g.position.z);
+}
+function startMode(m) {
+  mode = m;
+  clearPeople();
+  for (const s of hideSpots) s.taken = false;
+  sneakOn = false;
+  setSneakBtn();
+  foundCount = 0;
+  roundOver = false;
+  seekerMemory = null;
+  chaseT = 0;
+  lastNoiseT = 0;
+  giggleT = 8;
+  startEl.style.display = 'none';
+  endEl.style.display = 'none';
+  passEl.style.display = 'none';
+  if (!audioCtx) sfx('go');
+  if (m === 'hide') {
+    player = makePerson('မင်း', 0x4caf50, '#4caf50', 1);
+    player.g.position.set(0, 0, 4);
+    seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 2);
+    seeker.g.position.set(0, 0, -2);
+    seeker.isSeeker = true;
+    seeker.heading = Math.PI;
+    seeker.g.rotation.y = Math.PI;
+    timeLeft = 90;
+    countT = 10;
+    lastCountInt = 11;
+    gameState = 'countdown';
+    modePill.textContent = '🙈 ပုန်းသူ';
+    showWarn('ရှာသူ ရေတွက်နေတယ် — မြန်မြန်ပုန်း!', 2.5);
+  } else if (m === 'seek') {
+    player = makePerson('မင်း', 0x4caf50, '#4caf50', 1);
+    player.g.position.set(0, 0, 4);
+    const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
+    const spots = [...hideSpots].sort(() => Math.random() - 0.5).slice(0, 5);
+    names.forEach((nm, i) => {
+      const h = makePerson(nm, 0x2196f3, '#2196f3', i % 2 === 0 ? 1 : 2);
+      h.g.position.set(spots[i].x, 0, spots[i].z);
+      h.homeSpot = spots[i];
+      spots[i].taken = true;
+      h.idx = i;
+      setCrouch(h, true);
+      hiders.push(h);
+    });
+    timeLeft = 120;
+    gameState = 'playing';
+    modePill.textContent = '🔍 ရှာသူ';
+    showWarn('သူငယ်ချင်း ၅ ယောက် ပုန်းနေပြီ — လိုက်ရှာ!', 2.5);
+  } else {
+    hotPhase = 'p1hide';
+    player = makePerson('P1', 0xef6c00, '#ef6c00', 1);
+    player.g.position.set(0, 0, 4);
+    timeLeft = 25;
+    gameState = 'playing';
+    modePill.textContent = '👥 P1 ပုန်းမယ်';
+    showWarn('P1 — ၂၅ စက္ကန့်အတွင်း ပုန်းပြီး ✅ နှိပ်ပါ!', 2.5);
+  }
+  snapCameraBehind();
+}
+function setSneakBtn() {
+  $('sneakBtn').classList.toggle('on', sneakOn);
+  $('sneakBtn').textContent = sneakOn ? '🐢 ချောင်းနေတယ်' : '🐢 ချောင်းပြီး သွားမယ်';
+}
+function doAction() {
+  if (gameState !== 'playing' && gameState !== 'countdown') return;
+  if (!player) return;
+  if (mode === 'hot' && hotPhase === 'p1hide') { finishP1Hide(); return; }
+  if (mode === 'hide' && nearestSpot && !player.hidden) {
+    player.g.position.x = nearestSpot.x;
+    player.g.position.z = nearestSpot.z;
+    player.hidden = true;
+    sneakOn = true;
+    setCrouch(player, true);
+    setSneakBtn();
+    sfx('hide');
+    showWarn('🫣 ပုန်းနေပြီ — မလှုပ်နဲ့! ရှာသူ အဝေးရောက်မှ ရွှေ့', 2);
+  }
+}
+function doFind() {
+  if (gameState !== 'playing' || !nearestHider || !player) return;
+  const h = nearestHider;
+  h.found = true;
+  h.state = 'caught';
+  setCrouch(h, false);
+  foundCount++;
+  sfx('found');
+  const total = hiders.length;
+  showWarn('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')', 1.6);
+  if (mode === 'hot' && hotPhase === 'p2seek') {
+    hotWins.p2++;
+    localStorage.setItem('hs_hot_p2', String(hotWins.p2));
+    endRound(true, 'P2 နိုင်ပြီ!', 'P2 က P1 ကို ' + fmtTime(90 - timeLeft) + ' အတွင်း ရှာတွေ့သွားတယ်။');
+  } else if (foundCount >= total) {
+    const used = Math.round(120 - timeLeft);
+    if (!bestSeek || used < bestSeek) { bestSeek = used; localStorage.setItem('hs_best_seek', String(used)); }
+    endRound(true, 'အကုန်တွေ့ပြီ!', 'သူငယ်ချင်း ၅ ယောက်လုံးကို ' + used + ' စက္ကန့်နဲ့ ရှာတွေ့ခဲ့တယ်။');
+  }
+}
+function finishP1Hide() {
+  hotHiderPos = { x: player.g.position.x, z: player.g.position.z };
+  hotPhase = 'pass';
+  gameState = 'pass';
+  $('passTxt').textContent = 'P1 ပုန်းပြီးပြီ။ P2 ကို ဖုန်းပေးလိုက်ပြီး အောက်က ခလုတ်ကို နှိပ်ပါ။ P1 ပုန်းတဲ့နေရာကို P2 မမြင်ရဘူး။';
+  passEl.style.display = 'flex';
+}
+function startP2Seek() {
+  passEl.style.display = 'none';
+  clearPeople();
+  sneakOn = false;
+  setSneakBtn();
+  player = makePerson('P2', 0x1565c0, '#1565c0', 2);
+  player.g.position.set(0, 0, 4);
+  hotHider = makePerson('P1', 0xef6c00, '#ef6c00', 1);
+  hotHider.g.position.set(hotHiderPos.x, 0, hotHiderPos.z);
+  hotHider.idx = 0;
+  setCrouch(hotHider, true);
+  hiders = [hotHider];
+  foundCount = 0;
+  hotPhase = 'p2seek';
+  timeLeft = 90;
+  gameState = 'playing';
+  modePill.textContent = '👥 P2 ရှာမယ်';
+  showWarn('P2 — P1 ကို ၉၀ စက္ကန့်အတွင်း ရှာပါ!', 2);
+  snapCameraBehind();
+}
+function endRound(win, title, txt) {
+  if (roundOver) return;
+  roundOver = true;
+  gameState = 'roundEnd';
+  if (mode === 'hide' && !win) {
+    const survived = Math.round(90 - timeLeft);
+    if (survived > bestHide) { bestHide = survived; localStorage.setItem('hs_best_hide', String(survived)); }
+  }
+  if (win) sfx('win'); else sfx('caught');
+  $('endTitle').textContent = title;
+  $('endTxt').textContent = txt;
+  endEl.style.display = 'flex';
+  updateBest();
+}
+
+// ---------- seeker AI ----------
+function seekerCanSee() {
+  if (!seeker || !player) return false;
+  const sx = seeker.g.position.x;
+  const sz = seeker.g.position.z;
+  const px = player.g.position.x;
+  const pz = player.g.position.z;
+  const d = dist2(sx, sz, px, pz);
+  const range = player.hidden ? 4 : player.crouched ? 8 : player.moving ? 16 : 13;
+  if (d > range) return false;
+  const ang = Math.atan2(px - sx, pz - sz);
+  let diff = Math.abs(ang - seeker.heading);
+  if (diff > Math.PI) diff = 2 * Math.PI - diff;
+  if (diff > 1.15) return false;
+  if (losBlocked(sx, sz, px, pz)) return false;
+  return true;
+}
+function updateSeeker(dt) {
+  if (!seeker) return;
+  if (gameState === 'countdown') {
+    setClip(seeker, 'idle');
+    return;
+  }
+  const px = player.g.position.x;
+  const pz = player.g.position.z;
+  if (seekerCanSee()) {
+    chaseT = 0;
+    seekerMemory = null;
+    const d = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
+    if (d < 2.0) {
+      endRound(false, 'မိသွားပြီ!', 'ရှာသူက မင်းကို တွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
+      return;
+    }
+    moveToward(seeker, px, pz, 4.3, dt);
+    if (warnT < 0.2) showWarn('🏃 ပြေးတော့! ရှာသူ မင်းကို တွေ့သွားပြီ!', 0.6);
+    return;
+  }
+  chaseT += dt;
+  if (seekerMemory) {
+    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.6, dt)) seekerMemory = null;
+    return;
+  }
+  if (!seeker.target && seeker.waitT <= 0) {
+    const s = hideSpots[Math.floor(Math.random() * hideSpots.length)];
+    if (Math.random() < 0.6) seeker.target = { x: s.x + (Math.random() * 2 - 1), z: s.z + (Math.random() * 2 - 1) };
+    else seeker.target = { x: Math.random() * 40 - 20, z: Math.random() * 40 - 20 };
+  }
+  if (seeker.waitT > 0) {
+    seeker.waitT -= dt;
+    seeker.moving = false;
+    setClip(seeker, 'idle');
+    return;
+  }
+  if (moveToward(seeker, seeker.target.x, seeker.target.z, 3.0, dt)) {
+    seeker.target = null;
+    seeker.waitT = 1.0;
+  }
+}
+
+// ---------- hiders ----------
+function updateHiders(dt) {
+  if (!player) return;
+  giggleT -= dt;
+  if (giggleT <= 0) {
+    giggleT = 8 + Math.random() * 8;
+    const alive = hiders.filter((h) => !h.found);
+    if (alive.length) {
+      const h = alive[Math.floor(Math.random() * alive.length)];
+      h.bubble.visible = true;
+      h.bubbleT = 2.5;
+      sfx('giggle');
+    }
+  }
+  for (const h of hiders) {
+    if (h.bubbleT > 0) {
+      h.bubbleT -= dt;
+      if (h.bubbleT <= 0) h.bubble.visible = false;
+    }
+    if (h.found && h.state === 'caught') {
+      if (moveToward(h, 0, 3 + h.idx * 1.6, 3.2, dt)) h.state = 'done';
+    }
+  }
+  nearestHider = null;
+  let best = 2.8;
+  for (const h of hiders) {
+    if (h.found) continue;
+    const d = dist2(player.g.position.x, player.g.position.z, h.g.position.x, h.g.position.z);
+    if (d < best && !losBlocked(player.g.position.x, player.g.position.z, h.g.position.x, h.g.position.z)) {
+      best = d;
+      nearestHider = h;
+    }
+  }
+}
+
+// ---------- HUD ----------
+function updateHUD() {
+  if (gameState === 'countdown') timePill.textContent = 'ရေတွက် ' + Math.max(0, Math.ceil(countT));
+  else timePill.textContent = fmtTime(timeLeft);
+  if (mode === 'hide') scorePill.textContent = player && player.hidden ? '🫣 ပုန်းနေတယ်' : '🙈 မတွေ့အောင် ပုန်း';
+  else if (mode === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/5';
+  else if (hotPhase === 'p1hide') scorePill.textContent = 'P1 ပုန်းနေတယ်';
+  else if (hotPhase === 'p2seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/1';
+  else scorePill.textContent = 'ပုန်းတမ်း';
+  nearestSpot = null;
+  if (mode === 'hide' && player && !player.hidden) {
+    let best = 2.4;
+    for (const s of hideSpots) {
+      const d = dist2(player.g.position.x, player.g.position.z, s.x, s.z);
+      if (d < best) { best = d; nearestSpot = s; }
+    }
+  }
+  $('actBtn').style.display = 'none';
+  $('findBtn').style.display = 'none';
+  if (gameState === 'playing' || gameState === 'countdown') {
+    if (mode === 'hide' && nearestSpot) {
+      $('actBtn').textContent = '🫣 ပုန်းမယ် (' + nearestSpot.label + ')';
+      $('actBtn').style.display = 'block';
+    } else if (mode === 'hot' && hotPhase === 'p1hide') {
+      $('actBtn').textContent = '✅ ပုန်းပြီးပြီ';
+      $('actBtn').style.display = 'block';
+    }
+  }
+  if (gameState === 'playing' && (mode === 'seek' || hotPhase === 'p2seek') && nearestHider) $('findBtn').style.display = 'block';
+  if (warnT > 0) {
+    warnT -= 0.016;
+    if (warnT <= 0) warnEl.style.display = 'none';
+  }
+}
+
+// ---------- main loop ----------
+let menuAngle = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (gameState === 'menu' || gameState === 'loading') {
+    menuAngle += dt * 0.12;
+    camera.position.set(Math.sin(menuAngle) * 24, 11, Math.cos(menuAngle) * 24);
+    camera.lookAt(0, 1, 0);
+  } else if (gameState === 'countdown' || gameState === 'playing') {
+    elapsed += dt;
+    if (gameState === 'countdown') {
+      countT -= dt;
+      const ci = Math.ceil(countT);
+      if (ci !== lastCountInt && ci > 0 && ci <= 10) { lastCountInt = ci; sfx('count'); }
+      if (countT <= 0) {
+        gameState = 'playing';
+        sfx('go');
+        showWarn('🔍 ရှာသူ လာရှာပြီ!', 2);
+      }
+    } else {
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        if (mode === 'hide') endRound(true, 'မတွေ့အောင် ပုန်းနိုင်ခဲ့ပြီ!', 'စက္ကန့် ၉၀ လုံး ရှာသူ မင်းကို မတွေ့ခဲ့ဘူး။ အရမ်းတော်တယ်!');
+        else if (mode === 'seek') endRound(false, 'အချိန်ကုန်သွားပြီ', 'တွေ့တာ ' + foundCount + '/5 ပဲ ရှိသေးတယ်။ ထပ်ကြိုးစားကြည့်ပါ!');
+        else if (hotPhase === 'p1hide') finishP1Hide();
+        else if (hotPhase === 'p2seek') {
+          hotWins.p1++;
+          localStorage.setItem('hs_hot_p1', String(hotWins.p1));
+          endRound(true, 'P1 နိုင်ပြီ!', 'P2 က P1 ကို ၉၀ စက္ကန့်အတွင်း မတွေ့နိုင်ခဲ့ဘူး။');
+        }
+      }
+    }
+    if (gameState === 'countdown' || gameState === 'playing') {
+      playerMoveInput(dt);
+      updateCamera(dt);
+      if (mode === 'hide' && seeker) updateSeeker(dt);
+      if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt);
+      for (const p of people) if (p.mixer && !p.moving) p.mixer.update(dt);
+      updateHUD();
+    }
+  }
+  renderer.render(scene, camera);
+}
+
+// ---------- wire up + init ----------
+$('modeHide').addEventListener('click', () => startMode('hide'));
+$('modeSeek').addEventListener('click', () => startMode('seek'));
+$('modeHot').addEventListener('click', () => startMode('hot'));
+$('againBtn').addEventListener('click', () => startMode(mode));
+$('menuBtn').addEventListener('click', () => {
+  endEl.style.display = 'none';
+  gameState = 'menu';
+  startEl.style.display = 'flex';
+  updateBest();
+});
+$('passGo').addEventListener('click', startP2Seek);
+loadProgress = 15;
+updateLoad();
+loadNpcModels();
+animate();
+</script>
+</body>
+</html>
