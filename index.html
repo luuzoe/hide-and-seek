@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V2.6</p>
+    <p class="ver">Hide &amp; Seek • V2.7</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -1253,6 +1253,27 @@ function seekerCanSee() {
   if (losBlocked(sx, sz, px, pz)) return false;
   return true;
 }
+// debug hook: live seeker state for diagnosing why it stops (read window.__hsDbg)
+function dbgSeeker() {
+  if (!seeker || !player) return null;
+  const sx = seeker.g.position.x, sz = seeker.g.position.z;
+  const px = player.g.position.x, pz = player.g.position.z;
+  const d = dist2(sx, sz, px, pz);
+  const ang = Math.atan2(px - sx, pz - sz);
+  let diff = Math.abs(ang - seeker.heading);
+  if (diff > Math.PI) diff = 2 * Math.PI - diff;
+  return {
+    sx: +sx.toFixed(2), sz: +sz.toFixed(2), px: +px.toFixed(2), pz: +pz.toFixed(2),
+    d: +d.toFixed(2), canSee: seekerCanSee(),
+    los: losBlocked(sx, sz, px, pz), diff: +diff.toFixed(2),
+    range: player.hidden ? 4 : player.crouched ? 7 : player.moving ? 14 : 12,
+    hidden: player.hidden, moving: player.moving,
+    target: seeker.target ? { x: +seeker.target.x.toFixed(1), z: +seeker.target.z.toFixed(1) } : null,
+    memory: seekerMemory ? { x: +seekerMemory.x.toFixed(1), z: +seekerMemory.z.toFixed(1) } : null,
+    waitT: +seeker.waitT.toFixed(2), loseT: +seekerLoseT.toFixed(2),
+    seekerMoving: seeker.moving, state: gameState, timeLeft: +timeLeft.toFixed(1),
+  };
+}
 function updateSeeker(dt, timeDt) {
   if (!seeker) return;
   if (gameState === 'countdown') {
@@ -1438,7 +1459,7 @@ function animate() {
       if (mode === 'online') {
         updateNet(dt, timeDt);
       } else {
-        if (mode === 'hide' && seeker) updateSeeker(dt, timeDt);
+        if (mode === 'hide' && seeker) { updateSeeker(dt, timeDt); window.__hsDbg = dbgSeeker(); }
         if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt, timeDt);
       }
       for (const p of people) if (p.mixer && !p.moving) p.mixer.update(dt);
