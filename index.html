@@ -202,7 +202,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
     <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
-    <p>🎨 Characters (CC0) — Farmer, Worker, Adventurer, Casual + T-Rex: Quaternius (quaternius.com).</p>
+    <p>🎨 Characters (CC-BY) — Chibi Boy: Leon Nygaard; Max: varunpatel899; Mack: TikkiToon; Anime + Green: sonbeo131.</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
@@ -530,18 +530,18 @@ const decoGeos = {
   patch: new THREE.CircleGeometry(2.2, 12),
 };
 
-// ---------- Quaternius animated characters (CC0, credits in the How-to overlay) ----------
+// ---------- Sketchfab characters (CC-BY, credits in the How-to overlay) ----------
 // 5 GLB models, preloaded at boot; each person uses one slot. All are skinned with
 // real Walk/Idle/Run clips (Farmer/Worker/Adventurer/Casual share the 24-clip
 // CharacterArmature set; T-Rex has Walk/Idle/Run). If a GLB is not loaded yet
 // (or fails to load), the person falls back to the code-built chibi, so a
 // character is never broken or missing. Normalised to ~0.9m tall at runtime.
 const MODELS = [
-  { url: 'models/farmer.glb', name: 'Farmer', author: 'Quaternius' },
-  { url: 'models/trex.glb', name: 'T-Rex', author: 'Quaternius' },
-  { url: 'models/worker.glb', name: 'Worker', author: 'Quaternius' },
-  { url: 'models/adventurer.glb', name: 'Adventurer', author: 'Quaternius' },
-  { url: 'models/casual.glb', name: 'Casual', author: 'Quaternius' },
+  { url: 'models/boy.glb', name: 'Chibi Boy', author: 'Leon Nygaard' },
+  { url: 'models/max.glb', name: 'Max', author: 'varunpatel899' },
+  { url: 'models/mack.glb', name: 'Mack', author: 'TikkiToon' },
+  { url: 'models/anime.glb', name: 'Anime Chibi', author: 'sonbeo131' },
+  { url: 'models/green.glb', name: 'Green-haired Chibi', author: 'sonbeo131' },
 ];
 const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null, animations: [] }));
 function normalizeModel(src) {
