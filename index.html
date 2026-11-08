@@ -50,7 +50,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #sneakBtn.on{background:var(--amber)}
 #actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
 #findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
-#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
+#cornerSetBtn{position:fixed;top:8px;z-index:35;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
 #cornerSetBtn{right:20px}
 
 /* ---------- overlays, cards, buttons (shared) ---------- */
@@ -67,13 +67,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #settings .card #setName::placeholder{color:rgba(255,255,255,.55)}
 #settings .card #setName:focus{border-color:#43a047}
 #settings .card .bigBtn{background:linear-gradient(135deg,#43a047,#1b5e20)}
+#setName:disabled{opacity:.55}
 .card h1{margin:0 0 4px;font-size:26px;background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
 .card h2{margin:0 0 8px;font-size:22px;color:var(--ink)}
 .card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
 .ver{font-size:12px;color:var(--muted);margin:2px 0 4px}
 /* main menu: no white card, smaller (Zaw 2026-11-08) */
 #start.overlay{background:rgba(0,0,0,.62)}
-#start .card{background:transparent;box-shadow:none;padding:10px 12px;max-width:340px}
+#start .card{background:transparent;box-shadow:none;padding:10px 12px;max-width:340px;margin:auto}
 #start .card h1{background:linear-gradient(180deg,#ffffff,#c8e6c9);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 8px rgba(0,0,0,.75))}
 #start .ver{color:rgba(255,255,255,.8)}
 #start #best{color:rgba(255,255,255,.8)}
@@ -137,6 +138,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (orientation:landscape){
   #start .card{max-width:340px;padding:10px 12px}
   #start .card h1{font-size:22px}
+  #start .card #charPreview{width:100px;height:100px}
+  #start #best{display:none}
   #start .menuRow .ghostBtn{padding:11px 2px;font-size:13px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,.25)}
   #best{margin-top:8px}
   #hint{display:none}
@@ -202,7 +205,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V6.0</p>
+    <p class="ver">Hide &amp; Seek • V6.1</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -312,6 +315,8 @@ let timeLeft = 90;
 let countT = 0;
 let elapsed = 0;
 let foundCount = 0;
+let playerCaught = false;
+let caughtSurvived = 0;
 let roundOver = false;
 let camYaw = 0;
 let camPitch = 0.14;
@@ -2417,6 +2422,7 @@ function playerMoveInput(dt) {
     if (netFound[myPeerId]) { player.moving = false; setClip(player, 'idle'); return; }
     if (netRole === 'seeker' && netPhase === 'hide') { player.moving = false; setClip(player, 'idle'); return; }
   }
+  if (mode === 'hide' && playerCaught) { player.moving = false; setClip(player, 'idle'); return; }
   if (mode === 'seek' && gameState === 'countdown') { player.moving = false; setClip(player, 'idle'); return; }
   if (player.insideWardrobe) {
     let ix = joy.x;
@@ -2538,6 +2544,8 @@ function startMode(m) {
   sneakOn = false;
   setSneakBtn();
   foundCount = 0;
+  playerCaught = false;
+  caughtSurvived = 0;
   roundOver = false;
   seekerMemory = null;
   chaseT = 0;
@@ -2547,7 +2555,7 @@ function startMode(m) {
   endEl.style.display = 'none';
   if (!audioCtx) sfx('go');
   if (m === 'hide') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
+    player = makePerson(myName || 'မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
     player.g.position.set(0, 0, 9);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
     seeker.g.position.set(0, 0, -18);
@@ -2561,7 +2569,7 @@ function startMode(m) {
     modePill.textContent = '🙈 ပုန်းသူ';
     showWarn('🔍 ရှာသူ ရေတွက်နေတယ်!', 2.5);
   } else if (m === 'seek') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
+    player = makePerson(myName || 'မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
     player.g.position.set(0, 0, 4);
     const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
     // V5.0: spread the 5 AI hiders across rooms (round-robin, one room gets 2).
@@ -2795,7 +2803,7 @@ function endRound(win, title, txt) {
   roundOver = true;
   gameState = 'roundEnd';
   if (mode === 'hide' && !win) {
-    const survived = Math.round(90 - timeLeft);
+    const survived = playerCaught ? caughtSurvived : Math.round(90 - timeLeft);
     if (survived > bestHide) { bestHide = survived; localStorage.setItem('hs_best_hide', String(survived)); }
   }
   if (win) { sfx('win'); spawnConfetti(); } else sfx('caught');
@@ -2863,6 +2871,19 @@ function seekerCanSee() {
   if (losBlocked(sx, sz, px, pz)) return false;
   return true;
 }
+// V6.1: caught in solo Hide = spectate, NOT round over. The player
+// freezes (❌ tag, caught pill), the seeker patrols on, and the round
+// only ends when the 90s timer runs out (Zaw 2026-11-08).
+function catchPlayerSolo() {
+  if (playerCaught) return;
+  playerCaught = true;
+  caughtSurvived = Math.round(90 - timeLeft);
+  if (player.insideWardrobe) ejectFromWardrobe(player);
+  player.hidden = false;
+  player.tag.visible = true;
+  setTagText(player, (myName || 'မင်း') + ' ❌');
+  sfx('caught');
+}
 function seekerCheckWardrobe() {
   const w = seeker.checkW;
   seeker.checkW = null;
@@ -2871,7 +2892,7 @@ function seekerCheckWardrobe() {
   if (w.target === 1) return;
   w.target = 1;
   if (w.inside === player) {
-    endRound(false, 'မိသွားပြီ!', 'ရှာသူက ဗီရိုထဲက မင်းကို ရှာတွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
+    catchPlayerSolo();
   }
 }
 function updateSeeker(dt, timeDt) {
@@ -2882,13 +2903,13 @@ function updateSeeker(dt, timeDt) {
   }
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  if (seekerCanSee()) {
+  if (!playerCaught && seekerCanSee()) {
     chaseT = 0;
     seekerMemory = null;
     seekerLoseT = 0;
     const d = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
     if (d < 2.0) {
-      endRound(false, 'မိသွားပြီ!', 'ရှာသူက မင်းကို တွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
+      catchPlayerSolo();
       return;
     }
     moveToward(seeker, px, pz, 4.0 * DIFFS[difficulty].speed, dt);
@@ -2974,13 +2995,6 @@ function updateHiders(dt, timeDt) {
 
 // ---------- HUD ----------
 function updateHUD(dt) {
-  // V6.0: HUD + joystick + buttons only show inside a round (countdown /
-  // playing). On the menu/lobby they showed through the transparent menu
-  // and cluttered it (Zaw 2026-11-08).
-  const inGameUI = gameState === 'countdown' || gameState === 'playing';
-  $('hud').style.display = inGameUI ? '' : 'none';
-  $('joy').style.display = inGameUI ? '' : 'none';
-  $('btns').style.display = inGameUI ? '' : 'none';
   // Role pill colour (V6.0).
   const isSeek = mode === 'seek' || (mode === 'online' && netRole === 'seeker');
   const isHide = mode === 'hide' || (mode === 'online' && netRole === 'hider');
@@ -3044,6 +3058,15 @@ function updateHUD(dt) {
   else if (mode === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/5';
   else scorePill.textContent = 'ပုန်းတမ်း';
   scorePill.classList.toggle('count', mode === 'seek');
+  // V6.1: caught in solo Hide — spectate until the timer ends.
+  if (mode === 'hide' && playerCaught) {
+    scorePill.textContent = '😢 မိသွားပြီ';
+    $('caughtPill').style.display = 'block';
+    $('joy').style.display = 'none';
+    $('btns').style.display = 'none';
+  } else {
+    $('caughtPill').style.display = 'none';
+  }
   nearestSpot = null;
   nearestWardrobe = null;
   if (mode === 'hide' && player && !player.hidden && !player.insideWardrobe) {
@@ -3092,6 +3115,15 @@ function animate() {
   const rawDt = clock.getDelta();
   const dt = Math.min(rawDt, 0.1);
   const timeDt = Math.min(rawDt, 1.0);
+  // V6.1: HUD + joystick + buttons + hint only show inside a round.
+  // (V6.0 put this in updateHUD, but updateHUD only runs in
+  // countdown/playing — so it never hid them on the menu. Zaw's video
+  // + the browser check both caught it.)
+  const inGameUI = gameState === 'countdown' || gameState === 'playing';
+  $('hud').style.display = inGameUI ? '' : 'none';
+  $('joy').style.display = inGameUI ? '' : 'none';
+  $('btns').style.display = inGameUI ? '' : 'none';
+  $('hint').style.display = inGameUI ? '' : 'none';
   if (gameState === 'menu' || gameState === 'loading' || gameState === 'lobby') {
     menuAngle += dt * 0.12;
     camera.position.set(Math.sin(menuAngle) * 14, 7, Math.cos(menuAngle) * 14);
@@ -3112,7 +3144,10 @@ function animate() {
       timeLeft -= timeDt;
       if (timeLeft <= 0) {
         timeLeft = 0;
-        if (mode === 'hide') endRound(true, 'မတွေ့အောင် ပုန်းနိုင်ခဲ့ပြီ!', '၉၀ စက္ကန့် ပုန်းနိုင်ခဲ့တယ်!');
+        if (mode === 'hide') {
+          if (playerCaught) endRound(false, 'မိသွားပြီ!', 'ရှာသူက ' + (myName || 'မင်း') + 'ကို တွေ့သွားတယ်။ ' + caughtSurvived + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
+          else endRound(true, 'မတွေ့အောင် ပုန်းနိုင်ခဲ့ပြီ!', '၉၀ စက္ကန့် ပုန်းနိုင်ခဲ့တယ်!');
+        }
         else if (mode === 'seek') endRound(false, 'အချိန်ကုန်သွားပြီ', 'တွေ့တာ ' + foundCount + '/5 ပဲ။');
       }
     }
@@ -3786,9 +3821,12 @@ function refreshSettingsUI() {
   $('setQualityBtn').textContent = quality === 'low' ? '🎨 ရုပ်ထွက်: သက်သာ' : '🎨 ရုပ်ထွက်: အကောင်း';
   $('setDiffBtn').textContent = '🎯 အခက်အခဲ: ' + DIFFS[difficulty].label;
   $('setName').value = myName || '';
+  // V6.1: name can only be entered BEFORE a round starts (Zaw) — the
+  // input is locked while a round is running.
+  $('setName').disabled = gameState === 'countdown' || gameState === 'playing';
 }
-$('cornerSetBtn').addEventListener('click', () => { refreshSettingsUI(); $('settings').style.display = 'flex'; });
-$('setCloseBtn').addEventListener('click', () => { $('settings').style.display = 'none'; });
+$('cornerSetBtn').addEventListener('click', () => { refreshSettingsUI(); $('settings').style.display = 'flex'; $('cornerSetBtn').style.display = 'none'; });
+$('setCloseBtn').addEventListener('click', () => { $('settings').style.display = 'none'; $('cornerSetBtn').style.display = ''; });
 $('setSoundBtn').addEventListener('click', () => {
   muted = !muted;
   localStorage.setItem('hs_muted', muted ? '1' : '0');
