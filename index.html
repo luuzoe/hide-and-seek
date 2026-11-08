@@ -46,7 +46,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .menuRow{display:flex;gap:8px}
 .menuRow .ghostBtn{flex:1}
 #howto .card{text-align:left}
-@media (orientation:landscape) and (max-height:520px){
+@media (orientation:landscape){
   #start .card{max-width:660px;padding:14px 18px}
   #start .card h1{font-size:22px}
   .modeRow{display:flex;gap:10px}
@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.0</p>
+    <p class="ver">Hide &amp; Seek • V3.1</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -239,6 +239,9 @@ let warnT = 0;
 let seekerMemory = null;
 let seekerLoseT = 0;
 let chaseT = 0;
+const DBG = location.search.includes('dbg=1');
+let dbgEl = null;
+if (DBG) { dbgEl = document.createElement('div'); dbgEl.style.cssText = 'position:fixed;left:6px;top:6px;z-index:99;background:rgba(0,60,0,.85);color:#7f7;font:11px monospace;padding:4px 6px;border-radius:6px;white-space:pre'; document.body.appendChild(dbgEl); }
 const keys = {};
 const joy = { active: false, x: 0, y: 0, id: null };
 let dragId = null;
@@ -453,7 +456,7 @@ const MAT = {
   grey: new THREE.MeshLambertMaterial({ color: 0x9e9e9e }),
   darkgreen2: new THREE.MeshLambertMaterial({ color: 0x4e8f3a }),
   stem: new THREE.MeshLambertMaterial({ color: 0x2e7d32 }),
-  cloud: new THREE.MeshLambertMaterial({ color: 0xffffff, fog: false }),
+  cloud: new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }),
 };
 const SHIRT = [
   { hex: 0x4caf50, css: '#4caf50' },
@@ -832,8 +835,8 @@ function buildMap(idx) {
     const s3 = new THREE.Mesh(decoGeos.cloudC, MAT.cloud);
     s3.position.set(-2.1, 0.3, -0.2);
     cl.add(s1); cl.add(s2); cl.add(s3);
-    cl.position.set((rng() * 2 - 1) * 48, 13 + rng() * 5, (rng() * 2 - 1) * 48);
-    cl.scale.setScalar(2.2 + rng() * 1.2);
+    cl.position.set((rng() * 2 - 1) * 48, 22 + rng() * 6, (rng() * 2 - 1) * 48);
+    cl.scale.setScalar(1.1 + rng() * 0.7);
     worldGroup.add(cl);
   }
   for (let i = 0; i < def.flowers; i++) {
@@ -1491,6 +1494,11 @@ function animate() {
       for (const p of people) updatePersonAnim(p, dt);
       updateHUD(timeDt);
     }
+  }
+  if (DBG && dbgEl) {
+    const s = seeker;
+    dbgEl.textContent = 'state=' + gameState + ' mode=' + mode + ' t=' + timeLeft.toFixed(1) + ' fps=' + (1 / Math.max(rawDt, 0.001)).toFixed(1) + '\nseeker=' + (s ? s.g.position.x.toFixed(1) + ',' + s.g.position.z.toFixed(1) : '-') + ' tgt=' + (s && s.target ? s.target.x.toFixed(1) + ',' + s.target.z.toFixed(1) : '-') + ' mem=' + (seekerMemory ? seekerMemory.x.toFixed(1) + ',' + seekerMemory.z.toFixed(1) : '-') + ' lose=' + seekerLoseT.toFixed(1) + ' wait=' + (s ? s.waitT.toFixed(1) : '-') + ' mv=' + (s ? s.moving : '-');
+    window.__hsDbg = { state: gameState, mode: mode, timeLeft: timeLeft, fps: 1 / Math.max(rawDt, 0.001), sx: s ? s.g.position.x : null, sz: s ? s.g.position.z : null, tgt: s ? s.target : null, mem: seekerMemory, loseT: seekerLoseT, waitT: s ? s.waitT : null, moving: s ? s.moving : null };
   }
   updateConfetti(dt);
   renderer.render(scene, camera);
