@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V2.5</p>
+    <p class="ver">Hide &amp; Seek • V2.6</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -623,8 +623,8 @@ function buildMap(idx) {
     const s3 = new THREE.Mesh(decoGeos.cloudC, decoMats.cloud);
     s3.position.set(-2.1, 0.3, -0.2);
     cl.add(s1); cl.add(s2); cl.add(s3);
-    cl.position.set((rng() * 2 - 1) * 35, 20 + rng() * 6, (rng() * 2 - 1) * 35);
-    cl.scale.setScalar(1.2 + rng() * 1.0);
+    cl.position.set((rng() * 2 - 1) * 48, 13 + rng() * 5, (rng() * 2 - 1) * 48);
+    cl.scale.setScalar(2.2 + rng() * 1.2);
     worldGroup.add(cl);
   }
   for (let i = 0; i < 12; i++) {
@@ -1264,6 +1264,7 @@ function updateSeeker(dt, timeDt) {
   if (seekerCanSee()) {
     chaseT = 0;
     seekerMemory = null;
+    seekerLoseT = 0;
     const d = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
     if (d < 2.0) {
       endRound(false, 'မိသွားပြီ!', 'ရှာသူက မင်းကို တွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
@@ -1274,8 +1275,15 @@ function updateSeeker(dt, timeDt) {
     return;
   }
   chaseT += timeDt;
+  // just lost sight while close — remember the player's last position
+  const dNow = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
+  if (!seekerMemory && chaseT < 1.0 && dNow < 12) seekerMemory = { x: px, z: pz };
   if (seekerMemory) {
-    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.4, dt)) seekerMemory = null;
+    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.4, dt)) { seekerMemory = null; seekerLoseT = 0; }
+    else {
+      seekerLoseT += timeDt;
+      if (seekerLoseT > 5) { seekerMemory = null; seekerLoseT = 0; }
+    }
     return;
   }
   if (!seeker.target && seeker.waitT <= 0) {
@@ -1291,6 +1299,7 @@ function updateSeeker(dt, timeDt) {
     } else {
       seeker.target = { x: Math.random() * 40 - 20, z: Math.random() * 40 - 20 };
     }
+    seekerLoseT = 0;
   }
   if (seeker.waitT > 0) {
     seeker.waitT -= timeDt;
@@ -1301,6 +1310,11 @@ function updateSeeker(dt, timeDt) {
   if (moveToward(seeker, seeker.target.x, seeker.target.z, 3.0, dt)) {
     seeker.target = null;
     seeker.waitT = 1.0;
+    seekerLoseT = 0;
+  } else {
+    // stuck against a collider — drop the unreachable target and try elsewhere
+    seekerLoseT += timeDt;
+    if (seekerLoseT > 4) { seeker.target = null; seeker.waitT = 0.5; seekerLoseT = 0; }
   }
 }
 
