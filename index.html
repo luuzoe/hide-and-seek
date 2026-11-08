@@ -103,6 +103,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <canvas id="game"></canvas>
 <div id="hud">
   <div class="pill" id="modePill">ပုန်းတမ်း</div>
+  <div class="pill" id="mapPill">🗺️</div>
   <div class="pill">⏱ <b id="timePill">0:00</b></div>
   <div class="pill" id="scorePill">ပုန်းတမ်း</div>
 </div>
@@ -279,6 +280,7 @@ const $ = (id) => document.getElementById(id);
 const timePill = $('timePill');
 const scorePill = $('scorePill');
 const modePill = $('modePill');
+const mapPill = $('mapPill');
 const warnEl = $('warn');
 const loadEl = $('load');
 const loadFill = $('loadFill');
@@ -934,6 +936,7 @@ function mulberry32(a) {
 function buildMap(idx) {
   const def = MAPS[idx];
   currentMapIdx = idx;
+  mapPill.textContent = def.icon + ' ' + def.name;
   while (worldGroup.children.length) worldGroup.remove(worldGroup.children[0]);
   colliders.length = 0;
   hideSpots.length = 0;
