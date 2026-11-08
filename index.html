@@ -140,7 +140,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.6</p>
+    <p class="ver">Hide &amp; Seek • V3.7</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -788,9 +788,9 @@ function makeBlackboard() {
   const g = new THREE.Group();
   const board = new THREE.Mesh(unitBox, MAT.darkgreen);
   board.scale.set(2.6, 1.5, 0.12);
-  board.position.y = 1.5;
+  board.position.y = 1.0;
   g.add(board);
-  for (const ry of [2.3, 0.75]) {
+  for (const ry of [1.7, 0.3]) {
     const rail = new THREE.Mesh(unitBox, MAT.trunk);
     rail.scale.set(2.7, 0.1, 0.14);
     rail.position.set(0, ry, 0);
@@ -798,13 +798,13 @@ function makeBlackboard() {
   }
   for (const lx of [-1.1, 1.1]) {
     const leg = new THREE.Mesh(unitBox, MAT.trunk);
-    leg.scale.set(0.12, 1.0, 0.12);
-    leg.position.set(lx, 0.5, 0);
+    leg.scale.set(0.12, 0.5, 0.12);
+    leg.position.set(lx, 0.25, 0);
     g.add(leg);
   }
   const tray = new THREE.Mesh(unitBox, MAT.whitePure);
   tray.scale.set(2.4, 0.06, 0.2);
-  tray.position.set(0, 0.78, 0.1);
+  tray.position.set(0, 0.28, 0.1);
   g.add(tray);
   return g;
 }
@@ -827,17 +827,17 @@ function makeTrolley(c) {
 // Furniture spec: footprint (w x d, local +z faces forward), size class, hide-spot label.
 const FURN = {
   bed: { w: 2.2, d: 3.4, big: true, label: 'ကုတင်နောက်', make: (c) => makeBed(c) },
-  wardrobe: { w: 2.4, d: 1.0, big: true, label: 'ဗီရိုနောက်', make: (c) => makeWardrobe(c) },
+  wardrobe: { w: 2.4, d: 1.0, big: true, tall: true, label: 'ဗီရိုနောက်', make: (c) => makeWardrobe(c) },
   sofa: { w: 2.6, d: 1.1, big: false, label: 'ဆိုဖာနောက်', make: (c) => makeSofa(c) },
   desk: { w: 2.0, d: 1.0, big: false, label: 'စားပွဲနောက်', make: (c) => makeDesk(c) },
   table: { w: 2.2, d: 1.2, big: false, label: 'စားပွဲနောက်', make: (c) => makeTable(c) },
   chair: { w: 0.7, d: 0.7, big: false, small: true, label: 'ထိုင်ခုံနောက်', make: (c) => makeChair(c) },
-  shelf: { w: 2.2, d: 0.8, big: true, label: 'စာအုပ်စင်နောက်', make: (c) => makeShelf(c) },
+  shelf: { w: 2.2, d: 0.8, big: true, tall: true, label: 'စာအုပ်စင်နောက်', make: (c) => makeShelf(c) },
   crate: { w: 1.2, d: 1.2, big: false, small: true, label: 'သေတ္တာနောက်', make: (c) => makeCrate(c) },
   counter: { w: 2.6, d: 1.0, big: false, label: 'ကောင်တာနောက်', make: (c) => makeCounter(c) },
   hospitalBed: { w: 2.2, d: 1.0, big: true, label: 'ကုတင်နောက်', make: () => makeHospitalBed() },
-  curtain: { w: 2.0, d: 0.3, big: true, label: 'လိုက်ကာနောက်', make: (c) => makeCurtain(c) },
-  blackboard: { w: 2.6, d: 0.3, big: true, label: 'ဘုတ်နောက်', make: () => makeBlackboard() },
+  curtain: { w: 2.0, d: 0.3, big: true, tall: true, label: 'လိုက်ကာနောက်', make: (c) => makeCurtain(c) },
+  blackboard: { w: 2.6, d: 0.3, big: true, tall: true, label: 'ဘုတ်နောက်', make: () => makeBlackboard() },
   trolley: { w: 1.2, d: 0.7, big: false, label: 'တွန်းလှည်းနောက်', make: (c) => makeTrolley(c) },
 };
 const FURN_COLORS = ['pink', 'yellow', 'blue', 'mint', 'orange', 'red', 'white', 'purple', 'teal'];
@@ -864,6 +864,7 @@ const MAPS = [
       ['bed', -21, 21, 3.14, 'pink'], ['chair', -9, 15, 1.57, 'blue'], ['curtain', -15, 9, 0, 'red'],
       ['table', 15, 15, 0, 'orange'], ['wardrobe', 21, 9, -1.57, 'blue'], ['sofa', 9, 21, 0, 'mint'],
       ['desk', 15, 21, 1.57, 'yellow'], ['curtain', 21, 15, 0, 'pink'],
+      ['wardrobe', -24, -24, 0, 'teal'], ['shelf', 6, -24, 0, 'red'], ['curtain', 6, 12, 0, 'yellow'],
     ] },
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
@@ -877,6 +878,7 @@ const MAPS = [
       ['table', -15, 9, 0, 'blue'], ['chair', -21, 9, -1.57, 'purple'], ['shelf', -9, 15, 0, 'pink'],
       ['sofa', 15, 9, 0, 'orange'], ['desk', 9, 15, 1.57, 'blue'], ['wardrobe', 21, 21, 0, 'mint'],
       ['table', 21, 15, 0, 'yellow'], ['curtain', 9, 21, 0, 'teal'],
+      ['wardrobe', -24, 24, 0, 'red'], ['shelf', 6, -24, 0, 'mint'], ['curtain', -12, -12, 0, 'teal'],
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[0, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
@@ -892,6 +894,8 @@ const MAPS = [
       ['chair', -15, 18, 0, 'red'], ['shelf', -9, 15, 0, 'mint'], ['table', -9, 9, 0, 'orange'],
       ['desk', 21, 15, 0, 'yellow'], ['chair', 21, 18, 0, 'blue'], ['desk', 15, 21, 0, 'mint'],
       ['chair', 15, 18, 0, 'pink'], ['blackboard', 9, 21, 3.14, ''], ['counter', 21, 9, 1.57, 'white'],
+      ['shelf', -24, 6, 1.57, 'yellow'], ['blackboard', -12, 24, 0, ''], ['shelf', 18, 24, 0, 'blue'],
+      ['blackboard', 24, -6, 1.57, ''], ['shelf', -6, -12, 0, 'pink'],
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
@@ -905,6 +909,8 @@ const MAPS = [
       ['counter', -21, 21, 0, 'white'], ['chair', -9, 15, 0, 'pink'], ['bed', -15, 9, 0, 'blue'],
       ['hospitalBed', 21, 9, -1.57, ''], ['curtain', 15, 15, 0, 'blue'], ['trolley', 9, 21, 0, 'teal'],
       ['counter', 15, 21, 0, 'white'], ['chair', 21, 15, 0, 'yellow'], ['crate', 21, 21, 0, ''],
+      ['curtain', -24, 6, 1.57, 'yellow'], ['shelf', -12, -24, 0, 'pink'], ['curtain', 6, -18, 0, 'mint'],
+      ['shelf', -6, 12, 0, 'teal'], ['curtain', 24, -12, 1.57, 'blue'],
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-15, 0, 8, 5, 'red'], [15, 0, 8, 5, 'blue'], [0, 15, 8, 5, 'mint']],
@@ -920,6 +926,7 @@ const MAPS = [
       ['chair', -9, 18, 0, 'teal'], ['table', -21, 9, 0, 'yellow'], ['shelf', -15, 9, 0, 'orange'],
       ['shelf', 21, 15, -1.57, 'pink'], ['shelf', 15, 21, 0, 'mint'], ['desk', 9, 15, 0, 'red'],
       ['chair', 9, 18, 0, 'blue'], ['table', 21, 9, 0, 'purple'], ['counter', 15, 9, 0, 'white'],
+      ['shelf', -6, -6, 0, 'purple'], ['shelf', 6, 6, 0, 'yellow'],
     ] },
 ];
 const worldGroup = new THREE.Group();
@@ -991,8 +998,11 @@ function buildMap(idx) {
   };
   const scatterOne = (kind) => { for (let g = 0; g < 80; g++) { const x = (srng() * 2 - 1) * 23, z = (srng() * 2 - 1) * 23; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
   const ROTS = [0, 1.57, 3.14, -1.57];
+  const tallKinds = def.palette.filter((k) => FURN[k].tall);
   for (let i = 0; i < 14; i++) {
-    const kind = def.palette[Math.floor(srng() * def.palette.length)];
+    const kind = (tallKinds.length && srng() < 0.5)
+      ? tallKinds[Math.floor(srng() * tallKinds.length)]
+      : def.palette[Math.floor(srng() * def.palette.length)];
     const p = scatterOne(kind);
     if (!p) continue;
     const c = FURN_COLORS[Math.floor(srng() * FURN_COLORS.length)];
@@ -1008,18 +1018,16 @@ function buildMap(idx) {
     g.rotation.y = rot;
     worldGroup.add(g);
   }
+  // Hide spots: TALL furniture only, BEHIND only — a 0.9m chibi (0.63m crouched)
+  // is genuinely concealed only behind a 2.4m+ piece, tucked tight against it.
   for (const f of allFurniture) {
     const spec = FURN[f.kind];
+    if (!spec.tall) continue;
     const rot = f.rot || 0;
     const s = Math.sin(rot), c = Math.cos(rot);
-    const behindX = f.x - s * (spec.d / 2 + 1.0);
-    const behindZ = f.z - c * (spec.d / 2 + 1.0);
+    const behindX = f.x - s * (spec.d / 2 + 0.45);
+    const behindZ = f.z - c * (spec.d / 2 + 0.45);
     hideSpots.push({ x: Math.round(behindX * 10) / 10, z: Math.round(behindZ * 10) / 10, label: spec.label, taken: false });
-    if (!spec.small) {
-      const sideX = f.x + c * (spec.w / 2 + 1.0);
-      const sideZ = f.z - s * (spec.w / 2 + 1.0);
-      hideSpots.push({ x: Math.round(sideX * 10) / 10, z: Math.round(sideZ * 10) / 10, label: spec.label, taken: false });
-    }
   }
   ground.material.color.setHex(def.floor);
   scene.background.setHex(def.sky);
@@ -1226,6 +1234,7 @@ function playerMoveInput(dt) {
     if (netFound[myPeerId]) { player.moving = false; setClip(player, 'idle'); return; }
     if (netRole === 'seeker' && netPhase === 'hide') { player.moving = false; setClip(player, 'idle'); return; }
   }
+  if (mode === 'seek' && gameState === 'countdown') { player.moving = false; setClip(player, 'idle'); return; }
   let ix = joy.x;
   let iy = joy.y;
   if (keys['w'] || keys['arrowup']) iy -= 1;
@@ -1263,7 +1272,7 @@ function updateCamera(dt) {
   if (!player) return;
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  const dist = window.innerWidth < window.innerHeight ? 7 : 4.5;
+  const dist = window.innerWidth < window.innerHeight ? 5.5 : 3.5;
   const h = 2.4 + camPitch * 3.0;
   const cx = px + Math.sin(camYaw) * dist;
   const cz = pz + Math.cos(camYaw) * dist;
@@ -1286,7 +1295,7 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camera.position.set(player.g.position.x, 2.6, player.g.position.z + 5.0);
+  camera.position.set(player.g.position.x, 2.2, player.g.position.z + 4.0);
   camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
 }
 function tryLandscape() {
@@ -1345,8 +1354,11 @@ function startMode(m) {
       hiders.push(h);
     });
     timeLeft = 120;
-    gameState = 'playing';
+    countT = 60;
+    gameState = 'countdown';
     modePill.textContent = '🔍 ရှာသူ';
+    $('eyes').style.display = 'flex';
+    $('eyesNum').textContent = '60';
     showWarn('🔍 ၅ ယောက် ပုန်းနေပြီ!', 2.5);
   }
   snapCameraBehind();
@@ -1573,6 +1585,7 @@ function updateHUD(dt) {
     return;
   }
   if (gameState === 'countdown') timePill.textContent = 'ရေတွက် ' + Math.max(0, Math.ceil(countT));
+  if (gameState === 'countdown' && mode === 'seek') $('eyesNum').textContent = Math.max(0, Math.ceil(countT));
   else timePill.textContent = fmtTime(timeLeft);
   const cn = $('countNum');
   if (gameState === 'countdown' && mode === 'hide') { cn.style.display = 'block'; cn.textContent = Math.max(0, Math.ceil(countT)); } else cn.style.display = 'none';
@@ -1618,7 +1631,8 @@ function animate() {
       if (countT <= 0) {
         gameState = 'playing';
         sfx('go');
-        showWarn('🔍 ရှာသူ လာရှာပြီ!', 1.2);
+        if (mode === 'seek') { $('eyes').style.display = 'none'; showWarn('🔍 စရှာပြီ!', 1.2); }
+        else showWarn('🔍 ရှာသူ လာရှာပြီ!', 1.2);
         if (mode === 'hide' && seeker) seekerMemory = { x: player.g.position.x, z: player.g.position.z };
       }
     } else if (mode !== 'online') {
@@ -1637,7 +1651,7 @@ function animate() {
         if (mode === 'online') updateNet(mdt, mdt);
         else {
           if (mode === 'hide' && seeker) updateSeeker(mdt, mdt);
-          if (mode === 'seek') updateHiders(mdt, mdt);
+          if (mode === 'seek' && gameState === 'playing') updateHiders(mdt, mdt);
         }
         if (roundOver) break;
       }
