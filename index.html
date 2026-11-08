@@ -97,7 +97,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media(max-width:700px){#hint{display:none}}
 </style>
 <script src="./js/peerjs.min.js"></script>
-<script type="importmap">{"imports":{"three":"./js/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"./js/three.module.js","three/addons/":"./js/addons/"}}</script>
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -140,7 +140,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.7</p>
+    <p class="ver">Hide &amp; Seek • V3.8</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -162,6 +162,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
+    <p>🎨 Characters (CC-BY) — Chibi Boy: Leon Nygaard; Max: varunpatel899; Mack: TikkiToon; Anime + Green: sonbeo131.</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
@@ -219,6 +220,7 @@ setTimeout(function () {
 </script>
 <script type="module">
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // ---------- state (all declared before any use) ----------
 const BOUND = 26;
@@ -481,6 +483,42 @@ const decoGeos = {
   patch: new THREE.CircleGeometry(2.2, 12),
 };
 
+// ---------- Sketchfab characters (CC-BY, credits in the How-to overlay) ----------
+// 5 GLB models, preloaded at boot; each person uses one slot. If a GLB is not
+// loaded yet (or fails to load), the person falls back to the code-built chibi,
+// so a character is never broken or missing. Normalised to ~0.9m tall at runtime.
+const MODELS = [
+  { url: 'models/boy.glb', name: 'Chibi Boy', author: 'Leon Nygaard' },
+  { url: 'models/max.glb', name: 'Max', author: 'varunpatel899' },
+  { url: 'models/mack.glb', name: 'Mack', author: 'TikkiToon' },
+  { url: 'models/anime.glb', name: 'Anime Chibi', author: 'sonbeo131' },
+  { url: 'models/green.glb', name: 'Green-haired Chibi', author: 'sonbeo131' },
+];
+const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null }));
+function normalizeModel(src) {
+  const box = new THREE.Box3().setFromObject(src);
+  const h = Math.max(0.01, box.max.y - box.min.y);
+  const s = 0.9 / h;
+  const inner = new THREE.Group();
+  inner.scale.setScalar(s);
+  src.position.set(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2);
+  inner.add(src);
+  const wrap = new THREE.Group();
+  wrap.add(inner);
+  return wrap;
+}
+function preloadModels() {
+  const loader = new GLTFLoader();
+  MODELS.forEach((m, i) => {
+    loader.load(m.url, (gltf) => {
+      MODEL_CACHE[i] = { state: 'ok', scene: gltf.scene };
+    }, undefined, () => {
+      MODEL_CACHE[i] = { state: 'fail', scene: null };
+    });
+  });
+}
+preloadModels();
+
 // ---------- cute chibi character (primitives only, ~0.9m tall) ----------
 function makeChibi(colorHex, colorCss) {
   const bodyG = new THREE.Group();
@@ -531,7 +569,7 @@ function makeChibi(colorHex, colorCss) {
   bodyG.add(legR);
   return { bodyG, armL, armR };
 }
-function makePerson(name, colorHex, colorCss) {
+function makePerson(name, colorHex, colorCss, modelIdx) {
   const g = new THREE.Group();
   g.position.set(0, 0, 4);
   scene.add(g);
@@ -542,10 +580,18 @@ function makePerson(name, colorHex, colorCss) {
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.03;
   g.add(ring);
-  const chibi = makeChibi(colorHex, colorCss);
-  g.add(chibi.bodyG);
+  const slot = ((modelIdx === undefined ? people.length : modelIdx) % MODELS.length + MODELS.length) % MODELS.length;
+  const cache = MODEL_CACHE[slot];
+  let bodyG, armL = null, armR = null;
+  if (cache.state === 'ok') {
+    bodyG = normalizeModel(cache.scene.clone(true));
+  } else {
+    const chibi = makeChibi(colorHex, colorCss);
+    bodyG = chibi.bodyG; armL = chibi.armL; armR = chibi.armR;
+  }
+  g.add(bodyG);
   const p = {
-    g, tag, ring, bodyG: chibi.bodyG, armL: chibi.armL, armR: chibi.armR, name, colorHex,
+    g, tag, ring, bodyG, armL, armR, name, colorHex,
     moving: false, crouched: false, hidden: false,
     heading: 0, homeSpot: null, state: 'idle', target: null, waitT: 0,
     giggleT: 6 + Math.random() * 8, found: false, isSeeker: false,
@@ -566,13 +612,13 @@ function updatePersonAnim(p, dt) {
     p.bobT += dt * 11;
     p.bodyG.position.y = Math.abs(Math.sin(p.bobT)) * 0.06;
     p.bodyG.rotation.x = 0.1;
-    p.armL.rotation.x = Math.sin(p.bobT) * 0.7;
-    p.armR.rotation.x = -Math.sin(p.bobT) * 0.7;
+    if (p.armL) p.armL.rotation.x = Math.sin(p.bobT) * 0.7;
+    if (p.armR) p.armR.rotation.x = -Math.sin(p.bobT) * 0.7;
   } else {
     p.bodyG.position.y = Math.sin(elapsed * 2 + p.bobT) * 0.015;
     p.bodyG.rotation.x = 0;
-    p.armL.rotation.x *= 0.9;
-    p.armR.rotation.x *= 0.9;
+    if (p.armL) p.armL.rotation.x *= 0.9;
+    if (p.armR) p.armR.rotation.x *= 0.9;
   }
 }
 
@@ -1327,9 +1373,9 @@ function startMode(m) {
   endEl.style.display = 'none';
   if (!audioCtx) sfx('go');
   if (m === 'hide') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css);
+    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 0);
     player.g.position.set(0, 0, 9);
-    seeker = makePerson('ရှာသူ', 0xe53935, '#e53935');
+    seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
     seeker.g.position.set(0, 0, -24);
     seeker.isSeeker = true;
     seeker.heading = Math.PI;
@@ -1340,13 +1386,13 @@ function startMode(m) {
     modePill.textContent = '🙈 ပုန်းသူ';
     showWarn('🔍 ရှာသူ ရေတွက်နေတယ်!', 2.5);
   } else if (m === 'seek') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css);
+    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 1);
     player.g.position.set(0, 0, 4);
     const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
     const spots = [...hideSpots].sort(() => Math.random() - 0.5).slice(0, 5);
     names.forEach((nm, i) => {
       const c = SHIRT[(i + 1) % SHIRT.length];
-      const h = makePerson(nm, c.hex, c.css);
+      const h = makePerson(nm, c.hex, c.css, (i + 2) % MODELS.length);
       h.g.position.set(spots[i].x, 0, spots[i].z);
       h.homeSpot = spots[i];
       spots[i].taken = true;
@@ -1955,7 +2001,7 @@ function netBeginRound() {
   netRole = (myPeerId === netSeekerId) ? 'seeker' : 'hider';
   const myIdx = Math.max(0, netPlayers.findIndex((p) => p.id === myPeerId));
   const myC = netColor(netPlayers[myIdx] ? netPlayers[myIdx].colorIdx : myColorIdx);
-  player = makePerson(myName || 'မင်း', myC.hex, myC.css);
+  player = makePerson(myName || 'မင်း', myC.hex, myC.css, myIdx % MODELS.length);
   const hiderSpots = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2]];
   if (netRole === 'seeker') {
     player.g.position.set(0, 0, -24);
@@ -1968,7 +2014,7 @@ function netBeginRound() {
   netPlayers.forEach((p, i) => {
     if (p.id === myPeerId) return;
     const c = netColor(p.colorIdx);
-    const rp = makePerson(p.name, c.hex, c.css);
+    const rp = makePerson(p.name, c.hex, c.css, i % MODELS.length);
     if (p.id === netSeekerId) {
       rp.g.position.set(0, 0, -24);
       rp.heading = Math.PI;
