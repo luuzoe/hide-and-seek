@@ -31,6 +31,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .pill{background:rgba(0,0,0,.5);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
 .pill b{color:var(--gold)}
 #warn{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
+#caught{position:fixed;top:104px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:10px 20px;border-radius:16px;font-size:20px;font-weight:800;z-index:12;display:none;text-align:center;max-width:92vw;box-shadow:0 6px 20px rgba(0,0,0,.45)}
 #hint{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:999px;font-size:13px;z-index:5;white-space:nowrap;pointer-events:none}
 #countNum{position:fixed;top:96px;left:50%;transform:translateX(-50%);font-size:64px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);z-index:9;pointer-events:none;opacity:.9;display:none}
 
@@ -150,8 +151,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="pill" id="mapPill">🗺️</div>
   <div class="pill">⏱ <b id="timePill">0:00</b></div>
   <div class="pill" id="scorePill">ပုန်းတမ်း</div>
+  <div class="pill" id="caughtPill" style="display:none;background:#c62828;color:#fff">😢 မိသွားပြီ — စောင့်နေ</div>
 </div>
 <div id="warn"></div>
+<div id="caught"></div>
 <div id="countNum">60</div>
 <div id="hint">Joystick နဲ့ လမ်း — ညာဘက်ကို ပွတ်ပြီး ကင်မရာ လှည့်</div>
 <button id="fsBtn" title="fullscreen">⛶</button>
@@ -184,7 +187,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.7</p>
+    <p class="ver">Hide &amp; Seek • V5.8</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -205,6 +208,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>🙈 <b>ပုန်းသူ</b> — ၉၀ စက္ကန့် မတွေ့အောင် ပုန်း။</p>
     <p>🔍 <b>ရှာသူ</b> — ပုန်းနေတဲ့ ၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ။</p>
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
+    <p>❌ <b>မိသွားရင်</b> — ခေါင်းပေါ် ❌ ပေါ်ပြီး လှုပ်မရတော့ဘူး၊ ရှာသူ တွေ့တာ ဘယ်နှယောက်လဲ မြင်ရမယ်။ အကုန်မိရင် ပွဲပြီးမယ်။</p>
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
     <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
@@ -235,6 +239,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     </div>
     <div id="netCode" style="display:none"></div>
     <button class="ghostBtn" id="copyLinkBtn" style="display:none">🔗 လင့်ခ်ကူးမယ်</button>
+    <button class="bigBtn" id="inviteBtn" style="background:#ef6c00">📩 သူငယ်ချင်းကို ဖိတ်မယ်</button>
     <div id="netList"></div>
     <p id="netStatus"></p>
     <button class="bigBtn" id="netStartBtn" style="display:none">▶️ စဆော့မယ်</button>
@@ -307,6 +312,8 @@ let hiders = [];
 let lastNoiseT = 0;
 let giggleT = 8;
 let warnT = 0;
+let caughtT = 0;
+let invitePending = false;
 let seekerMemory = null;
 let seekerLoseT = 0;
 let chaseT = 0;
@@ -337,6 +344,7 @@ const scorePill = $('scorePill');
 const modePill = $('modePill');
 const mapPill = $('mapPill');
 const warnEl = $('warn');
+const caughtEl = $('caught');
 const loadEl = $('load');
 const loadFill = $('loadFill');
 const loadTxt = $('loadTxt');
@@ -376,6 +384,23 @@ function showWarn(txt, secs) {
   warnEl.textContent = txt;
   warnEl.style.display = 'block';
   warnT = secs || 1.6;
+}
+function showCaught(txt) {
+  caughtEl.textContent = txt;
+  caughtEl.style.display = 'block';
+  caughtT = 3;
+}
+function setTagText(p, txt) {
+  if (!p || !p.tag) return;
+  try {
+    const nt = nameSprite(txt, p.colorCss || '#ffffff');
+    nt.position.y = 1.04;
+    p.g.remove(p.tag);
+    if (p.tag.material && p.tag.material.map) p.tag.material.map.dispose();
+    if (p.tag.material) p.tag.material.dispose();
+    p.tag = nt;
+    p.g.add(nt);
+  } catch (e) {}
 }
 function fmtTime(s) {
   s = Math.max(0, Math.ceil(s));
@@ -438,6 +463,29 @@ function woodTexture() {
     }
   });
 }
+function floorTexture(baseHex) {
+  return canvasTex(512, (g, s) => {
+    g.fillStyle = baseHex;
+    g.fillRect(0, 0, s, s);
+    for (let ty = 0; ty < 8; ty++) {
+      for (let tx = 0; tx < 8; tx++) {
+        g.fillStyle = 'rgba(255,255,255,' + (((tx + ty) % 2) ? 0.05 : 0.0) + ')';
+        g.fillRect(tx * 64, ty * 64, 64, 64);
+      }
+    }
+    for (let i = 0; i < 500; i++) {
+      g.fillStyle = 'rgba(0,0,0,.05)';
+      g.fillRect(Math.random() * s, Math.random() * s, 3, 3);
+    }
+    g.strokeStyle = 'rgba(0,0,0,.16)';
+    g.lineWidth = 3;
+    for (let i = 0; i <= 8; i++) {
+      g.beginPath(); g.moveTo(i * 64, 0); g.lineTo(i * 64, s); g.stroke();
+      g.beginPath(); g.moveTo(0, i * 64); g.lineTo(s, i * 64); g.stroke();
+    }
+  });
+}
+let floorTex = null;
 function nameSprite(text, color) {
   const c = document.createElement('canvas');
   c.width = 256;
@@ -666,7 +714,7 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
   }
   g.add(bodyG);
   const p = {
-    g, tag, ring, bodyG, armL, armR, name, colorHex,
+    g, tag, ring, bodyG, armL, armR, name, colorHex, colorCss,
     mixer, clipIdle, clipWalk, clipRun, curClip: null, curAction: null,
     moving: false, crouched: false, hidden: false, insideWardrobe: null, insideSince: 0,
     heading: 0, homeSpot: null, state: 'idle', target: null, waitT: 0,
@@ -1073,7 +1121,7 @@ function roomOf(x, z) {
   return -1;
 }
 const MAPS = [
-  { name: 'တိုက်ခန်း', icon: '🏢', floor: 0xc9a06c, wall: 0xf5e6d3, sky: 0xffe8c9, fog: 0xf5d9b0,
+  { name: 'တိုက်ခန်း', icon: '🏢', floor: 0xc9a06c, wall: 0xf5e6d3, accent: 0x6d4c41, sky: 0xffe8c9, fog: 0xf5d9b0,
     rugs: [[-12, -12, 7, 5, 'red'], [12, 12, 7, 5, 'blue'], [-12, 15, 6, 4, 'mint']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
@@ -1150,7 +1198,7 @@ const MAPS = [
       ['curtain', -7, 5.5, 0, 'white'],
       ['wardrobe', 17.6, 13.1, 0, 'purple'],
     ] },
-  { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, sky: 0xffe0b2, fog: 0xf0d0a0,
+  { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, accent: 0x5d4037, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
@@ -1222,7 +1270,7 @@ const MAPS = [
       ['sofa', 7.8, 14, 0, 'blue'],
       ['chair', -13.7, -4, 0, 'red'],
     ] },
-  { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
+  { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, accent: 0x2e7d32, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[7.8, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
     palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter', 'wardrobe'],
     furniture: [
@@ -1300,7 +1348,7 @@ const MAPS = [
       ['wardrobe', -18, 17, 0, 'mint'],
       ['wardrobe', 4.5, 6.5, 0, 'yellow'],
     ] },
-  { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
+  { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, accent: 0x0277bd, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
     palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate', 'wardrobe'],
     furniture: [
@@ -1385,7 +1433,7 @@ const MAPS = [
       ['wardrobe', -18, 18, 0, 'mint'],
       ['wardrobe', 4.5, 8, 0, 'yellow'],
     ] },
-  { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
+  { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, accent: 0x6a1b9a, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-15, 5.3, 8, 5, 'red'], [15, 5.3, 8, 5, 'blue'], [6.8, 15, 8, 5, 'mint']],
     palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter', 'wardrobe'],
     furniture: [
@@ -1486,6 +1534,8 @@ function buildMap(idx) {
   hideSpots.length = 0;
   wardrobes.length = 0;
   const wallMat = new THREE.MeshLambertMaterial({ color: def.wall });
+  const skirtMat = new THREE.MeshLambertMaterial({ color: def.accent });
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x6d4c41 });
   const winMat = new THREE.MeshLambertMaterial({ color: 0xbfe3ff });
   const doorMat = new THREE.MeshLambertMaterial({ color: 0x8d6e63 });
   const wallGeoH = new THREE.BoxGeometry(41.2, 8, 0.6);
@@ -1495,6 +1545,24 @@ function buildMap(idx) {
     w.position.set(wx, 4, wz);
     worldGroup.add(w);
   }
+  for (const [sx, sz, slen, svert] of [[0, -20, 41, false], [0, 20, 41, false], [-20, 0, 41, true], [20, 0, 41, true]]) {
+    const sk = new THREE.Mesh(unitBox, skirtMat);
+    sk.scale.set(svert ? 0.12 : slen, 0.5, svert ? slen : 0.12);
+    sk.position.set(sx, 0.25, sz);
+    worldGroup.add(sk);
+  }
+  const picCols = ['red', 'blue', 'mint', 'yellow'];
+  const picSpots = [[-2.78, -16, true], [2.78, -16, true], [-2.78, 16, true], [2.78, 16, true]];
+  picSpots.forEach((ps, pi) => {
+    const fr = new THREE.Mesh(unitBox, frameMat);
+    fr.scale.set(0.1, 1.6, 2.4);
+    fr.position.set(ps[0], 2.0, ps[1]);
+    worldGroup.add(fr);
+    const inner = new THREE.Mesh(unitBox, MAT[picCols[pi]]);
+    inner.scale.set(0.12, 1.3, 2.1);
+    inner.position.set(ps[0], 2.0, ps[1]);
+    worldGroup.add(inner);
+  });
   // Interior walls: cross corridor + 4 rooms (V5.0). Each wall line is split by
   // its doorway gap; every segment gets a mesh and a box collider. Door frames
   // are visual only (lintel + side posts) so the gap stays a full 2.0m wide.
@@ -1506,6 +1574,10 @@ function buildMap(idx) {
       seg.scale.set(wl.vertical ? 0.4 : len, 3.2, wl.vertical ? len : 0.4);
       seg.position.set(wl.vertical ? wl.at : c, 1.6, wl.vertical ? c : wl.at);
       worldGroup.add(seg);
+      const sk2 = new THREE.Mesh(unitBox, skirtMat);
+      sk2.scale.set(wl.vertical ? 0.5 : len, 0.5, wl.vertical ? len : 0.5);
+      sk2.position.set(wl.vertical ? wl.at : c, 0.25, wl.vertical ? c : wl.at);
+      worldGroup.add(sk2);
       if (wl.vertical) addBoxCollider(wl.at, c, 0.2, len / 2);
       else addBoxCollider(c, wl.at, len / 2, 0.2);
     }
@@ -1654,7 +1726,14 @@ function buildMap(idx) {
     if (roomOf(behindX, behindZ) < 0) continue;
     hideSpots.push({ x: Math.round(behindX * 10) / 10, z: Math.round(behindZ * 10) / 10, label: spec.label, taken: false });
   }
-  ground.material.color.setHex(def.floor);
+  if (floorTex) floorTex.dispose();
+  floorTex = floorTexture('#' + def.floor.toString(16).padStart(6, '0'));
+  floorTex.wrapS = THREE.RepeatWrapping;
+  floorTex.wrapT = THREE.RepeatWrapping;
+  floorTex.repeat.set(6, 6);
+  ground.material.map = floorTex;
+  ground.material.color.setHex(0xffffff);
+  ground.material.needsUpdate = true;
   scene.background.setHex(def.sky);
   scene.fog.color.setHex(def.fog);
 }
@@ -2504,7 +2583,8 @@ function markHiderFound(h) {
   foundCount++;
   sfx('found');
   const total = hiders.length;
-  showWarn('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')', 1.6);
+  setTagText(h, h.name + ' ❌');
+  showCaught('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')');
   if (foundCount >= total) {
     const used = Math.round(120 - timeLeft);
     if (!bestSeek || used < bestSeek) { bestSeek = used; localStorage.setItem('hs_best_seek', String(used)); }
@@ -2762,6 +2842,19 @@ function updateHUD(dt) {
       warnT -= dt;
       if (warnT <= 0) warnEl.style.display = 'none';
     }
+    if (caughtT > 0) {
+      caughtT -= dt;
+      if (caughtT <= 0) caughtEl.style.display = 'none';
+    }
+    if (netFound[myPeerId] && netPhase === 'seek') {
+      $('caughtPill').style.display = 'block';
+      $('joy').style.display = 'none';
+      $('btns').style.display = 'none';
+    } else {
+      $('caughtPill').style.display = 'none';
+      $('joy').style.display = '';
+      $('btns').style.display = '';
+    }
     return;
   }
   if (gameState === 'countdown') timePill.textContent = 'ရေတွက် ' + Math.max(0, Math.ceil(countT));
@@ -2806,6 +2899,10 @@ function updateHUD(dt) {
   if (warnT > 0) {
     warnT -= dt;
     if (warnT <= 0) warnEl.style.display = 'none';
+  }
+  if (caughtT > 0) {
+    caughtT -= dt;
+    if (caughtT <= 0) caughtEl.style.display = 'none';
   }
 }
 
@@ -2912,6 +3009,32 @@ function randomCode() {
   return c;
 }
 function netRoomLink() { return location.origin + location.pathname + '?room=' + roomCode; }
+async function doShareInvite() {
+  if (!roomCode) {
+    invitePending = true;
+    createRoom();
+    return;
+  }
+  const link = netRoomLink();
+  const text = 'ပုန်းတမ်း တူတူဆော့ရအောင်! 🙈 ကုဒ်: ' + roomCode + ' — ' + link;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'ပုန်းတမ်း', text: text, url: link });
+      $('inviteBtn').textContent = '✅ ဖိတ်ပြီးပြီ';
+    } else {
+      await navigator.clipboard.writeText(text);
+      $('inviteBtn').textContent = '✅ လင့်ခ်ကူးပြီးပြီ — ပို့လိုက်ပါ';
+    }
+  } catch (e) {
+    try {
+      await navigator.clipboard.writeText(text);
+      $('inviteBtn').textContent = '✅ လင့်ခ်ကူးပြီးပြီ — ပို့လိုက်ပါ';
+    } catch (e2) { netStatus('လင့်ခ်: ' + link); }
+  }
+  setTimeout(() => {
+    $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 သူငယ်ချင်းကို ဖိတ်မယ်';
+  }, 3000);
+}
 function netRenderLobby() {
   const list = $('netList');
   list.innerHTML = '';
@@ -2922,6 +3045,7 @@ function netRenderLobby() {
     list.appendChild(d);
   });
   $('netStartBtn').style.display = isHost ? 'block' : 'none';
+  $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 သူငယ်ချင်းကို ဖိတ်မယ်';
   if (isHost) $('netStartBtn').textContent = '▶️ စဆော့မယ် (' + netPlayers.length + '/5)';
 }
 function openLobby() {
@@ -2954,6 +3078,10 @@ function createRoom() {
     $('copyLinkBtn').style.display = 'block';
     netStatus('သူငယ်ချင်းတွေကို ကုဒ် (သို့) လင့်ခ် ပို့လိုက်ပါ!');
     netRenderLobby();
+    if (invitePending) {
+      invitePending = false;
+      doShareInvite();
+    }
   });
   peerObj.on('connection', (conn) => setupHostConn(conn));
   peerObj.on('error', (err) => { netStatus('အခန်း ဖွင့်မရဘူး: ' + (err.type || 'error')); });
@@ -3049,9 +3177,11 @@ function netOnCaught(id) {
   if (id === myPeerId) {
     if (player && player.insideWardrobe) ejectFromWardrobe(player);
     setCrouch(player, false);
-    showWarn('😢 မိသွားပြီ! စောင့်နေပါ', 2);
+    showCaught('😢 မိသွားပြီ! စောင့်နေပါ');
+    sfx('caught');
   } else {
-    showWarn('👀 မိသွားပြီ! ' + (p ? p.name : ''), 1.6);
+    if (rp) setTagText(rp, (p ? p.name : '') + ' ❌');
+    showCaught('👀 မိသွားပြီ! ' + (p ? p.name : ''));
   }
   sfx('found');
 }
@@ -3435,6 +3565,7 @@ $('createBtn').addEventListener('click', createRoom);
 $('joinBtn').addEventListener('click', joinRoom);
 $('netStartBtn').addEventListener('click', hostStart);
 $('netLeaveBtn').addEventListener('click', () => netLeave());
+$('inviteBtn').addEventListener('click', doShareInvite);
 $('copyLinkBtn').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(netRoomLink());
@@ -3488,7 +3619,13 @@ gameState = 'menu';
 loadEl.style.display = 'none';
 updateBest();
 animate();
-$('splashBtn').addEventListener('click', () => { tryFullscreen(); $('splash').style.display = 'none'; startEl.style.display = 'flex'; });
+$('splashBtn').addEventListener('click', () => {
+  tryFullscreen();
+  $('splash').style.display = 'none';
+  startEl.style.display = 'flex';
+  const q = new URLSearchParams(location.search).get('room');
+  if (q) openLobby();
+});
 $('menuFsBtn').addEventListener('click', () => { tryFullscreen(); });
 let deferredPrompt = null;
 function updateInstallBtn() {
