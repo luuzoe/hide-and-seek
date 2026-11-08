@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.1</p>
+    <p class="ver">Hide &amp; Seek • V3.2</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -835,8 +835,8 @@ function buildMap(idx) {
     const s3 = new THREE.Mesh(decoGeos.cloudC, MAT.cloud);
     s3.position.set(-2.1, 0.3, -0.2);
     cl.add(s1); cl.add(s2); cl.add(s3);
-    cl.position.set((rng() * 2 - 1) * 48, 22 + rng() * 6, (rng() * 2 - 1) * 48);
-    cl.scale.setScalar(1.1 + rng() * 0.7);
+    cl.position.set((rng() * 2 - 1) * 40, 11 + rng() * 4, (rng() * 2 - 1) * 40);
+    cl.scale.setScalar(1.6 + rng() * 0.8);
     worldGroup.add(cl);
   }
   for (let i = 0; i < def.flowers; i++) {
@@ -1483,14 +1483,18 @@ function animate() {
       }
     }
     if (gameState === 'countdown' || gameState === 'playing') {
-      playerMoveInput(dt);
-      updateCamera(dt);
-      if (mode === 'online') {
-        updateNet(dt, timeDt);
-      } else {
-        if (mode === 'hide' && seeker) updateSeeker(dt, timeDt);
-        if (mode === 'seek') updateHiders(dt, timeDt);
+      const moveSteps = Math.min(10, Math.max(1, Math.ceil(rawDt / 0.1)));
+      const mdt = Math.min(rawDt, 1.0) / moveSteps;
+      for (let s = 0; s < moveSteps; s++) {
+        playerMoveInput(mdt);
+        if (mode === 'online') updateNet(mdt, mdt);
+        else {
+          if (mode === 'hide' && seeker) updateSeeker(mdt, mdt);
+          if (mode === 'seek') updateHiders(mdt, mdt);
+        }
+        if (roundOver) break;
       }
+      updateCamera(dt);
       for (const p of people) updatePersonAnim(p, dt);
       updateHUD(timeDt);
     }
