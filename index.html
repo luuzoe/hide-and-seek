@@ -184,7 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.6</p>
+    <p class="ver">Hide &amp; Seek • V5.7</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -1729,15 +1729,19 @@ const knobEl = $('knob');
 function joyStart(t) {
   joy.active = true;
   joy.id = t.identifier;
+  // Cache the joystick rect ONCE per touch (getBoundingClientRect forces a
+  // layout read — calling it on every touchmove caused the screen to
+  // freeze/stutter while the joystick was held).
+  const r = joyEl.getBoundingClientRect();
+  joy.cx = r.left + r.width / 2;
+  joy.cy = r.top + r.height / 2;
+  joy.half = r.width / 2;
   joyMove(t);
 }
 function joyMove(t) {
   if (!joy.active || t.identifier !== joy.id) return;
-  const r = joyEl.getBoundingClientRect();
-  const cx = r.left + r.width / 2;
-  const cy = r.top + r.height / 2;
-  let dx = (t.clientX - cx) / (r.width / 2);
-  let dy = (t.clientY - cy) / (r.height / 2);
+  let dx = (t.clientX - joy.cx) / joy.half;
+  let dy = (t.clientY - joy.cy) / joy.half;
   const len = Math.hypot(dx, dy);
   if (len > 1) { dx /= len; dy /= len; }
   joy.x = dx;
@@ -1770,8 +1774,14 @@ window.addEventListener('touchmove', (e) => {
     }
     else if (dragId !== null && t.identifier === dragId) {
       e.preventDefault();
+      // V5.7: pitch is HALF as sensitive (0.002/px, was 0.004) and clamped
+      // to [0.05, 0.4] (was [0.03, 0.7]). A short swipe used to max the
+      // pitch out, lifting the camera to 3.3m where the player vanished
+      // and only the ceiling showed — that was the "looks all the way to
+      // the top" + dizziness. At 0.4 the camera is 2.1m and the player
+      // stays on screen.
       camYaw -= (t.clientX - dragX) * 0.006;
-      camPitch = Math.max(0.03, Math.min(0.7, camPitch + (t.clientY - dragY) * 0.004));
+      camPitch = Math.max(0.05, Math.min(0.4, camPitch + (t.clientY - dragY) * 0.002));
       dragX = t.clientX;
       dragY = t.clientY;
     }
@@ -1851,7 +1861,7 @@ window.addEventListener('mousemove', (e) => {
   }
   if (!mouseDrag) return;
   camYaw -= (e.clientX - dragX) * 0.006;
-  camPitch = Math.max(0.03, Math.min(0.7, camPitch + (e.clientY - dragY) * 0.004));
+  camPitch = Math.max(0.05, Math.min(0.4, camPitch + (e.clientY - dragY) * 0.002));
   dragX = e.clientX;
   dragY = e.clientY;
 });
