@@ -2061,7 +2061,7 @@ $('findBtn').addEventListener('click', doFind);
 $('fsBtn').addEventListener('click', () => {
   try {
     if (document.fullscreenElement) document.exitFullscreen();
-    else tryFullscreen();
+    else requestFullscreenNow();
   } catch (e) {}
 });
 $('muteBtn').addEventListener('click', () => {
@@ -2462,6 +2462,14 @@ function tryLandscape() {
   try { if (screen.orientation && screen.orientation.lock) { const p = screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
 }
 function tryFullscreen() {
+  // V5.9: NO auto-fullscreen. Chrome shows the "Drag from top ... to exit
+  // full screen" toast on every fullscreen entry and Zaw has to swipe it
+  // away by hand. The installed PWA already runs fullscreen via the
+  // manifest (display: fullscreen) with no toast, so the API call only
+  // hurts in the browser. Manual fullscreen buttons use requestFullscreenNow().
+  tryLandscape();
+}
+function requestFullscreenNow() {
   try {
     const el = document.documentElement;
     if (el.requestFullscreen) { const p = el.requestFullscreen(); if (p && p.then) p.then(() => tryLandscape()).catch(() => {}); }
@@ -3757,7 +3765,7 @@ $('splashBtn').addEventListener('click', () => {
   const q = new URLSearchParams(location.search).get('room');
   if (q) openLobby();
 });
-$('menuFsBtn').addEventListener('click', () => { tryFullscreen(); });
+$('menuFsBtn').addEventListener('click', () => { requestFullscreenNow(); });
 let deferredPrompt = null;
 function updateInstallBtn() {
   const b = $('installBtn');
