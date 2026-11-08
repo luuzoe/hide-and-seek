@@ -14,8 +14,15 @@ function log(m) {
   logEl.textContent += '\n' + m;
   document.title = m;
 }
+const PEER_CONFIG = { config: { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+] } };
 const suffix = Math.floor(Math.random() * 100000);
-const a = new Peer('hs-test-a-' + suffix);
+const a = new Peer('hs-test-a-' + suffix, PEER_CONFIG);
 a.on('open', (id) => {
   log('A open: ' + id);
   a.on('connection', (conn) => {
@@ -24,10 +31,14 @@ a.on('open', (id) => {
     conn.on('data', (d) => log('A got data: ' + d));
     conn.on('error', (e) => log('A conn error: ' + (e && e.type ? e.type : e)));
   });
-  const b = new Peer();
+  const b = new Peer(PEER_CONFIG);
   b.on('open', (bid) => {
     log('B open: ' + bid);
     const c = b.connect(id, { reliable: true });
+    const iv = setInterval(() => {
+      try { const pc = c.peerConnection; if (pc) log('ICE: ' + pc.iceConnectionState + ' / conn: ' + pc.connectionState); } catch (e) {}
+    }, 5000);
+    setTimeout(() => clearInterval(iv), 30000);
     c.on('open', () => { log('B conn OPEN'); c.send('hello from B'); });
     c.on('data', (d) => log('B got data: ' + d));
     c.on('error', (e) => log('B conn error: ' + (e && e.type ? e.type : e)));
