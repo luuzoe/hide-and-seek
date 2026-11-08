@@ -184,7 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.5</p>
+    <p class="ver">Hide &amp; Seek • V5.6</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -553,6 +553,12 @@ const MODELS = [
 ];
 const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null, animations: [] }));
 function normalizeModel(src) {
+  // V5.6: hide the floor-length cape. It's a STATIC (non-skinned) mesh
+  // that hangs to the floor and hides the legs, so the walk animation
+  // (real leg swing underneath) is invisible. The skinned legs below it
+  // DO animate — with the cape hidden, the walk finally reads.
+  // (The Fox has no cape; Hat/Helmet are head accessories and stay.)
+  src.traverse((o) => { if (o.isMesh && /cape/i.test(o.name || '')) o.visible = false; });
   const box = new THREE.Box3().setFromObject(src);
   const h = Math.max(0.01, box.max.y - box.min.y);
   const s = 0.9 / h;
