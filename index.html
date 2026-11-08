@@ -75,7 +75,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V1.1</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
+    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V1.2</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
     <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
     <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
     <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းနဲ့ တူတူဆော့မယ်<small>ဖုန်းတစ်လုံးတည်း လှည့်ဆော့ — တစ်ယောက်ပုန်း၊ တစ်ယောက်ရှာ</small></button>
@@ -851,7 +851,7 @@ function startMode(m) {
     player = makePerson('မင်း', 0x4caf50, '#4caf50', 1);
     player.g.position.set(0, 0, 9);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 2);
-    seeker.g.position.set(0, 0, -5);
+    seeker.g.position.set(0, 0, -24);
     seeker.isSeeker = true;
     seeker.heading = Math.PI;
     seeker.g.rotation.y = Math.PI;
@@ -988,7 +988,7 @@ function seekerCanSee() {
   if (losBlocked(sx, sz, px, pz)) return false;
   return true;
 }
-function updateSeeker(dt) {
+function updateSeeker(dt, timeDt) {
   if (!seeker) return;
   if (gameState === 'countdown') {
     setClip(seeker, 'idle');
@@ -1008,7 +1008,7 @@ function updateSeeker(dt) {
     if (warnT < 0.2) showWarn('🏃 ပြေးတော့! ရှာသူ မင်းကို တွေ့သွားပြီ!', 0.6);
     return;
   }
-  chaseT += dt;
+  chaseT += timeDt;
   if (seekerMemory) {
     if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.6, dt)) seekerMemory = null;
     return;
@@ -1019,7 +1019,7 @@ function updateSeeker(dt) {
     else seeker.target = { x: Math.random() * 40 - 20, z: Math.random() * 40 - 20 };
   }
   if (seeker.waitT > 0) {
-    seeker.waitT -= dt;
+    seeker.waitT -= timeDt;
     seeker.moving = false;
     setClip(seeker, 'idle');
     return;
@@ -1031,9 +1031,9 @@ function updateSeeker(dt) {
 }
 
 // ---------- hiders ----------
-function updateHiders(dt) {
+function updateHiders(dt, timeDt) {
   if (!player) return;
-  giggleT -= dt;
+  giggleT -= timeDt;
   if (giggleT <= 0) {
     giggleT = 8 + Math.random() * 8;
     const alive = hiders.filter((h) => !h.found);
@@ -1046,7 +1046,7 @@ function updateHiders(dt) {
   }
   for (const h of hiders) {
     if (h.bubbleT > 0) {
-      h.bubbleT -= dt;
+      h.bubbleT -= timeDt;
       if (h.bubbleT <= 0) h.bubble.visible = false;
     }
     if (h.found && h.state === 'caught') {
@@ -1066,7 +1066,7 @@ function updateHiders(dt) {
 }
 
 // ---------- HUD ----------
-function updateHUD() {
+function updateHUD(dt) {
   if (gameState === 'countdown') timePill.textContent = 'ရေတွက် ' + Math.max(0, Math.ceil(countT));
   else timePill.textContent = fmtTime(timeLeft);
   if (mode === 'hide') scorePill.textContent = player && player.hidden ? '🫣 ပုန်းနေတယ်' : '🙈 မတွေ့အောင် ပုန်း';
@@ -1095,7 +1095,7 @@ function updateHUD() {
   }
   if (gameState === 'playing' && (mode === 'seek' || hotPhase === 'p2seek') && nearestHider) $('findBtn').style.display = 'block';
   if (warnT > 0) {
-    warnT -= 0.016;
+    warnT -= dt;
     if (warnT <= 0) warnEl.style.display = 'none';
   }
 }
@@ -1104,15 +1104,17 @@ function updateHUD() {
 let menuAngle = 0;
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.1);
+  const rawDt = clock.getDelta();
+  const dt = Math.min(rawDt, 0.1);
+  const timeDt = Math.min(rawDt, 1.0);
   if (gameState === 'menu' || gameState === 'loading') {
     menuAngle += dt * 0.12;
     camera.position.set(Math.sin(menuAngle) * 24, 11, Math.cos(menuAngle) * 24);
     camera.lookAt(0, 1, 0);
   } else if (gameState === 'countdown' || gameState === 'playing') {
-    elapsed += dt;
+    elapsed += timeDt;
     if (gameState === 'countdown') {
-      countT -= dt;
+      countT -= timeDt;
       const ci = Math.ceil(countT);
       if (ci !== lastCountInt && ci > 0 && ci <= 10) { lastCountInt = ci; sfx('count'); }
       if (countT <= 0) {
@@ -1121,7 +1123,7 @@ function animate() {
         showWarn('🔍 ရှာသူ လာရှာပြီ!', 2);
       }
     } else {
-      timeLeft -= dt;
+      timeLeft -= timeDt;
       if (timeLeft <= 0) {
         timeLeft = 0;
         if (mode === 'hide') endRound(true, 'မတွေ့အောင် ပုန်းနိုင်ခဲ့ပြီ!', 'စက္ကန့် ၉၀ လုံး ရှာသူ မင်းကို မတွေ့ခဲ့ဘူး။ အရမ်းတော်တယ်!');
@@ -1137,10 +1139,10 @@ function animate() {
     if (gameState === 'countdown' || gameState === 'playing') {
       playerMoveInput(dt);
       updateCamera(dt);
-      if (mode === 'hide' && seeker) updateSeeker(dt);
-      if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt);
+      if (mode === 'hide' && seeker) updateSeeker(dt, timeDt);
+      if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt, timeDt);
       for (const p of people) if (p.mixer && !p.moving) p.mixer.update(dt);
-      updateHUD();
+      updateHUD(timeDt);
     }
   }
   renderer.render(scene, camera);
