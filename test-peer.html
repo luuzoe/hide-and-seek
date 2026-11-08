@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PeerJS loopback test</title>
+<script src="./js/peerjs.min.js"></script>
+</head>
+<body>
+<h1>PeerJS loopback test</h1>
+<pre id="log">starting...</pre>
+<script>
+const logEl = document.getElementById('log');
+function log(m) {
+  logEl.textContent += '\n' + m;
+  document.title = m;
+}
+const suffix = Math.floor(Math.random() * 100000);
+const a = new Peer('hs-test-a-' + suffix);
+a.on('open', (id) => {
+  log('A open: ' + id);
+  a.on('connection', (conn) => {
+    log('A got connection from ' + conn.peer);
+    conn.on('open', () => { log('A conn OPEN'); conn.send('hello from A'); });
+    conn.on('data', (d) => log('A got data: ' + d));
+    conn.on('error', (e) => log('A conn error: ' + (e && e.type ? e.type : e)));
+  });
+  const b = new Peer();
+  b.on('open', (bid) => {
+    log('B open: ' + bid);
+    const c = b.connect(id, { reliable: true });
+    c.on('open', () => { log('B conn OPEN'); c.send('hello from B'); });
+    c.on('data', (d) => log('B got data: ' + d));
+    c.on('error', (e) => log('B conn error: ' + (e && e.type ? e.type : e)));
+  });
+  b.on('error', (e) => log('B error: ' + (e && e.type ? e.type : e)));
+});
+a.on('error', (e) => log('A error: ' + (e && e.type ? e.type : e)));
+setTimeout(() => log('DONE 30s'), 30000);
+</script>
+</body>
+</html>

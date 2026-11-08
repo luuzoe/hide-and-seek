@@ -1225,11 +1225,20 @@ const NET_COLORS = [
   { hex: 0xe91e63, css: '#e91e63' },
   { hex: 0x9c27b0, css: '#9c27b0' },
 ];
+const PEER_CONFIG = { config: { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+] } };
 let peerObj = null;
 let isHost = false;
 let roomCode = '';
 let myPeerId = '';
-let myName = localStorage.getItem('hs_name') || '';
+let myName = sessionStorage.getItem('hs_name') || '';
+let joinTimer = null;
+let netJoined = false;
 let myColorIdx = 0;
 let netConns = {};
 let netPlayers = [];
@@ -1272,6 +1281,7 @@ function openLobby() {
   if (typeof Peer === 'undefined') { showWarn('အင်တာနက်ချိတ်ဆက်မှု လိုတယ် — PeerJS တင်မရဘူး', 3); return; }
   startEl.style.display = 'none';
   $('lobby').style.display = 'flex';
+  netStatus('');
   if (myName) $('netName').value = myName;
   const q = new URLSearchParams(location.search).get('room');
   if (q) $('netJoinCode').value = q.toUpperCase();
@@ -1280,11 +1290,11 @@ function closeLobby() { $('lobby').style.display = 'none'; }
 function createRoom() {
   const name = ($('netName').value || 'Player').trim().slice(0, 12);
   myName = name;
-  localStorage.setItem('hs_name', name);
+  sessionStorage.setItem('hs_name', name);
   if (peerObj) peerObj.destroy();
   roomCode = randomCode();
   netStatus('အခန်း ဖွင့်နေတယ်...');
-  peerObj = new Peer('hs-' + roomCode);
+  peerObj = new Peer('hs-' + roomCode, PEER_CONFIG);
   peerObj.on('open', (id) => {
     isHost = true;
     myPeerId = id;
@@ -1407,11 +1417,20 @@ function joinRoom() {
   const code = ($('netJoinCode').value || '').trim().toUpperCase();
   if (!code || code.length !== 4) { netStatus('ကုဒ် ၄ လုံး ရိုက်ထည့်ပါ'); return; }
   myName = name;
-  localStorage.setItem('hs_name', name);
+  sessionStorage.setItem('hs_name', name);
   if (peerObj) peerObj.destroy();
   roomCode = code;
   netStatus('အခန်းကို ချိတ်နေတယ်...');
-  peerObj = new Peer();
+  peerObj = new Peer(PEER_CONFIG);
+  netJoined = false;
+  clearTimeout(joinTimer);
+  joinTimer = setTimeout(() => {
+    if (!netJoined) {
+      netStatus('ချိတ်မရဘူး — အင်တာနက်ကို စစ်ပြီး ကုဒ် မှန်လား ပြန်စစ်ပါ');
+      try { if (peerObj) peerObj.destroy(); } catch (e) {}
+      peerObj = null;
+    }
+  }, 15000);
   peerObj.on('open', (id) => {
     myPeerId = id;
     const conn = peerObj.connect('hs-' + code, { reliable: true });
@@ -1429,6 +1448,8 @@ function joinRoom() {
 function clientHandle(msg) {
   if (!msg || !msg.t) return;
   if (msg.t === 'welcome') {
+    netJoined = true;
+    clearTimeout(joinTimer);
     myPeerId = msg.id;
     myColorIdx = msg.colorIdx;
     netPlayers = msg.players;
@@ -1636,6 +1657,7 @@ function updateNet(dt, timeDt) {
 }
 function netLeave(msg) {
   netLeaving = true;
+  clearTimeout(joinTimer);
   if (peerObj) { try { peerObj.destroy(); } catch (e) {} peerObj = null; }
   netConns = {};
   netPlayers = [];
@@ -1644,6 +1666,10 @@ function netLeave(msg) {
   netPhase = 'lobby';
   roomCode = '';
   remotePeople = {};
+  netStatus('');
+  $('netCode').style.display = 'none';
+  $('copyLinkBtn').style.display = 'none';
+  $('netList').innerHTML = '';
   $('eyes').style.display = 'none';
   $('role').style.display = 'none';
   closeLobby();
