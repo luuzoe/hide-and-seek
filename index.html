@@ -207,7 +207,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V6.4</p>
+    <p class="ver">Hide &amp; Seek • V6.5</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -1025,6 +1025,143 @@ function makeWardrobe(c) {
   g.userData.wardrobe = { pivotL, pivotR, openT: 0, target: 0, inside: null, x: 0, z: 0, rot: 0, fx: 0, fz: 1 };
   return g;
 }
+function makeLocker(c) {
+  const g = new THREE.Group();
+  const frame = MAT.grey;
+  const back = new THREE.Mesh(unitBox, frame);
+  back.scale.set(1.4, 2.3, 0.08);
+  back.position.set(0, 1.15, -0.36);
+  g.add(back);
+  for (const sx of [-0.66, 0.66]) {
+    const side = new THREE.Mesh(unitBox, frame);
+    side.scale.set(0.08, 2.3, 0.8);
+    side.position.set(sx, 1.15, 0);
+    g.add(side);
+  }
+  const top = new THREE.Mesh(unitBox, frame);
+  top.scale.set(1.4, 0.08, 0.8);
+  top.position.set(0, 2.26, 0);
+  g.add(top);
+  const plinth = new THREE.Mesh(unitBox, MAT.darkblue);
+  plinth.scale.set(1.4, 0.12, 0.8);
+  plinth.position.set(0, 0.06, 0);
+  g.add(plinth);
+  const inner = new THREE.Mesh(unitBox, MAT.black);
+  inner.scale.set(1.24, 2.0, 0.6);
+  inner.position.set(0, 1.15, -0.06);
+  g.add(inner);
+  const pivotL = new THREE.Group();
+  pivotL.position.set(-0.68, 0, 0.4);
+  const pivotR = new THREE.Group();
+  pivotR.position.set(0.68, 0, 0.4);
+  const doorL = new THREE.Mesh(unitBox, MAT[c]);
+  doorL.scale.set(0.65, 2.0, 0.06);
+  doorL.position.set(0.325, 1.15, 0);
+  pivotL.add(doorL);
+  const doorR = new THREE.Mesh(unitBox, MAT[c]);
+  doorR.scale.set(0.65, 2.0, 0.06);
+  doorR.position.set(-0.325, 1.15, 0);
+  pivotR.add(doorR);
+  for (const [pv, hx] of [[pivotL, 0.55], [pivotR, -0.55]]) {
+    const h = new THREE.Mesh(unitBox, MAT.black);
+    h.scale.set(0.06, 0.18, 0.06);
+    h.position.set(hx, 1.15, 0.06);
+    pv.add(h);
+    for (const vy of [1.85, 1.7]) {
+      const vent = new THREE.Mesh(unitBox, MAT.darkblue);
+      vent.scale.set(0.4, 0.05, 0.05);
+      vent.position.set(hx > 0 ? 0.325 : -0.325, vy, 0.05);
+      pv.add(vent);
+    }
+  }
+  g.add(pivotL);
+  g.add(pivotR);
+  g.userData.wardrobe = { pivotL, pivotR, openT: 0, target: 0, inside: null, x: 0, z: 0, rot: 0, fx: 0, fz: 1 };
+  return g;
+}
+function makeBigCrate(c) {
+  const g = new THREE.Group();
+  const wood = MAT.straw;
+  const back = new THREE.Mesh(unitBox, wood);
+  back.scale.set(1.8, 1.5, 0.1);
+  back.position.set(0, 0.75, -0.65);
+  g.add(back);
+  for (const sx of [-0.85, 0.85]) {
+    const side = new THREE.Mesh(unitBox, wood);
+    side.scale.set(0.1, 1.5, 1.4);
+    side.position.set(sx, 0.75, 0);
+    g.add(side);
+  }
+  const bottom = new THREE.Mesh(unitBox, wood);
+  bottom.scale.set(1.8, 0.1, 1.4);
+  bottom.position.set(0, 0.05, 0);
+  g.add(bottom);
+  const lip = new THREE.Mesh(unitBox, wood);
+  lip.scale.set(1.8, 0.4, 0.1);
+  lip.position.set(0, 0.2, 0.65);
+  g.add(lip);
+  const inner = new THREE.Mesh(unitBox, MAT.black);
+  inner.scale.set(1.6, 1.3, 1.2);
+  inner.position.set(0, 0.7, 0);
+  g.add(inner);
+  for (const bx of [-0.6, 0.6]) {
+    const band = new THREE.Mesh(unitBox, MAT.grey);
+    band.scale.set(0.08, 1.5, 1.42);
+    band.position.set(bx, 0.75, 0);
+    g.add(band);
+  }
+  const pivotL = new THREE.Group();
+  pivotL.position.set(-0.88, 0, 0.7);
+  const pivotR = new THREE.Group();
+  pivotR.position.set(0.88, 0, 0.7);
+  const doorL = new THREE.Mesh(unitBox, MAT.trunk);
+  doorL.scale.set(0.85, 1.05, 0.06);
+  doorL.position.set(0.425, 0.95, 0);
+  pivotL.add(doorL);
+  const doorR = new THREE.Mesh(unitBox, MAT.trunk);
+  doorR.scale.set(0.85, 1.05, 0.06);
+  doorR.position.set(-0.425, 0.95, 0);
+  pivotR.add(doorR);
+  g.add(pivotL);
+  g.add(pivotR);
+  g.userData.wardrobe = { pivotL, pivotR, openT: 0, target: 0, inside: null, x: 0, z: 0, rot: 0, fx: 0, fz: 1 };
+  return g;
+}
+function makePlant(c) {
+  const g = new THREE.Group();
+  const pot = new THREE.Mesh(unitCyl, MAT.trunk);
+  pot.scale.set(0.55, 0.55, 0.55);
+  pot.position.y = 0.28;
+  g.add(pot);
+  const soil = new THREE.Mesh(unitCyl, MAT.black);
+  soil.scale.set(0.45, 0.08, 0.45);
+  soil.position.y = 0.55;
+  g.add(soil);
+  const stem = new THREE.Mesh(unitCyl, MAT.trunk);
+  stem.scale.set(0.08, 1.2, 0.08);
+  stem.position.y = 1.1;
+  g.add(stem);
+  const leafCols = [MAT.darkgreen, MAT.mint];
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    const leaf = new THREE.Mesh(unitSphere, leafCols[i % 2]);
+    leaf.scale.set(0.5, 0.45, 0.5);
+    leaf.position.set(Math.cos(a) * 0.35, 1.05, Math.sin(a) * 0.35);
+    g.add(leaf);
+  }
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    const leaf = new THREE.Mesh(unitSphere, leafCols[i % 2]);
+    leaf.scale.set(0.55, 0.45, 0.55);
+    leaf.position.set(Math.cos(a) * 0.3, 1.7 + (i % 2) * 0.25, Math.sin(a) * 0.3);
+    g.add(leaf);
+  }
+  const top = new THREE.Mesh(unitSphere, MAT.darkgreen);
+  top.scale.set(0.6, 0.5, 0.6);
+  top.position.y = 2.05;
+  g.add(top);
+  return g;
+}
 function makeSofa(c) {
   const g = new THREE.Group();
   const base = new THREE.Mesh(unitBox, MAT[c]);
@@ -1233,6 +1370,9 @@ function makeTrolley(c) {
 const FURN = {
   bed: { w: 2.2, d: 3.4, big: true, label: 'ကုတင်နောက်', make: (c) => makeBed(c) },
   wardrobe: { w: 2.4, d: 1.0, big: true, tall: true, label: 'ဗီရိုနောက်', make: (c) => makeWardrobe(c) },
+  locker: { w: 1.4, d: 0.8, big: false, tall: true, label: 'လော့ကာနောက်', make: (c) => makeLocker(c) },
+  bigCrate: { w: 1.8, d: 1.4, big: false, tall: true, label: 'သေတ္တာနောက်', make: (c) => makeBigCrate(c) },
+  plant: { w: 1.0, d: 1.0, big: false, tall: true, label: 'အပင်နောက်', make: (c) => makePlant(c) },
   sofa: { w: 2.6, d: 1.1, big: false, label: 'ဆိုဖာနောက်', make: (c) => makeSofa(c) },
   desk: { w: 2.0, d: 1.0, big: false, label: 'စားပွဲနောက်', make: (c) => makeDesk(c) },
   table: { w: 2.2, d: 1.2, big: false, label: 'စားပွဲနောက်', make: (c) => makeTable(c) },
@@ -1292,7 +1432,7 @@ function roomOf(x, z) {
 const MAPS = [
   { name: 'တိုက်ခန်း', icon: '🏢', floor: 0xc9a06c, wall: 0xf5e6d3, accent: 0x6d4c41, sky: 0xffe8c9, fog: 0xf5d9b0,
     rugs: [[-12, -12, 7, 5, 'red'], [12, 12, 7, 5, 'blue'], [-12, 15, 6, 4, 'mint']],
-    palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
+    palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain', 'locker', 'bigCrate', 'plant'],
     layout: { rooms: [{ x0: -20, x1: -2.5, z0: -20, z1: -2.5 }, { x0: 2.5, x1: 20, z0: -20, z1: -2.5 }, { x0: -20, x1: -2.5, z0: 2.5, z1: 20 }, { x0: 2.5, x1: 20, z0: 2.5, z1: 20 }], walls: [{ vertical: true, at: -2.5, from: -20, to: -2.5, door: -11 }, { vertical: true, at: 2.5, from: -20, to: -2.5, door: -11 }, { vertical: true, at: -2.5, from: 2.5, to: 20, door: 11 }, { vertical: true, at: 2.5, from: 2.5, to: 20, door: 11 }, { vertical: false, at: -2.5, from: -20, to: -2.5, door: -11 }, { vertical: false, at: 2.5, from: -20, to: -2.5, door: -11 }, { vertical: false, at: -2.5, from: 2.5, to: 20, door: 11 }, { vertical: false, at: 2.5, from: 2.5, to: 20, door: 11 }], doors: [{ x: -2.5, z: -11, vertical: true, room: 0 }, { x: -11, z: -2.5, vertical: false, room: 0 }, { x: 2.5, z: -11, vertical: true, room: 1 }, { x: 11, z: -2.5, vertical: false, room: 1 }, { x: -2.5, z: 11, vertical: true, room: 2 }, { x: -11, z: 2.5, vertical: false, room: 2 }, { x: 2.5, z: 11, vertical: true, room: 3 }, { x: 11, z: 2.5, vertical: false, room: 3 }], spawns: { hidePlayer: [0, 9], hideSeeker: [0, -18], seekPlayer: [0, 4], clear: [[0, 4], [1, 6], [-1, 6], [2, 2], [-2, 2], [0, 9], [0, -18]] }, gather: [0, 3, 0, 1], pics: [[-2.78, -16, true], [2.78, -16, true], [-2.78, 16, true], [2.78, 16, true]] },
     furniture: [
       ['bed', -11, -11, 0, 'blue'],
@@ -1370,7 +1510,7 @@ const MAPS = [
     ] },
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, accent: 0x5d4037, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
-    palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
+    palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain', 'locker', 'bigCrate', 'plant'],
     layout: { rooms: [{ x0: -20, x1: 0, z0: -20, z1: -4 }, { x0: 0, x1: 20, z0: -20, z1: -4 }, { x0: -20, x1: -8, z0: 4, z1: 20 }, { x0: -20, x1: 20, z0: -4, z1: 20 }], walls: [{ vertical: true, at: 0, from: -20, to: -4, door: null }, { vertical: false, at: -4, from: -20, to: 0, door: -10 }, { vertical: false, at: -4, from: 0, to: 20, door: 10 }, { vertical: false, at: 4, from: -20, to: -8, door: -14 }, { vertical: true, at: -8, from: 4, to: 20, door: null }], doors: [{ x: -10, z: -4, vertical: false, room: 0 }, { x: 10, z: -4, vertical: false, room: 1 }, { x: -14, z: 4, vertical: false, room: 2 }], spawns: { hidePlayer: [12, 14], hideSeeker: [-14, 0], seekPlayer: [0, 0], clear: [[12, 14], [0, 0], [-14, 0], [6, 0], [-6, 0], [16, 16], [6, 14]] }, gather: [0, 0, 1, 0], pics: [[-16, -3.7, false], [16, -3.7, false], [-16, 3.7, false], [-7.7, 12, true]] },
     furniture: [
       ['wardrobe', -16, -19, 3.1, 'blue'],
@@ -1447,7 +1587,7 @@ const MAPS = [
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, accent: 0x2e7d32, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[7.8, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
-    palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter', 'wardrobe'],
+    palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter', 'wardrobe', 'locker', 'plant'],
     layout: { rooms: [{ x0: -20, x1: -3, z0: -20, z1: -6 }, { x0: -20, x1: -3, z0: -6, z1: 6 }, { x0: -20, x1: -3, z0: 6, z1: 20 }, { x0: 3, x1: 20, z0: -20, z1: -6 }, { x0: 3, x1: 20, z0: -6, z1: 6 }, { x0: 3, x1: 20, z0: 6, z1: 20 }], walls: [{ vertical: true, at: -3, from: -20, to: -6, door: -13 }, { vertical: true, at: -3, from: -6, to: 6, door: 0 }, { vertical: true, at: -3, from: 6, to: 20, door: 13 }, { vertical: true, at: 3, from: -20, to: -6, door: -13 }, { vertical: true, at: 3, from: -6, to: 6, door: 0 }, { vertical: true, at: 3, from: 6, to: 20, door: 13 }, { vertical: false, at: -6, from: -20, to: -3, door: null }, { vertical: false, at: -6, from: 3, to: 20, door: null }, { vertical: false, at: 6, from: -20, to: -3, door: null }, { vertical: false, at: 6, from: 3, to: 20, door: null }], doors: [{ x: -3, z: -13, vertical: true, room: 0 }, { x: -3, z: 0, vertical: true, room: 1 }, { x: -3, z: 13, vertical: true, room: 2 }, { x: 3, z: -13, vertical: true, room: 3 }, { x: 3, z: 0, vertical: true, room: 4 }, { x: 3, z: 13, vertical: true, room: 5 }], spawns: { hidePlayer: [0, 14], hideSeeker: [0, -16], seekPlayer: [0, 0], clear: [[0, 14], [0, 0], [0, -16], [0, 8], [0, -8], [0, 18], [0, -18]] }, gather: [0, 0, 0, 1], pics: [[-2.68, -16, true], [2.68, -16, true], [-2.68, 16, true], [2.68, 16, true]] },
     furniture: [
       ['blackboard', -19.5, -13, -1.6, ''],
@@ -1537,7 +1677,7 @@ const MAPS = [
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, accent: 0x0277bd, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
-    palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate', 'wardrobe'],
+    palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate', 'wardrobe', 'locker', 'bigCrate', 'plant'],
     layout: { rooms: [{ x0: -20, x1: 20, z0: -20, z1: -3 }, { x0: -20, x1: 0, z0: 3, z1: 20 }, { x0: 0, x1: 10, z0: 3, z1: 20 }, { x0: 10, x1: 20, z0: 3, z1: 20 }], walls: [{ vertical: false, at: -3, from: -20, to: 0, door: -10 }, { vertical: false, at: -3, from: 0, to: 20, door: 10 }, { vertical: false, at: 3, from: -20, to: 0, door: -10 }, { vertical: false, at: 3, from: 0, to: 10, door: 5 }, { vertical: false, at: 3, from: 10, to: 20, door: 15 }, { vertical: true, at: 0, from: 3, to: 20, door: null }, { vertical: true, at: 10, from: 3, to: 20, door: null }], doors: [{ x: -10, z: -3, vertical: false, room: 0 }, { x: 10, z: -3, vertical: false, room: 0 }, { x: -10, z: 3, vertical: false, room: 1 }, { x: 5, z: 3, vertical: false, room: 2 }, { x: 15, z: 3, vertical: false, room: 3 }], spawns: { hidePlayer: [-14, 0], hideSeeker: [14, 0], seekPlayer: [0, 0], clear: [[-14, 0], [0, 0], [14, 0], [-6, 0], [6, 0], [-18, 0], [18, 0]] }, gather: [0, 0, 1, 0], pics: [[-16, -2.68, false], [16, -2.68, false], [-16, 2.68, false], [16, 2.68, false]] },
     furniture: [
       ['wardrobe', -16, -19, 3.1, 'blue'],
@@ -1625,7 +1765,7 @@ const MAPS = [
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, accent: 0x6a1b9a, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-16.5, 0, 5, 10, 'red'], [16.5, 0, 5, 10, 'blue'], [0, 0, 10, 6, 'mint']],
-    palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter', 'wardrobe'],
+    palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter', 'wardrobe', 'bigCrate', 'plant'],
     layout: { rooms: [{ x0: -20, x1: -13, z0: -8, z1: 8 }, { x0: 13, x1: 20, z0: -8, z1: 8 }, { x0: -20, x1: 20, z0: -20, z1: 20 }], walls: [{ vertical: true, at: -13, from: -8, to: 8, door: 0 }, { vertical: true, at: 13, from: -8, to: 8, door: 0 }], doors: [{ x: -13, z: 0, vertical: true, room: 0 }, { x: 13, z: 0, vertical: true, room: 1 }], spawns: { hidePlayer: [0, 12], hideSeeker: [0, -12], seekPlayer: [0, 0], clear: [[0, 12], [0, 0], [0, -12], [6, 0], [-6, 0], [0, 4], [0, -4]] }, gather: [0, 0, 1, 0], pics: [[-13.32, -4, true], [-13.32, 4, true], [13.32, -4, true], [13.32, 4, true]] },
     furniture: [
       ['shelf', -19.4, -4, -1.6, 'blue'],
@@ -1859,7 +1999,7 @@ function buildMap(idx) {
     }
     for (const s of SPAWNS) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 6.25) return false;
     for (const p of placed) {
-      const minD = (FURN[kind].big && FURN[p.kind].big) ? 5 : 3.2;
+      const minD = (FURN[kind].big && FURN[p.kind].big) ? 5 : 2.5;
       if ((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z) < minD * minD) return false;
       // AABB gap: centre distance alone allows a 0.5m slot when two long
       // pieces line up along their long axes — under the 0.7m agent diameter,
@@ -1888,12 +2028,12 @@ function buildMap(idx) {
     return null;
   };
   const tallKinds = def.palette.filter((k) => FURN[k].tall);
-  // V5.0: 400 tries (was 60) with a 90-piece cap — the smaller rooms place
-  // fewer pieces per try, and the approach-lane + AABB-gap rules reject more
-  // candidates, so the low maps need more attempts; the cap stops the dense
-  // maps overshooting 95.
-  for (let i = 0; i < 400; i++) {
-    if (allFurniture.length >= 90) break;
+  // V5.0: 700 tries (V6.5, was 400) with a 110-piece cap (was 90) — the
+  // smaller rooms place fewer pieces per try, and the approach-lane +
+  // AABB-gap rules reject more candidates, so the low maps need more
+  // attempts; the cap stops the dense maps overshooting 115.
+  for (let i = 0; i < 700; i++) {
+    if (allFurniture.length >= 110) break;
     const kind = (tallKinds.length && srng() < 0.5)
       ? tallKinds[Math.floor(srng() * tallKinds.length)]
       : def.palette[Math.floor(srng() * def.palette.length)];
@@ -1914,8 +2054,9 @@ function buildMap(idx) {
     g.position.set(f.x, 0, f.z);
     g.rotation.y = rot;
     worldGroup.add(g);
-    if (f.kind === 'wardrobe' && g.userData.wardrobe) {
+    if ((f.kind === 'wardrobe' || f.kind === 'locker' || f.kind === 'bigCrate') && g.userData.wardrobe) {
       const w = g.userData.wardrobe;
+      w.kind = f.kind;
       w.x = f.x;
       w.z = f.z;
       w.rot = rot;
@@ -1924,11 +2065,12 @@ function buildMap(idx) {
       wardrobes.push(w);
     }
   }
-  // Hide spots: TALL furniture only, BEHIND only — a 0.9m chibi (0.63m crouched)
-  // is genuinely concealed only behind a 2.4m+ piece, tucked tight against it.
+  // Hide spots: TALL furniture + LOW pieces (table, desk, bed, sofa,
+  // counter) — BEHIND only, tucked tight against the piece. A crouched
+  // 0.63m chibi is concealed behind a low piece too.
   for (const f of allFurniture) {
     const spec = FURN[f.kind];
-    if (!spec.tall) continue;
+    if (!spec.tall && ['table', 'desk', 'bed', 'sofa', 'counter', 'hospitalBed'].indexOf(f.kind) < 0) continue;
     const rot = f.rot || 0;
     const s = Math.sin(rot), c = Math.cos(rot);
     const behindX = f.x - s * (spec.d / 2 + 0.45);
@@ -2763,7 +2905,8 @@ function enterWardrobe(w) {
   w.target = 0;
   if (mode === 'online') sendDoorMsg(w, 0);
   sfx('hide');
-  showWarn('🫣 ဗီရိုထဲ ပုန်းနေပြီ — မလှုပ်နဲ့!', 2);
+  const insideName = w.kind === 'locker' ? 'လော့ကာထဲ' : w.kind === 'bigCrate' ? 'သေတ္တာထဲ' : 'ဗီရိုထဲ';
+  showWarn('🫣 ' + insideName + ' ပုန်းနေပြီ — မလှုပ်နဲ့!', 2);
 }
 function exitWardrobe() {
   const w = player.insideWardrobe;
@@ -3038,7 +3181,7 @@ function updateSeeker(dt, timeDt) {
   if (!seeker.target && seeker.waitT <= 0) {
     const r = Math.random();
     const late = timeLeft < 45;
-    const nearP = playerCaught ? 0 : (late ? 0.7 : 0.45);
+    const nearP = playerCaught ? 0 : (timeLeft > 60 ? 0 : (late ? 0.7 : 0.45));
     if (r < nearP) {
       const pt = pickNearWalkable(px, pz, late ? 2 : 5, late ? 6 : 13);
       seeker.target = { x: pt.x, z: pt.z };
@@ -3195,7 +3338,7 @@ function updateHUD(dt) {
   nearestSpot = null;
   nearestWardrobe = null;
   if (mode === 'hide' && player && !player.hidden && !player.insideWardrobe) {
-    let best = 2.4;
+    let best = 3.0;
     for (const s of hideSpots) {
       if (s.taken) continue;
       const d = dist2(player.g.position.x, player.g.position.z, s.x, s.z);
