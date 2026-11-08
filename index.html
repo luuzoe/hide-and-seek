@@ -184,7 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.1</p>
+    <p class="ver">Hide &amp; Seek • V5.2</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -698,14 +698,19 @@ function updatePersonAnim(p, dt) {
     p.bobT += dt * 11;
     const sw = Math.sin(p.bobT);
     const runK = speed > 5 ? 1.35 : 1;
-    p.bodyG.position.y = Math.abs(sw) * 0.11 * runK;
-    p.bodyG.rotation.x = (0.1 + speed * 0.012) * runK;
-    p.bodyG.rotation.z = sw * 0.13;
-    p.bodyG.rotation.y = sw * 0.07;
+    // Chibi waddle: these GLB models have NO skeleton (rigid meshes, 0
+    // bones), so no legs can swing. The walk must read from the whole
+    // body — a clear bounce + side-to-side rock + lateral sway.
+    p.bodyG.position.y = Math.abs(sw) * 0.16 * runK;
+    p.bodyG.position.x = sw * 0.05 * runK;
+    p.bodyG.rotation.x = (0.14 + speed * 0.012) * runK;
+    p.bodyG.rotation.z = sw * 0.22;
+    p.bodyG.rotation.y = sw * 0.10;
     if (p.armL) p.armL.rotation.x = sw * 0.7;
     if (p.armR) p.armR.rotation.x = -sw * 0.7;
   } else {
     p.bodyG.position.y = Math.sin(elapsed * 2 + p.bobT) * 0.02;
+    p.bodyG.position.x = 0;
     p.bodyG.rotation.x = 0;
     p.bodyG.rotation.z = Math.sin(elapsed * 2 + p.bobT) * 0.02;
     p.bodyG.rotation.y = 0;
@@ -2206,14 +2211,12 @@ function playerMoveInput(dt) {
 }
 function updateCamera(dt) {
   if (!player) return;
-  const walking = player.moving && (joy.active || keys['w'] || keys['arrowup'] || keys['s'] || keys['arrowdown'] || keys['a'] || keys['arrowleft'] || keys['d'] || keys['arrowright']);
-  const dragging = dragId !== null || pendingDragId !== null || mouseDrag || mousePending;
-  if (walking && !dragging) {
-    let diff = (player.heading + Math.PI) - camYaw;
-    while (diff > Math.PI) diff -= 2 * Math.PI;
-    while (diff < -Math.PI) diff += 2 * Math.PI;
-    camYaw += diff * Math.min(1, dt * 3);
-  }
+  // No auto-recenter: the camera turns ONLY when the player drags it.
+  // The old auto-recenter spun the camera continuously whenever the
+  // joystick was held off straight-up (its target moves with the camera,
+  // so it never settles) — steering felt broken and it made Zaw dizzy.
+  // Joystick movement is camera-relative, so pushing up always walks
+  // away from the camera with no spin needed.
   const px = player.g.position.x;
   const pz = player.g.position.z;
   const fullDist = window.innerWidth < window.innerHeight ? 4.5 : 2.8;
