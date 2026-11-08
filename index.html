@@ -50,6 +50,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #sneakBtn.on{background:var(--amber)}
 #actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
 #findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
+#quitBtn{background:linear-gradient(135deg,#78909c,#455a64)}
 #cornerSetBtn{position:fixed;top:8px;z-index:35;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
 #cornerSetBtn{right:20px}
 
@@ -183,6 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button id="actBtn">🫣 ပုန်းမယ်</button>
   <button id="sneakBtn">🐢 ချောင်း</button>
   <button id="runBtn">🏃 ပြေးမယ်</button>
+  <button id="quitBtn">🚪 ထွက်</button>
 </div>
 <div id="rotate">
   <div class="big">📱</div>
@@ -205,7 +207,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V6.2</p>
+    <p class="ver">Hide &amp; Seek • V6.3</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -1246,25 +1248,21 @@ const FURN = {
 const FURN_COLORS = ['pink', 'yellow', 'blue', 'mint', 'orange', 'red', 'white', 'purple', 'teal'];
 
 
-// ---------- 5 cheerful maps: CENTER IS ALWAYS OPEN ----------
-// Lesson from the old version: no collider cluster in the middle — houses, trees and
-// bushes live at the edges and corners, so the seeker always has a clear
-// walking path to the player from any direction.
-// ---------- 5 indoor maps: CENTRAL CROSS IS ALWAYS OPEN ----------
-// Lesson from the old version: no collider cluster in the middle — the seeker
-// always needs clear corridors. Furniture lives in the four quadrants only
-// (|x| >= 3.5 AND |z| >= 3.5); the cross |x| < 3.5 OR |z| < 3.5 stays empty.
-// ---------- multi-room layout (V5.0): cross corridor + 4 quadrant rooms ----------
-// Corridor cross: |x| <= 2.5 and |z| <= 2.5. Interior walls run along x=+-2.5
-// (|z|>2.5) and z=+-2.5 (|x|>2.5), 0.4m thick, 4.6m high. Each room has 2
-// doorways (2.0m wide) into the corridor, one in each corridor-facing wall.
-const ROOMS = [
+// ---------- V6.3: each map has its OWN layout ----------
+// ROOMS / WALL_LINES / DOORS are per-map (let) and are loaded from
+// MAPS[i].layout by buildMap. Walls are 0.4m thick, 4.6m high;
+// doorways are 2.0m wide. A wall line may carry door: null (no gap).
+// Rooms connect to the open space (corridor / hall / centre) through
+// their doors; the open space is always reachable from (0, 0).
+// A room listed LAST may overlap earlier rooms (library hall) —
+// roomOf returns the first match, so list small rooms before it.
+let ROOMS = [
   { x0: -20, x1: -2.5, z0: -20, z1: -2.5 },
   { x0: 2.5, x1: 20, z0: -20, z1: -2.5 },
   { x0: -20, x1: -2.5, z0: 2.5, z1: 20 },
   { x0: 2.5, x1: 20, z0: 2.5, z1: 20 },
 ];
-const WALL_LINES = [
+let WALL_LINES = [
   { vertical: true, at: -2.5, from: -20, to: -2.5, door: -11 },
   { vertical: true, at: 2.5, from: -20, to: -2.5, door: -11 },
   { vertical: true, at: -2.5, from: 2.5, to: 20, door: 11 },
@@ -1274,7 +1272,7 @@ const WALL_LINES = [
   { vertical: false, at: -2.5, from: 2.5, to: 20, door: 11 },
   { vertical: false, at: 2.5, from: 2.5, to: 20, door: 11 },
 ];
-const DOORS = [
+let DOORS = [
   { x: -2.5, z: -11, vertical: true, room: 0 },
   { x: -11, z: -2.5, vertical: false, room: 0 },
   { x: 2.5, z: -11, vertical: true, room: 1 },
@@ -1295,6 +1293,7 @@ const MAPS = [
   { name: 'တိုက်ခန်း', icon: '🏢', floor: 0xc9a06c, wall: 0xf5e6d3, accent: 0x6d4c41, sky: 0xffe8c9, fog: 0xf5d9b0,
     rugs: [[-12, -12, 7, 5, 'red'], [12, 12, 7, 5, 'blue'], [-12, 15, 6, 4, 'mint']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
+    layout: { rooms: [{ x0: -20, x1: -2.5, z0: -20, z1: -2.5 }, { x0: 2.5, x1: 20, z0: -20, z1: -2.5 }, { x0: -20, x1: -2.5, z0: 2.5, z1: 20 }, { x0: 2.5, x1: 20, z0: 2.5, z1: 20 }], walls: [{ vertical: true, at: -2.5, from: -20, to: -2.5, door: -11 }, { vertical: true, at: 2.5, from: -20, to: -2.5, door: -11 }, { vertical: true, at: -2.5, from: 2.5, to: 20, door: 11 }, { vertical: true, at: 2.5, from: 2.5, to: 20, door: 11 }, { vertical: false, at: -2.5, from: -20, to: -2.5, door: -11 }, { vertical: false, at: 2.5, from: -20, to: -2.5, door: -11 }, { vertical: false, at: -2.5, from: 2.5, to: 20, door: 11 }, { vertical: false, at: 2.5, from: 2.5, to: 20, door: 11 }], doors: [{ x: -2.5, z: -11, vertical: true, room: 0 }, { x: -11, z: -2.5, vertical: false, room: 0 }, { x: 2.5, z: -11, vertical: true, room: 1 }, { x: 11, z: -2.5, vertical: false, room: 1 }, { x: -2.5, z: 11, vertical: true, room: 2 }, { x: -11, z: 2.5, vertical: false, room: 2 }, { x: 2.5, z: 11, vertical: true, room: 3 }, { x: 11, z: 2.5, vertical: false, room: 3 }], spawns: { hidePlayer: [0, 9], hideSeeker: [0, -18], seekPlayer: [0, 4], clear: [[0, 4], [1, 6], [-1, 6], [2, 2], [-2, 2], [0, 9], [0, -18]] }, gather: [0, 3, 0, 1], pics: [[-2.78, -16, true], [2.78, -16, true], [-2.78, 16, true], [2.78, 16, true]] },
     furniture: [
       ['bed', -11, -11, 0, 'blue'],
       ['wardrobe', -16, -7, 1.6, 'mint'],
@@ -1353,11 +1352,11 @@ const MAPS = [
       ['chair', -18.5, -15.9, 0, 'teal'],
       ['wardrobe', 13.5, 17, 1.6, 'pink'],
       ['wardrobe', -11.5, 14, 0, 'yellow'],
-      ['wardrobe', -12.5, -4.5, 1.6, 'blue'],
+      ['wardrobe', -13.5, -4.5, 1.6, 'blue'],
       ['sofa', -16.9, -13.4, 0, 'mint'],
       ['bed', 10.8, -6.5, 1.6, 'orange'],
       ['sofa', -4.4, -18, 0, 'red'],
-      ['bed', -8.3, -4.2, 1.6, 'white'],
+      ['bed', -7.5, -4.2, 1.6, 'white'],
       ['chair', 3.9, -4, 0, 'purple'],
       ['wardrobe', 14.1, -7.9, 1.6, 'teal'],
       ['sofa', 7.4, 10, 1.6, 'pink'],
@@ -1372,318 +1371,348 @@ const MAPS = [
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, accent: 0x5d4037, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
+    layout: { rooms: [{ x0: -20, x1: 0, z0: -20, z1: -4 }, { x0: 0, x1: 20, z0: -20, z1: -4 }, { x0: -20, x1: -8, z0: 4, z1: 20 }, { x0: -20, x1: 20, z0: -4, z1: 20 }], walls: [{ vertical: true, at: 0, from: -20, to: -4, door: null }, { vertical: false, at: -4, from: -20, to: 0, door: -10 }, { vertical: false, at: -4, from: 0, to: 20, door: 10 }, { vertical: false, at: 4, from: -20, to: -8, door: -14 }, { vertical: true, at: -8, from: 4, to: 20, door: null }], doors: [{ x: -10, z: -4, vertical: false, room: 0 }, { x: 10, z: -4, vertical: false, room: 1 }, { x: -14, z: 4, vertical: false, room: 2 }], spawns: { hidePlayer: [12, 14], hideSeeker: [-14, 0], seekPlayer: [0, 0], clear: [[12, 14], [0, 0], [-14, 0], [6, 0], [-6, 0], [16, 16], [6, 14]] }, gather: [0, 0, 1, 0], pics: [[-16, -3.7, false], [16, -3.7, false], [-16, 3.7, false], [-7.7, 12, true]] },
     furniture: [
-      ['bed', -16, -11, 1.6, 'pink'],
-      ['wardrobe', -7, -16, 0, 'blue'],
-      ['sofa', -11, -7, 0, 'mint'],
-      ['table', -16, -7, 0, 'orange'],
-      ['chair', -7, -11, 1.6, 'red'],
-      ['shelf', -11, -16, 3.1, 'yellow'],
-      ['sofa', 7, -11, 0, 'blue'],
-      ['bed', 11, -16, 0, 'yellow'],
-      ['desk', 16, -7, 1.6, 'pink'],
-      ['wardrobe', 16, -16, 3.1, 'teal'],
-      ['crate', 7, -16, 0, 'mint'],
-      ['curtain', 11, -7, 0, 'red'],
-      ['bed', -11, 16, 0, 'mint'],
-      ['wardrobe', -16, 11, 1.6, 'yellow'],
-      ['sofa', -7, 7, 3.1, 'red'],
-      ['table', -11, 7, 0, 'blue'],
-      ['chair', -16, 7, -1.6, 'purple'],
-      ['shelf', -7, 11, 0, 'pink'],
-      ['sofa', 11, 7, 0, 'orange'],
-      ['desk', 7, 11, 1.6, 'blue'],
-      ['wardrobe', 16, 16, 0, 'mint'],
-      ['table', 16, 11, 0, 'yellow'],
-      ['curtain', 7, 16, 0, 'teal'],
-      ['wardrobe', -18, 18, 0, 'red'],
-      ['shelf', 4.5, -18, 0, 'mint'],
-      ['curtain', -9, -9, 0, 'teal'],
-      ['wardrobe', -18, -13.5, 0, 'pink'],
-      ['shelf', -13.5, -18, 0, 'blue'],
-      ['curtain', 13.5, -18, 1.6, 'yellow'],
-      ['wardrobe', 18, -11, -1.6, 'mint'],
-      ['shelf', -13.5, 13.5, 1.6, 'red'],
-      ['curtain', 9, 18, 0, 'teal'],
-      ['shelf', 18, 4.5, 1.6, 'orange'],
-      ['sofa', -18, 4.5, 1.6, 'yellow'],
-      ['table', -4.5, -9, 0, 'mint'],
-      ['crate', 13.5, -9, 0, 'blue'],
-      ['chair', -8.2, 13.5, 0, 'pink'],
-      ['desk', 13.5, 9, 0, 'yellow'],
-      ['counter', 3.9, 8.4, 1.6, 'white'],
-      ['bed', 4.8, -7.1, 0, 'purple'],
-      ['shelf', -15.5, -4.2, 1.6, 'yellow'],
-      ['wardrobe', 14.5, -4.3, 0, 'blue'],
-      ['wardrobe', -5, 4, 3.1, 'mint'],
-      ['wardrobe', 8.3, -9, 0, 'orange'],
-      ['wardrobe', -5.5, -3.6, 0, 'red'],
-      ['shelf', 13.5, -14.9, 1.6, 'white'],
-      ['chair', -7.6, 4.5, 0, 'purple'],
-      ['sofa', -18.3, -4.5, 0, 'teal'],
-      ['sofa', -12.8, -10.7, 1.6, 'pink'],
-      ['curtain', -4.1, -15, 1.6, 'yellow'],
-      ['wardrobe', -4.2, 7.8, 1.6, 'blue'],
-      ['curtain', -11, -14.5, 0, 'mint'],
-      ['wardrobe', -4, 13.6, 1.6, 'orange'],
-      ['wardrobe', -10.5, 10, 0, 'white'],
-      ['wardrobe', 5.7, 18, 0, 'purple'],
-      ['wardrobe', -7.7, -6.6, 1.6, 'teal'],
-      ['curtain', 18.3, 15, 1.6, 'pink'],
-      ['wardrobe', -14.9, 4.9, 0, 'yellow'],
-      ['wardrobe', 4.5, 13.3, 1.6, 'blue'],
-      ['wardrobe', 15, 6, 0, 'orange'],
-      ['bed', -18.5, -17.5, 0, 'red'],
-      ['sofa', -8.9, -11.6, 1.6, 'white'],
-      ['sofa', -6.5, -18.3, 0, 'purple'],
-      ['sofa', -14.8, -14.8, 1.6, 'pink'],
-      ['sofa', 13, 13, 1.6, 'yellow'],
-      ['sofa', 7.8, 14, 0, 'blue'],
-      ['chair', -13.7, -4, 0, 'red'],
+      ['wardrobe', -16, -19, 3.1, 'blue'],
+      ['wardrobe', -8, -19, 3.1, 'pink'],
+      ['shelf', -12, -19, 3.1, 'yellow'],
+      ['curtain', -4, -19, 3.1, 'red'],
+      ['wardrobe', -19, -12, -1.6, 'mint'],
+      ['shelf', -19, -8, -1.6, 'purple'],
+      ['wardrobe', -1, -12, 1.6, 'teal'],
+      ['wardrobe', -14, -5.2, 0, 'orange'],
+      ['shelf', -5, -5.2, 0, 'blue'],
+      ['wardrobe', -10, -12, 0, 'yellow'],
+      ['shelf', -6, -10, 1.6, 'red'],
+      ['bed', -16, -14, 0, 'blue'],
+      ['sofa', -7, -15, 3.1, 'red'],
+      ['table', -12, -8, 0, 'yellow'],
+      ['chair', -10, -8, 0.5, 'orange'],
+      ['desk', -4, -8, -1.6, 'blue'],
+      ['crate', -16, -8, 0, 'red'],
+      ['counter', -4, -14, 0, 'white'],
+      ['wardrobe', 16, -19, 3.1, 'pink'],
+      ['wardrobe', 8, -19, 3.1, 'blue'],
+      ['shelf', 12, -19, 3.1, 'mint'],
+      ['curtain', 4, -19, 3.1, 'yellow'],
+      ['wardrobe', 19, -12, 1.6, 'teal'],
+      ['shelf', 19, -8, 1.6, 'red'],
+      ['wardrobe', 1, -12, -1.6, 'orange'],
+      ['wardrobe', 14, -5.2, 0, 'mint'],
+      ['shelf', 5, -5.2, 0, 'yellow'],
+      ['wardrobe', 10, -12, 0, 'blue'],
+      ['shelf', 6, -10, -1.6, 'pink'],
+      ['bed', 16, -14, 0, 'pink'],
+      ['sofa', 7, -15, 3.1, 'mint'],
+      ['table', 12, -8, 0, 'orange'],
+      ['chair', 10, -8, 0.5, 'red'],
+      ['desk', 4, -8, 1.6, 'yellow'],
+      ['crate', 16, -8, 0, 'mint'],
+      ['counter', 4, -14, 0, 'white'],
+      ['wardrobe', -19, 8, -1.6, 'blue'],
+      ['shelf', -19, 14, -1.6, 'yellow'],
+      ['curtain', -19, 18, -1.6, 'red'],
+      ['wardrobe', -17.5, 5.2, 3.1, 'mint'],
+      ['shelf', -11, 5.2, 3.1, 'pink'],
+      ['wardrobe', -9, 12, 1.6, 'teal'],
+      ['shelf', -9, 17, 1.6, 'orange'],
+      ['wardrobe', -14, 19, 0, 'purple'],
+      ['shelf', -11, 19, 0, 'yellow'],
+      ['wardrobe', -14, 10, 0, 'red'],
+      ['shelf', -12, 14, 1.6, 'blue'],
+      ['bed', -16, 12, 1.6, 'mint'],
+      ['sofa', -12, 8, 0, 'teal'],
+      ['table', -16, 17, 0, 'orange'],
+      ['chair', -11, 17, 0.5, 'purple'],
+      ['desk', -13, 16, 0, 'blue'],
+      ['crate', -18, 14.5, 0, 'red'],
+      ['wardrobe', 16, 19, 0, 'blue'],
+      ['shelf', 10, 19, 0, 'yellow'],
+      ['curtain', 4, 19, 0, 'red'],
+      ['wardrobe', 19, 10, 1.6, 'mint'],
+      ['shelf', 19, 16, 1.6, 'purple'],
+      ['wardrobe', 8, 12, 0, 'pink'],
+      ['shelf', 14, 8, 1.6, 'teal'],
+      ['wardrobe', 2, 16, 1.6, 'orange'],
+      ['wardrobe', -4, 0, 1.6, 'yellow'],
+      ['shelf', 4, 0, 0, 'blue'],
+      ['curtain', -16, 0, 1.6, 'mint'],
+      ['sofa', 12, 0, 0, 'red'],
+      ['table', 0, 2, 0, 'yellow'],
+      ['chair', -8, 2, 0.5, 'orange'],
+      ['desk', -13.5, -2, 0, 'blue'],
+      ['crate', 8, -2, 0, 'mint'],
+      ['sofa', -2, 14, 3.1, 'pink'],
+      ['counter', 16, 4, 0, 'white']
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, accent: 0x2e7d32, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[7.8, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
     palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter', 'wardrobe'],
+    layout: { rooms: [{ x0: -20, x1: -3, z0: -20, z1: -6 }, { x0: -20, x1: -3, z0: -6, z1: 6 }, { x0: -20, x1: -3, z0: 6, z1: 20 }, { x0: 3, x1: 20, z0: -20, z1: -6 }, { x0: 3, x1: 20, z0: -6, z1: 6 }, { x0: 3, x1: 20, z0: 6, z1: 20 }], walls: [{ vertical: true, at: -3, from: -20, to: -6, door: -13 }, { vertical: true, at: -3, from: -6, to: 6, door: 0 }, { vertical: true, at: -3, from: 6, to: 20, door: 13 }, { vertical: true, at: 3, from: -20, to: -6, door: -13 }, { vertical: true, at: 3, from: -6, to: 6, door: 0 }, { vertical: true, at: 3, from: 6, to: 20, door: 13 }, { vertical: false, at: -6, from: -20, to: -3, door: null }, { vertical: false, at: -6, from: 3, to: 20, door: null }, { vertical: false, at: 6, from: -20, to: -3, door: null }, { vertical: false, at: 6, from: 3, to: 20, door: null }], doors: [{ x: -3, z: -13, vertical: true, room: 0 }, { x: -3, z: 0, vertical: true, room: 1 }, { x: -3, z: 13, vertical: true, room: 2 }, { x: 3, z: -13, vertical: true, room: 3 }, { x: 3, z: 0, vertical: true, room: 4 }, { x: 3, z: 13, vertical: true, room: 5 }], spawns: { hidePlayer: [0, 14], hideSeeker: [0, -16], seekPlayer: [0, 0], clear: [[0, 14], [0, 0], [0, -16], [0, 8], [0, -8], [0, 18], [0, -18]] }, gather: [0, 0, 0, 1], pics: [[-2.68, -16, true], [2.68, -16, true], [-2.68, 16, true], [2.68, 16, true]] },
     furniture: [
-      ['blackboard', -11, -16, 0, ''],
-      ['desk', -16, -11, 0, 'blue'],
-      ['chair', -16, -9, 0, 'red'],
-      ['desk', -11, -11, 0, 'yellow'],
-      ['chair', -11, -9, 0, 'blue'],
-      ['shelf', -7, -16, 0, 'mint'],
-      ['desk', -7, -7, 0, 'pink'],
-      ['chair', -7, -4.5, 0, 'orange'],
-      ['table', -16, -7, 0, 'teal'],
-      ['blackboard', 11, -16, 0, ''],
-      ['desk', 16, -11, 0, 'mint'],
-      ['chair', 16, -9, 0, 'yellow'],
-      ['desk', 11, -11, 0, 'red'],
-      ['chair', 11, -9, 0, 'pink'],
-      ['shelf', 7, -16, 0, 'blue'],
-      ['desk', 7, -7, 0, 'orange'],
-      ['chair', 7, -4.5, 0, 'mint'],
-      ['crate', 16, -7, 0, ''],
-      ['desk', -16, 11, 0, 'blue'],
-      ['chair', -16, 13.5, 0, 'yellow'],
-      ['desk', -11, 16, 0, 'pink'],
-      ['chair', -11, 13.5, 0, 'red'],
-      ['shelf', -7, 11, 0, 'mint'],
-      ['table', -7, 7, 0, 'orange'],
-      ['desk', 16, 11, 0, 'yellow'],
-      ['chair', 16, 13.5, 0, 'blue'],
-      ['desk', 11, 16, 0, 'mint'],
-      ['chair', 11, 13.5, 0, 'pink'],
-      ['blackboard', 7, 16, 3.1, ''],
-      ['counter', 16, 7, 1.6, 'white'],
-      ['shelf', -18, 4.5, 1.6, 'yellow'],
-      ['blackboard', -9, 18, 0, ''],
-      ['shelf', 13.5, 18, 0, 'blue'],
-      ['blackboard', 18, -4.5, 1.6, ''],
-      ['shelf', -4.5, -9, 0, 'pink'],
-      ['blackboard', -18, -13.5, 0, ''],
-      ['shelf', -13.5, -18, 0, 'red'],
-      ['blackboard', 9, -18, 0, ''],
-      ['shelf', 18, -13.5, -1.6, 'mint'],
-      ['blackboard', -13.5, 13.5, 1.6, ''],
-      ['shelf', 13.5, 9, 1.6, 'yellow'],
-      ['desk', -13.5, -4.5, 0, 'blue'],
-      ['table', 8.2, -9, 0, 'orange'],
-      ['shelf', -18.3, 9.5, 1.6, 'blue'],
-      ['blackboard', -6.5, -14.5, 0, 'mint'],
-      ['chair', 14, -13.5, 0, 'orange'],
-      ['shelf', 8, -13.5, 0, 'red'],
-      ['shelf', -14, 17.5, 0, 'white'],
-      ['chair', 13.5, -4.5, 0, 'purple'],
-      ['shelf', 4.2, -6.5, 1.6, 'teal'],
-      ['blackboard', -13.4, -8, 1.6, 'pink'],
-      ['shelf', 18.3, -8, 1.6, 'yellow'],
-      ['blackboard', -8.8, 15, 1.6, 'blue'],
-      ['shelf', 8, 12.5, 0, 'mint'],
-      ['shelf', 13.5, 5.5, 0, 'orange'],
-      ['blackboard', -8.4, 4.3, 0, 'red'],
-      ['desk', -11.5, -14, 0, 'white'],
-      ['desk', 7.5, -11, 0, 'purple'],
-      ['chair', 12.8, -8, 0, 'teal'],
-      ['chair', -7.2, 14, 0, 'pink'],
-      ['desk', 13.5, -10.6, 1.6, 'yellow'],
-      ['blackboard', -9.3, 7, 1.6, 'blue'],
-      ['desk', 16.1, -13.6, 1.6, 'mint'],
-      ['shelf', 15.1, 15.6, 0, 'orange'],
-      ['shelf', 4.4, -3.5, 0, 'red'],
-      ['wardrobe', -18, -18, 0, 'pink'],
-      ['wardrobe', 4.5, -18, 0, 'blue'],
-      ['wardrobe', -18, 14, -1.57, 'mint'],
-      ['wardrobe', 4.5, 4.5, 0, 'yellow'],
-      ['wardrobe', -18, -16, 0, 'pink'],
-      ['wardrobe', 4.5, -15, 1.57, 'blue'],
-      ['wardrobe', -18, 17, 0, 'mint'],
-      ['wardrobe', 4.5, 6.5, 0, 'yellow'],
+      ['blackboard', -19.5, -13, -1.6, ''],
+      ['shelf', -19.5, -17, -1.6, 'blue'],
+      ['shelf', -19.5, -9, -1.6, 'mint'],
+      ['wardrobe', -5.2, -17, 1.6, 'pink'],
+      ['desk', -14, -16, 0, 'blue'],
+      ['desk', -10, -16, 0, 'yellow'],
+      ['desk', -14, -10, 0, 'pink'],
+      ['desk', -10, -10, 0, 'mint'],
+      ['chair', -14, -14.5, 0, 'red'],
+      ['chair', -10, -14.5, 0, 'yellow'],
+      ['table', -7, -13, 0, 'teal'],
+      ['counter', -7, -9, 0, 'white'],
+      ['shelf', -11, -19, 3.1, 'blue'],
+      ['shelf', -11, -7, 0, 'mint'],
+      ['blackboard', -19.5, 0, -1.6, ''],
+      ['shelf', -19.5, -4, -1.6, 'blue'],
+      ['shelf', -19.5, 4, -1.6, 'mint'],
+      ['wardrobe', -5.2, -4, 1.6, 'pink'],
+      ['desk', -14, -3, 0, 'blue'],
+      ['desk', -10, -3, 0, 'yellow'],
+      ['desk', -14, 3, 0, 'pink'],
+      ['desk', -10, 3, 0, 'mint'],
+      ['chair', -14, -1.5, 0, 'red'],
+      ['chair', -10, -1.5, 0, 'yellow'],
+      ['table', -7, 0, 0, 'teal'],
+      ['counter', -7, 4, 0, 'white'],
+      ['shelf', -11, -5, 3.1, 'blue'],
+      ['shelf', -11, 5, 0, 'mint'],
+      ['blackboard', -19.5, 13, -1.6, ''],
+      ['shelf', -19.5, 9, -1.6, 'blue'],
+      ['shelf', -19.5, 17, -1.6, 'mint'],
+      ['wardrobe', -5.2, 9, 1.6, 'pink'],
+      ['desk', -14, 10, 0, 'blue'],
+      ['desk', -10, 10, 0, 'yellow'],
+      ['desk', -14, 16, 0, 'pink'],
+      ['desk', -10, 16, 0, 'mint'],
+      ['chair', -14, 11.5, 0, 'red'],
+      ['chair', -10, 11.5, 0, 'yellow'],
+      ['table', -7, 13, 0, 'teal'],
+      ['counter', -7, 17, 0, 'white'],
+      ['shelf', -11, 19, 0, 'blue'],
+      ['shelf', -11, 7, 3.1, 'mint'],
+      ['blackboard', 19.5, -13, 1.6, ''],
+      ['shelf', 19.5, -17, 1.6, 'blue'],
+      ['shelf', 19.5, -9, 1.6, 'mint'],
+      ['wardrobe', 5.2, -17, -1.6, 'pink'],
+      ['desk', 14, -16, 0, 'blue'],
+      ['desk', 10, -16, 0, 'yellow'],
+      ['desk', 14, -10, 0, 'pink'],
+      ['desk', 10, -10, 0, 'mint'],
+      ['chair', 14, -14.5, 0, 'red'],
+      ['chair', 10, -14.5, 0, 'yellow'],
+      ['table', 7, -13, 0, 'teal'],
+      ['counter', 7, -9, 0, 'white'],
+      ['shelf', 11, -19, 3.1, 'blue'],
+      ['shelf', 11, -7, 0, 'mint'],
+      ['blackboard', 19.5, 0, 1.6, ''],
+      ['shelf', 19.5, -4, 1.6, 'blue'],
+      ['shelf', 19.5, 4, 1.6, 'mint'],
+      ['wardrobe', 5.2, -4, -1.6, 'pink'],
+      ['desk', 14, -3, 0, 'blue'],
+      ['desk', 10, -3, 0, 'yellow'],
+      ['desk', 14, 3, 0, 'pink'],
+      ['desk', 10, 3, 0, 'mint'],
+      ['chair', 14, -1.5, 0, 'red'],
+      ['chair', 10, -1.5, 0, 'yellow'],
+      ['table', 7, 0, 0, 'teal'],
+      ['counter', 7, 4, 0, 'white'],
+      ['shelf', 11, -5, 3.1, 'blue'],
+      ['shelf', 11, 5, 0, 'mint'],
+      ['blackboard', 19.5, 13, 1.6, ''],
+      ['shelf', 19.5, 9, 1.6, 'blue'],
+      ['shelf', 19.5, 17, 1.6, 'mint'],
+      ['wardrobe', 5.2, 9, -1.6, 'pink'],
+      ['desk', 14, 10, 0, 'blue'],
+      ['desk', 10, 10, 0, 'yellow'],
+      ['desk', 14, 16, 0, 'pink'],
+      ['desk', 10, 16, 0, 'mint'],
+      ['chair', 14, 11.5, 0, 'red'],
+      ['chair', 10, 11.5, 0, 'yellow'],
+      ['table', 7, 13, 0, 'teal'],
+      ['counter', 7, 17, 0, 'white'],
+      ['shelf', 11, 19, 0, 'blue'],
+      ['shelf', 11, 7, 3.1, 'mint']
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, accent: 0x0277bd, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
     palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate', 'wardrobe'],
+    layout: { rooms: [{ x0: -20, x1: 20, z0: -20, z1: -3 }, { x0: -20, x1: 0, z0: 3, z1: 20 }, { x0: 0, x1: 10, z0: 3, z1: 20 }, { x0: 10, x1: 20, z0: 3, z1: 20 }], walls: [{ vertical: false, at: -3, from: -20, to: 0, door: -10 }, { vertical: false, at: -3, from: 0, to: 20, door: 10 }, { vertical: false, at: 3, from: -20, to: 0, door: -10 }, { vertical: false, at: 3, from: 0, to: 10, door: 5 }, { vertical: false, at: 3, from: 10, to: 20, door: 15 }, { vertical: true, at: 0, from: 3, to: 20, door: null }, { vertical: true, at: 10, from: 3, to: 20, door: null }], doors: [{ x: -10, z: -3, vertical: false, room: 0 }, { x: 10, z: -3, vertical: false, room: 0 }, { x: -10, z: 3, vertical: false, room: 1 }, { x: 5, z: 3, vertical: false, room: 2 }, { x: 15, z: 3, vertical: false, room: 3 }], spawns: { hidePlayer: [-14, 0], hideSeeker: [14, 0], seekPlayer: [0, 0], clear: [[-14, 0], [0, 0], [14, 0], [-6, 0], [6, 0], [-18, 0], [18, 0]] }, gather: [0, 0, 1, 0], pics: [[-16, -2.68, false], [16, -2.68, false], [-16, 2.68, false], [16, 2.68, false]] },
     furniture: [
-      ['hospitalBed', -11, -11, 0, ''],
-      ['curtain', -16, -11, 1.6, 'blue'],
-      ['trolley', -7, -16, 0, 'mint'],
-      ['counter', -16, -7, 1.6, 'white'],
-      ['chair', -11, -7, 0, 'blue'],
-      ['shelf', -7, -11, 0, 'teal'],
-      ['hospitalBed', 11, -16, 0, ''],
-      ['curtain', 16, -16, 1.6, 'pink'],
-      ['trolley', 7, -11, 0, 'yellow'],
-      ['counter', 16, -11, 1.6, 'white'],
-      ['chair', 11, -7, 0, 'mint'],
-      ['shelf', 7, -7, 0, 'blue'],
-      ['hospitalBed', -16, 11, 1.6, ''],
-      ['curtain', -11, 16, 0, 'mint'],
-      ['trolley', -7, 7, 0, 'red'],
-      ['counter', -16, 16, 0, 'white'],
-      ['chair', -7, 11, 0, 'pink'],
-      ['bed', -11, 7, 0, 'blue'],
-      ['hospitalBed', 16, 7, -1.6, ''],
-      ['curtain', 11, 11, 0, 'blue'],
-      ['trolley', 7, 16, 0, 'teal'],
-      ['counter', 11, 16, 0, 'white'],
-      ['chair', 16, 11, 0, 'yellow'],
-      ['crate', 16, 16, 0, ''],
-      ['curtain', -18, 4.5, 1.6, 'yellow'],
-      ['shelf', -9, -18, 0, 'pink'],
-      ['curtain', 4.5, -13.5, 0, 'mint'],
-      ['shelf', -4.5, 9, 0, 'teal'],
-      ['curtain', 18, -9, 1.6, 'blue'],
-      ['curtain', -18, -16, 1.6, 'pink'],
-      ['shelf', -13.5, -18, 0, 'blue'],
-      ['curtain', 9, -18, 0, 'mint'],
-      ['shelf', 18, -13.5, -1.6, 'yellow'],
-      ['curtain', -13.5, 18, 0, 'red'],
-      ['shelf', 13.5, 4.5, 1.6, 'teal'],
-      ['curtain', 4.5, 18, 0, 'blue'],
-      ['hospitalBed', -18, 9, 1.6, ''],
-      ['trolley', -13.5, -7, 0, 'red'],
-      ['chair', 9, -9, 0, 'pink'],
-      ['bed', -9, 13.5, 1.6, 'yellow'],
-      ['counter', 4.5, -7, 1.6, 'white'],
-      ['crate', 13.5, -4.5, 0, ''],
-      ['shelf', -3.5, -7.5, 1.6, 'mint'],
-      ['shelf', -6.1, -8.9, 0, 'red'],
-      ['curtain', 7.5, 6, 0, 'white'],
-      ['curtain', -7.5, -14.5, 0, 'teal'],
-      ['shelf', -4.2, -14, 0, 'pink'],
-      ['hospitalBed', -13.5, -14, 1.6, 'yellow'],
-      ['shelf', 15.9, 13.9, 0, 'blue'],
-      ['shelf', -18, -12, 1.6, 'mint'],
-      ['shelf', 15.5, -5, 1.6, 'orange'],
-      ['shelf', -8.9, -3.5, 0, 'red'],
-      ['shelf', 9, -12.5, 1.6, 'white'],
-      ['shelf', -4.2, -16.3, 0, 'purple'],
-      ['curtain', -9.5, 10, 0, 'teal'],
-      ['curtain', -6.5, -6.5, 1.6, 'pink'],
-      ['shelf', -4.2, 15, 0, 'yellow'],
-      ['shelf', 16.5, 3.5, 3.1, 'blue'],
-      ['shelf', -5.1, -3.5, 0, 'mint'],
-      ['shelf', 17.6, -5.9, 1.6, 'orange'],
-      ['curtain', 14.7, -17.5, 1.6, 'red'],
-      ['shelf', 7.5, 14.2, 0, 'white'],
-      ['trolley', 12.6, 7.1, 0, 'purple'],
-      ['hospitalBed', -4.2, 12.5, 0, 'teal'],
-      ['curtain', -8.5, -12.6, 0, 'pink'],
-      ['hospitalBed', 18.3, 6, 1.6, 'yellow'],
-      ['hospitalBed', 14, -11.5, 1.6, 'blue'],
-      ['hospitalBed', 12.1, -13.4, 1.6, 'mint'],
-      ['hospitalBed', 9.3, -4.2, 1.6, 'orange'],
-      ['hospitalBed', -15.5, 3.6, 0, 'red'],
-      ['curtain', 15, -8, 0, 'white'],
-      ['hospitalBed', 10.6, 18.1, 0, 'purple'],
-      ['wardrobe', -18, -8.5, 1.57, 'pink'],
-      ['wardrobe', 4.5, -18, 0, 'blue'],
-      ['wardrobe', -18, 12.5, 1.57, 'mint'],
-      ['wardrobe', 4.5, 4.5, 1.57, 'yellow'],
-      ['wardrobe', -18, -5, 1.57, 'pink'],
-      ['wardrobe', 4.5, -16, 0, 'blue'],
-      ['wardrobe', -18, 18, 0, 'mint'],
-      ['wardrobe', 4.5, 8, 0, 'yellow'],
+      ['wardrobe', -16, -19, 3.1, 'blue'],
+      ['wardrobe', -8, -19, 3.1, 'pink'],
+      ['shelf', -12, -19, 3.1, 'yellow'],
+      ['shelf', -4, -19, 3.1, 'mint'],
+      ['curtain', 0, -19, 3.1, 'red'],
+      ['curtain', 4, -19, 3.1, 'blue'],
+      ['wardrobe', 8, -19, 3.1, 'teal'],
+      ['shelf', 12, -19, 3.1, 'orange'],
+      ['wardrobe', 16, -19, 3.1, 'purple'],
+      ['wardrobe', -19, -12, -1.6, 'mint'],
+      ['shelf', -19, -8, -1.6, 'blue'],
+      ['wardrobe', 19, -12, 1.6, 'teal'],
+      ['shelf', 19, -8, 1.6, 'red'],
+      ['wardrobe', -16, -4.2, 0, 'orange'],
+      ['shelf', -4, -4.2, 0, 'yellow'],
+      ['wardrobe', 16, -4.2, 0, 'blue'],
+      ['curtain', 4, -4.2, 0, 'pink'],
+      ['wardrobe', -10, -11, 0, 'yellow'],
+      ['shelf', 2, -14, 1.6, 'red'],
+      ['curtain', 10, -8, 0, 'mint'],
+      ['hospitalBed', -14, -14, 0, ''],
+      ['hospitalBed', -6, -14, 0, ''],
+      ['hospitalBed', 6, -14, 0, ''],
+      ['hospitalBed', 14, -14, 0, ''],
+      ['trolley', -2, -10, 0, 'blue'],
+      ['trolley', 12, -10, 0, 'red'],
+      ['counter', -16, -8, 0, 'white'],
+      ['table', 0, -8, 0, 'yellow'],
+      ['chair', -14, -8, 0.5, 'red'],
+      ['chair', 14, -8, 0.5, 'blue'],
+      ['crate', -18, -16, 0, ''],
+      ['desk', 18, -16, 0, 'mint'],
+      ['wardrobe', -16, 4.2, 3.1, 'blue'],
+      ['shelf', -7, 4.2, 3.1, 'yellow'],
+      ['curtain', -4, 4.2, 3.1, 'red'],
+      ['wardrobe', -19, 10, -1.6, 'mint'],
+      ['shelf', -19, 16, -1.6, 'purple'],
+      ['wardrobe', -14, 19, 0, 'orange'],
+      ['shelf', -6, 19, 0, 'blue'],
+      ['wardrobe', -1, 12, 1.6, 'teal'],
+      ['shelf', -1, 17, 1.6, 'red'],
+      ['wardrobe', -10, 12, 0, 'yellow'],
+      ['curtain', -6, 15, 1.6, 'pink'],
+      ['hospitalBed', -14, 8, 0, ''],
+      ['hospitalBed', -8, 16, 0, ''],
+      ['hospitalBed', -16, 14, 1.6, ''],
+      ['trolley', -12, 10, 0, 'blue'],
+      ['counter', -4, 8, 0, 'white'],
+      ['table', -10, 18, 0, 'yellow'],
+      ['chair', -8, 8, 0.5, 'red'],
+      ['crate', -18, 6, 0, ''],
+      ['desk', -3, 18, 0, 'mint'],
+      ['wardrobe', 2, 4.2, 3.1, 'blue'],
+      ['shelf', 8, 4.2, 3.1, 'yellow'],
+      ['wardrobe', 1, 10, -1.6, 'mint'],
+      ['shelf', 1, 16, -1.6, 'purple'],
+      ['wardrobe', 9, 10, 1.6, 'teal'],
+      ['shelf', 9, 16, 1.6, 'red'],
+      ['wardrobe', 5, 19, 0, 'orange'],
+      ['curtain', 5, 12, 0, 'pink'],
+      ['hospitalBed', 3, 8, 0, ''],
+      ['hospitalBed', 7, 14, 0, ''],
+      ['trolley', 5, 16, 0, 'blue'],
+      ['counter', 8, 8, 0, 'white'],
+      ['chair', 8, 12, 0.5, 'red'],
+      ['crate', 2, 16, 0, ''],
+      ['desk', 7, 18, 0, 'mint'],
+      ['wardrobe', 18, 4.2, 3.1, 'pink'],
+      ['shelf', 12, 4.2, 3.1, 'mint'],
+      ['wardrobe', 19, 10, 1.6, 'blue'],
+      ['shelf', 19, 16, 1.6, 'yellow'],
+      ['wardrobe', 11, 10, -1.6, 'orange'],
+      ['shelf', 11, 16, -1.6, 'teal'],
+      ['wardrobe', 15, 19, 0, 'purple'],
+      ['curtain', 15, 12, 0, 'red'],
+      ['hospitalBed', 17, 8, 0, ''],
+      ['hospitalBed', 13, 14, 0, ''],
+      ['trolley', 15, 16, 0, 'red'],
+      ['counter', 12, 8, 0, 'white'],
+      ['chair', 12, 12, 0.5, 'blue'],
+      ['crate', 18, 16, 0, ''],
+      ['desk', 13, 18, 0, 'yellow']
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, accent: 0x6a1b9a, sky: 0xf0e0b8, fog: 0xe0d0a0,
-    rugs: [[-15, 5.3, 8, 5, 'red'], [15, 5.3, 8, 5, 'blue'], [6.8, 15, 8, 5, 'mint']],
+    rugs: [[-16.5, 0, 5, 10, 'red'], [16.5, 0, 5, 10, 'blue'], [0, 0, 10, 6, 'mint']],
     palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter', 'wardrobe'],
+    layout: { rooms: [{ x0: -20, x1: -13, z0: -8, z1: 8 }, { x0: 13, x1: 20, z0: -8, z1: 8 }, { x0: -20, x1: 20, z0: -20, z1: 20 }], walls: [{ vertical: true, at: -13, from: -8, to: 8, door: 0 }, { vertical: true, at: 13, from: -8, to: 8, door: 0 }], doors: [{ x: -13, z: 0, vertical: true, room: 0 }, { x: 13, z: 0, vertical: true, room: 1 }], spawns: { hidePlayer: [0, 12], hideSeeker: [0, -12], seekPlayer: [0, 0], clear: [[0, 12], [0, 0], [0, -12], [6, 0], [-6, 0], [0, 4], [0, -4]] }, gather: [0, 0, 1, 0], pics: [[-13.32, -4, true], [-13.32, 4, true], [13.32, -4, true], [13.32, 4, true]] },
     furniture: [
-      ['shelf', -16, -11, 1.6, 'orange'],
-      ['shelf', -11, -16, 0, 'blue'],
-      ['desk', -7, -11, 0, 'yellow'],
-      ['chair', -7, -9, 0, 'red'],
-      ['table', -16, -7, 0, 'mint'],
-      ['shelf', -11, -7, 0, 'pink'],
-      ['shelf', -7, -16, 0, 'teal'],
-      ['desk', -16, -16, 0, 'orange'],
-      ['chair', -16, -13.5, 0, 'blue'],
-      ['shelf', 16, -11, -1.6, 'blue'],
-      ['shelf', 11, -16, 0, 'pink'],
-      ['desk', 7, -11, 0, 'mint'],
-      ['chair', 7, -9, 0, 'yellow'],
-      ['table', 16, -7, 0, 'orange'],
-      ['shelf', 11, -7, 0, 'red'],
-      ['shelf', 7, -16, 0, 'yellow'],
-      ['desk', 16, -16, 0, 'blue'],
-      ['chair', 16, -13.5, 0, 'pink'],
-      ['shelf', -16, 11, 1.6, 'mint'],
-      ['shelf', -11, 16, 0, 'red'],
-      ['desk', -7, 11, 0, 'blue'],
-      ['chair', -7, 13.5, 0, 'teal'],
-      ['table', -16, 7, 0, 'yellow'],
-      ['shelf', -11, 7, 0, 'orange'],
-      ['shelf', 16, 11, -1.6, 'pink'],
-      ['shelf', 11, 16, 0, 'mint'],
-      ['desk', 7, 11, 0, 'red'],
-      ['chair', 7, 13.5, 0, 'blue'],
-      ['table', 16, 7, 0, 'purple'],
-      ['counter', 11, 7, 0, 'white'],
-      ['shelf', -4.5, -4.5, 0, 'purple'],
-      ['shelf', 4.5, 4.5, 0, 'yellow'],
-      ['shelf', -18, -4.5, 0, 'blue'],
-      ['shelf', 9, -18, 0, 'pink'],
-      ['shelf', -13.5, 18, 0, 'mint'],
-      ['shelf', 18, 13.5, -1.6, 'red'],
-      ['desk', -13.5, -13.5, 0, 'teal'],
-      ['chair', -13.5, -11, 0, 'yellow'],
-      ['table', 9.8, -9, 0, 'purple'],
-      ['crate', -9, 9, 0, 'orange'],
-      ['counter', 13.5, -13.5, 1.6, 'white'],
-      ['desk', -9, 13.5, 1.6, 'blue'],
-      ['chair', 9, 9, 0, 'red'],
-      ['crate', 4.5, -7, 0, 'mint'],
-      ['shelf', 13.9, 11.1, 1.6, 'orange'],
-      ['chair', -9, 5, 0, 'red'],
-      ['chair', -5.2, 13.5, 0, 'white'],
-      ['shelf', -18.5, -14.9, 1.6, 'purple'],
-      ['shelf', -5, 17, 1.6, 'teal'],
-      ['desk', -5, 9.1, 0, 'pink'],
-      ['shelf', 11.5, 14, 0, 'yellow'],
-      ['shelf', 5, -18, 0, 'blue'],
-      ['shelf', -15, 4.2, 1.6, 'mint'],
-      ['shelf', 8.3, 3.5, 3.1, 'orange'],
-      ['chair', -6.5, 3.5, 0, 'red'],
-      ['shelf', 8.5, -13, 0, 'white'],
-      ['shelf', 6.4, 9, 0, 'purple'],
-      ['shelf', 10, 12, 0, 'teal'],
-      ['shelf', 10.9, -11.1, 0, 'pink'],
-      ['shelf', 5.2, 13.5, 1.6, 'yellow'],
-      ['shelf', 13.5, 5, 0, 'blue'],
-      ['shelf', -13.2, -9, 0, 'mint'],
-      ['desk', 4.1, 16.8, 1.6, 'orange'],
-      ['chair', 10.8, 9, 0, 'red'],
-      ['chair', 18.2, -14, 0, 'white'],
-      ['desk', 15.6, -4.9, 0, 'purple'],
-      ['chair', -15, -18.2, 0, 'blue'],
-      ['wardrobe', -18, -18, 0, 'pink'],
-      ['wardrobe', 4.5, -15, 1.57, 'blue'],
-      ['wardrobe', -18, 4.5, 0, 'mint'],
-      ['wardrobe', 4.5, 6.5, 0, 'yellow'],
-      ['wardrobe', -18, -11.5, -1.57, 'pink'],
-      ['wardrobe', 4.5, -9, 3.14, 'blue'],
-      ['wardrobe', -18, 10, -1.57, 'mint'],
-      ['wardrobe', 6, 17, 1.57, 'yellow'],
-    ] },
+      ['shelf', -19.4, -4, -1.6, 'blue'],
+      ['shelf', -19.4, 4, -1.6, 'mint'],
+      ['wardrobe', -19.4, 0, -1.6, 'pink'],
+      ['curtain', -19.4, -6.5, -1.6, 'red'],
+      ['shelf', -14.2, -4, 1.6, 'yellow'],
+      ['wardrobe', -14.2, 4, 1.6, 'teal'],
+      ['shelf', -17.5, 0, 0, 'orange'],
+      ['curtain', -16.5, 6, 1.6, 'purple'],
+      ['desk', -17, 2, 0, 'blue'],
+      ['table', -16, -2, 0, 'yellow'],
+      ['chair', -17, -4, 0.5, 'red'],
+      ['chair', -15, 6, 0.5, 'mint'],
+      ['crate', -18, 7, 0, ''],
+      ['counter', -15, -6, 0, 'white'],
+      ['shelf', 19.4, -4, 1.6, 'mint'],
+      ['shelf', 19.4, 4, 1.6, 'blue'],
+      ['wardrobe', 19.4, 0, 1.6, 'teal'],
+      ['curtain', 19.4, -6.5, 1.6, 'yellow'],
+      ['shelf', 14.2, -4, -1.6, 'red'],
+      ['wardrobe', 14.2, 4, -1.6, 'orange'],
+      ['shelf', 17.5, 0, 0, 'purple'],
+      ['curtain', 16.5, 6, -1.6, 'pink'],
+      ['desk', 17, 2, 0, 'mint'],
+      ['table', 16, -2, 0, 'orange'],
+      ['chair', 17, -4, 0.5, 'blue'],
+      ['chair', 15, 6, 0.5, 'yellow'],
+      ['crate', 18, 7, 0, ''],
+      ['counter', 15, -6, 0, 'white'],
+      ['wardrobe', -18, -18, 3.1, 'blue'],
+      ['wardrobe', 18, -18, 3.1, 'pink'],
+      ['wardrobe', -18, 18, 0, 'mint'],
+      ['wardrobe', 18, 18, 0, 'yellow'],
+      ['curtain', -10, -19, 3.1, 'red'],
+      ['curtain', 10, 19, 0, 'blue'],
+      ['table', -10, -12, 0, 'yellow'],
+      ['table', 10, 12, 0, 'orange'],
+      ['desk', -6, -4, 0, 'blue'],
+      ['desk', 6, 4, 0, 'mint'],
+      ['chair', -6, -12, 0.5, 'red'],
+      ['chair', 6, 12, 0.5, 'yellow'],
+      ['crate', -16, -12, 0, ''],
+      ['crate', 16, 12, 0, ''],
+      ['counter', -10, -4, 0, 'white'],
+      ['counter', 10, 4, 0, 'white'],
+      ['shelf', -17, -16, 0, 'blue'],
+      ['shelf', -14, -16, 3.1, 'mint'],
+      ['shelf', -11, -16, 0, 'yellow'],
+      ['shelf', -8, -16, 3.1, 'pink'],
+      ['shelf', -5, -16, 0, 'red'],
+      ['shelf', 5, -16, 3.1, 'blue'],
+      ['shelf', 8, -16, 0, 'mint'],
+      ['shelf', 11, -16, 3.1, 'yellow'],
+      ['shelf', 14, -16, 0, 'pink'],
+      ['shelf', 17, -16, 3.1, 'red'],
+      ['shelf', -17, -8, 0, 'mint'],
+      ['shelf', -14, -8, 3.1, 'yellow'],
+      ['shelf', -11, -8, 0, 'pink'],
+      ['shelf', -8, -8, 3.1, 'red'],
+      ['shelf', -5, -8, 0, 'blue'],
+      ['shelf', 5, -8, 3.1, 'mint'],
+      ['shelf', 8, -8, 0, 'yellow'],
+      ['shelf', 11, -8, 3.1, 'pink'],
+      ['shelf', 14, -8, 0, 'red'],
+      ['shelf', 17, -8, 3.1, 'blue'],
+      ['shelf', -17, 8, 0, 'yellow'],
+      ['shelf', -14, 8, 3.1, 'pink'],
+      ['shelf', -11, 8, 0, 'red'],
+      ['shelf', -8, 8, 3.1, 'blue'],
+      ['shelf', -5, 8, 0, 'mint'],
+      ['shelf', 5, 8, 3.1, 'yellow'],
+      ['shelf', 8, 8, 0, 'pink'],
+      ['shelf', 11, 8, 3.1, 'red'],
+      ['shelf', 14, 8, 0, 'blue'],
+      ['shelf', 17, 8, 3.1, 'mint'],
+      ['shelf', -17, 16, 0, 'pink'],
+      ['shelf', -14, 16, 3.1, 'red'],
+      ['shelf', -11, 16, 0, 'blue'],
+      ['shelf', -8, 16, 3.1, 'mint'],
+      ['shelf', -5, 16, 0, 'yellow'],
+      ['shelf', 5, 16, 3.1, 'pink'],
+      ['shelf', 8, 16, 0, 'red'],
+      ['shelf', 11, 16, 3.1, 'blue'],
+      ['shelf', 14, 16, 0, 'mint'],
+      ['shelf', 17, 16, 3.1, 'yellow']
+    ] }
 ];
 const worldGroup = new THREE.Group();
 scene.add(worldGroup);
@@ -1699,6 +1728,10 @@ function mulberry32(a) {
 function buildMap(idx) {
   const def = MAPS[idx];
   currentMapIdx = idx;
+  // V6.3: each map carries its own layout (rooms / walls / doors / spawns).
+  ROOMS = def.layout.rooms;
+  WALL_LINES = def.layout.walls;
+  DOORS = def.layout.doors;
   mapPill.textContent = def.icon + ' ' + def.name;
   while (worldGroup.children.length) worldGroup.remove(worldGroup.children[0]);
   colliders.length = 0;
@@ -1723,22 +1756,25 @@ function buildMap(idx) {
     worldGroup.add(sk);
   }
   const picCols = ['red', 'blue', 'mint', 'yellow'];
-  const picSpots = [[-2.78, -16, true], [2.78, -16, true], [-2.78, 16, true], [2.78, 16, true]];
+  const picSpots = def.layout.pics;
   picSpots.forEach((ps, pi) => {
+    const vert = ps[2];
     const fr = new THREE.Mesh(unitBox, frameMat);
-    fr.scale.set(0.1, 1.6, 2.4);
+    fr.scale.set(vert ? 0.1 : 2.4, 1.6, vert ? 2.4 : 0.1);
     fr.position.set(ps[0], 2.6, ps[1]);
     worldGroup.add(fr);
-    const inner = new THREE.Mesh(unitBox, MAT[picCols[pi]]);
-    inner.scale.set(0.12, 1.3, 2.1);
+    const inner = new THREE.Mesh(unitBox, MAT[picCols[pi % picCols.length]]);
+    inner.scale.set(vert ? 0.12 : 2.1, 1.3, vert ? 2.1 : 0.12);
     inner.position.set(ps[0], 2.6, ps[1]);
     worldGroup.add(inner);
   });
-  // Interior walls: cross corridor + 4 rooms (V5.0). Each wall line is split by
-  // its doorway gap; every segment gets a mesh and a box collider. Door frames
-  // are visual only (lintel + side posts) so the gap stays a full 2.0m wide.
+  // Interior walls (V6.3: per-map lines). Each wall line is split by its
+  // doorway gap (door: null = solid wall, no gap); every segment gets a
+  // mesh and a box collider. Door frames are visual only (lintel + side
+  // posts) so the gap stays a full 2.0m wide.
   for (const wl of WALL_LINES) {
-    for (const [a, b] of [[wl.from, wl.door - 1], [wl.door + 1, wl.to]]) {
+    const segs = (wl.door === null || wl.door === undefined) ? [[wl.from, wl.to]] : [[wl.from, wl.door - 1], [wl.door + 1, wl.to]];
+    for (const [a, b] of segs) {
       const len = b - a;
       const c = (a + b) / 2;
       const seg = new THREE.Mesh(unitBox, wallMat);
@@ -1752,6 +1788,7 @@ function buildMap(idx) {
       if (wl.vertical) addBoxCollider(wl.at, c, 0.2, len / 2);
       else addBoxCollider(c, wl.at, len / 2, 0.2);
     }
+    if (wl.door === null || wl.door === undefined) continue;
     const dx = wl.vertical ? wl.at : wl.door;
     const dz = wl.vertical ? wl.door : wl.at;
     const lintel = new THREE.Mesh(unitBox, doorMat);
@@ -1793,28 +1830,32 @@ function buildMap(idx) {
   const placed = [];
   const allFurniture = def.furniture.map(([kind, x, z, rot, c]) => ({ kind, x, z, rot, c }));
   for (const f of allFurniture) placed.push({ x: f.x, z: f.z, kind: f.kind, rot: f.rot || 0 });
-  const SPAWNS = [[0, 4], [1, 6], [-1, 6], [2, 2], [-2, 2], [0, 9], [0, -18]];
+  const SPAWNS = def.layout.spawns.clear;
   // Scatter must land inside a room rect with 0.6m margin from interior walls,
-  // never in the corridor cross, never in a doorway (0.8m clear on both sides).
+  // never in a doorway (2x2 gap clear) and never in a door approach lane.
   const clearSpot = (x, z, kind, hx, hz) => {
     if (roomOf(x, z) < 0) return false;
     if (Math.abs(x) > 18 || Math.abs(z) > 18) return false;
     const bx0 = x - hx - 0.6, bx1 = x + hx + 0.6, bz0 = z - hz - 0.6, bz1 = z + hz + 0.6;
     for (const wl of WALL_LINES) {
-      if (wl.vertical) {
-        if (bx0 < wl.at && bx1 > wl.at && (bz0 < -2.5 || bz1 > 2.5)) return false;
-      } else if (bz0 < wl.at && bz1 > wl.at && (bx0 < -2.5 || bx1 > 2.5)) return false;
+      const segs = (wl.door === null || wl.door === undefined) ? [[wl.from, wl.to]] : [[wl.from, wl.door - 1], [wl.door + 1, wl.to]];
+      for (const [a, b] of segs) {
+        if (wl.vertical) {
+          if (bx0 < wl.at && bx1 > wl.at && bz0 < b && bz1 > a) return false;
+        } else if (bz0 < wl.at && bz1 > wl.at && bx0 < b && bx1 > a) return false;
+      }
     }
     for (const d of DOORS) {
-      if (x + hx > d.x - 1 && x - hx < d.x + 1 && z + hz > d.z - 1 && z - hz < d.z + 1) return false;
+      // Agent radius 0.35: a piece just outside the gap still seals it.
+      if (x + hx + 0.35 > d.x - 1 && x - hx - 0.35 < d.x + 1 && z + hz + 0.35 > d.z - 1 && z - hz - 0.35 < d.z + 1) return false;
       // Approach lane: 2m wide, 2.5m into the room from the door. A piece just
       // outside the 2x2 zone can still seal the doorway (wall + piece leave
       // under 0.7m for the 0.35-radius agent to pass).
-      const ax0 = d.vertical ? (d.x < 0 ? d.x - 2.5 : d.x) : d.x - 1;
-      const ax1 = d.vertical ? (d.x < 0 ? d.x : d.x + 2.5) : d.x + 1;
-      const az0 = d.vertical ? d.z - 1 : (d.z < 0 ? d.z - 2.5 : d.z);
-      const az1 = d.vertical ? d.z + 1 : (d.z < 0 ? d.z : d.z + 2.5);
-      if (x + hx > ax0 && x - hx < ax1 && z + hz > az0 && z - hz < az1) return false;
+      const ax0 = d.vertical ? d.x - 2.5 : d.x - 1;
+      const ax1 = d.vertical ? d.x + 2.5 : d.x + 1;
+      const az0 = d.vertical ? d.z - 1 : d.z - 2.5;
+      const az1 = d.vertical ? d.z + 1 : d.z + 2.5;
+      if (x + hx + 0.35 > ax0 && x - hx - 0.35 < ax1 && z + hz + 0.35 > az0 && z - hz - 0.35 < az1) return false;
     }
     for (const s of SPAWNS) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 6.25) return false;
     for (const p of placed) {
@@ -2131,6 +2172,7 @@ $('runBtn').addEventListener('mousedown', () => { runHeld = true; });
 $('runBtn').addEventListener('mouseup', () => { runHeld = false; });
 $('actBtn').addEventListener('click', doAction);
 $('findBtn').addEventListener('click', doFind);
+$('quitBtn').addEventListener('click', quitToMenu);
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -2535,6 +2577,60 @@ function tryFullscreen() {
   // removed entirely (Zaw) — the installed PWA is fullscreen already.
   tryLandscape();
 }
+// V6.3: AI hiders shared by solo Seek (5) and solo Hide (4 + the player).
+// Spread across rooms round-robin; 1-2 hide INSIDE wardrobes.
+function spawnAIHiders(count) {
+  const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
+  const byRoom = ROOMS.map(() => []);
+  for (const sp of hideSpots) {
+    const rr = roomOf(sp.x, sp.z);
+    if (rr >= 0) byRoom[rr].push(sp);
+  }
+  for (const arr of byRoom) arr.sort(() => Math.random() - 0.5);
+  const roomOrder = ROOMS.map((_, i) => i).sort(() => Math.random() - 0.5);
+  const spots = [];
+  for (let i = 0; i < count; i++) {
+    const arr = byRoom[roomOrder[i % roomOrder.length]];
+    if (arr.length) spots.push(arr.pop());
+  }
+  if (spots.length < count) {
+    const rest = hideSpots.filter((sp) => spots.indexOf(sp) < 0).sort(() => Math.random() - 0.5);
+    while (spots.length < count && rest.length) spots.push(rest.pop());
+  }
+  names.slice(0, count).forEach((nm, i) => {
+    const c = SHIRT[(i + 1) % SHIRT.length];
+    const h = makePerson(nm, c.hex, c.css, (i + 2) % MODELS.length);
+    h.g.position.set(spots[i].x, 0, spots[i].z);
+    h.homeSpot = spots[i];
+    spots[i].taken = true;
+    setCrouch(h, true);
+    h.tag.visible = false;
+    hiders.push(h);
+  });
+  // V5.1: 1-2 hiders hide INSIDE wardrobes instead of behind spots.
+  if (wardrobes.length) {
+    const inCount = wardrobes.length >= 2 && Math.random() < 0.5 ? 2 : 1;
+    const shuffledH = hiders.slice().sort(() => Math.random() - 0.5);
+    const shuffledW = wardrobes.slice().sort(() => Math.random() - 0.5);
+    let placed = 0;
+    const usedRooms = [];
+    for (const w of shuffledW) {
+      if (placed >= inCount) break;
+      const rr = roomOf(w.x, w.z);
+      if (usedRooms.indexOf(rr) >= 0) continue;
+      const h = shuffledH[placed];
+      if (!h) break;
+      if (h.homeSpot) h.homeSpot.taken = false;
+      h.homeSpot = null;
+      h.insideWardrobe = w;
+      h.hidden = true;
+      w.inside = h;
+      h.g.position.set(w.x, 0, w.z);
+      usedRooms.push(rr);
+      placed++;
+    }
+  }
+}
 function startMode(m) {
   mode = m;
   tryFullscreen();
@@ -2555,73 +2651,28 @@ function startMode(m) {
   endEl.style.display = 'none';
   if (!audioCtx) sfx('go');
   if (m === 'hide') {
+    const sp = MAPS[currentMapIdx].layout.spawns;
     player = makePerson(myName || 'မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
-    player.g.position.set(0, 0, 9);
+    player.g.position.set(sp.hidePlayer[0], 0, sp.hidePlayer[1]);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
-    seeker.g.position.set(0, 0, -18);
+    seeker.g.position.set(sp.hideSeeker[0], 0, sp.hideSeeker[1]);
     seeker.isSeeker = true;
     seeker.checkW = null;
-    seeker.heading = Math.PI;
-    seeker.g.rotation.y = Math.PI;
+    // Face away from the player while counting (eyes closed).
+    seeker.heading = Math.atan2(sp.hideSeeker[0] - sp.hidePlayer[0], sp.hideSeeker[1] - sp.hidePlayer[1]);
+    seeker.g.rotation.y = seeker.heading;
+    // V6.3: 4 AI hiders + the player = 5 hiders to find.
+    spawnAIHiders(4);
     timeLeft = 90;
     countT = 60;
     gameState = 'countdown';
     modePill.textContent = '🙈 ပုန်းသူ';
     showWarn('🔍 ရှာသူ ရေတွက်နေတယ်!', 2.5);
   } else if (m === 'seek') {
+    const sp = MAPS[currentMapIdx].layout.spawns;
     player = makePerson(myName || 'မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
-    player.g.position.set(0, 0, 4);
-    const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
-    // V5.0: spread the 5 AI hiders across rooms (round-robin, one room gets 2).
-    const byRoom = [[], [], [], []];
-    for (const sp of hideSpots) {
-      const rr = roomOf(sp.x, sp.z);
-      if (rr >= 0) byRoom[rr].push(sp);
-    }
-    for (const arr of byRoom) arr.sort(() => Math.random() - 0.5);
-    const roomOrder = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-    const spots = [];
-    for (let i = 0; i < 5; i++) {
-      const arr = byRoom[roomOrder[i % 4]];
-      if (arr.length) spots.push(arr.pop());
-    }
-    if (spots.length < 5) {
-      const rest = hideSpots.filter((sp) => spots.indexOf(sp) < 0).sort(() => Math.random() - 0.5);
-      while (spots.length < 5 && rest.length) spots.push(rest.pop());
-    }
-    names.forEach((nm, i) => {
-      const c = SHIRT[(i + 1) % SHIRT.length];
-      const h = makePerson(nm, c.hex, c.css, (i + 2) % MODELS.length);
-      h.g.position.set(spots[i].x, 0, spots[i].z);
-      h.homeSpot = spots[i];
-      spots[i].taken = true;
-      setCrouch(h, true);
-      h.tag.visible = false;
-      hiders.push(h);
-    });
-    // V5.1: 1-2 hiders hide INSIDE wardrobes instead of behind spots.
-    if (wardrobes.length) {
-      const inCount = wardrobes.length >= 2 && Math.random() < 0.5 ? 2 : 1;
-      const shuffledH = hiders.slice().sort(() => Math.random() - 0.5);
-      const shuffledW = wardrobes.slice().sort(() => Math.random() - 0.5);
-      let placed = 0;
-      const usedRooms = [];
-      for (const w of shuffledW) {
-        if (placed >= inCount) break;
-        const rr = roomOf(w.x, w.z);
-        if (usedRooms.indexOf(rr) >= 0) continue;
-        const h = shuffledH[placed];
-        if (!h) break;
-        if (h.homeSpot) h.homeSpot.taken = false;
-        h.homeSpot = null;
-        h.insideWardrobe = w;
-        h.hidden = true;
-        w.inside = h;
-        h.g.position.set(w.x, 0, w.z);
-        usedRooms.push(rr);
-        placed++;
-      }
-    }
+    player.g.position.set(sp.seekPlayer[0], 0, sp.seekPlayer[1]);
+    spawnAIHiders(5);
     timeLeft = 120;
     countT = 60;
     gameState = 'countdown';
@@ -2631,7 +2682,7 @@ function startMode(m) {
     showWarn('🔍 ၅ ယောက် ပုန်းနေပြီ!', 2.5);
   }
   $('roleTitle').textContent = m === 'hide' ? '🙈 မင်းက ပုန်းသူ!' : '🔍 မင်း ရှာသူ!';
-  $('roleTxt').textContent = m === 'hide' ? '၉၀ စက္ကန့် မတွေ့အောင် ပုန်း!' : '၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ!';
+  $('roleTxt').textContent = m === 'hide' ? '၅ ယောက်လုံး ၉၀ စက္ကန့် မတွေ့အောင် ပုန်း!' : '၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ!';
   $('role').style.display = 'flex';
   roleT = 2.5;
   snapCameraBehind();
@@ -2754,6 +2805,15 @@ function markHiderFound(h) {
   sfx('found');
   const total = hiders.length;
   setTagText(h, h.name + ' ❌');
+  if (mode === 'hide') {
+    // V6.3: solo Hide has 4 AI hiders + the player = 5 total.
+    const totalFound = foundCount + (playerCaught ? 1 : 0);
+    showCaught('👀 တွေ့ပြီ! ' + h.name + ' (' + totalFound + '/5)');
+    if (playerCaught && foundCount >= hiders.length) {
+      endRound(false, 'အကုန်မိသွားပြီ!', 'ရှာသူက ၅ ယောက်လုံးကို တွေ့သွားတယ်။');
+    }
+    return;
+  }
   showCaught('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')');
   if (foundCount >= total) {
     const used = Math.round(120 - timeLeft);
@@ -2854,15 +2914,16 @@ function updateConfetti(dt) {
 }
 
 // ---------- seeker AI ----------
-function seekerCanSee() {
-  if (!seeker || !player) return false;
-  if (player.insideWardrobe) return false;
+// V6.3: vision works for any person (player or AI hider).
+function seekerCanSeePerson(p) {
+  if (!seeker || !p) return false;
+  if (p.insideWardrobe) return false;
   const sx = seeker.g.position.x;
   const sz = seeker.g.position.z;
-  const px = player.g.position.x;
-  const pz = player.g.position.z;
+  const px = p.g.position.x;
+  const pz = p.g.position.z;
   const d = dist2(sx, sz, px, pz);
-  const range = (player.hidden ? 4 : player.crouched ? 7 : player.moving ? 14 : 12) * DIFFS[difficulty].vision;
+  const range = (p.hidden ? 4 : p.crouched ? 7 : p.moving ? 14 : 12) * DIFFS[difficulty].vision;
   if (d > range) return false;
   const ang = Math.atan2(px - sx, pz - sz);
   let diff = Math.abs(ang - seeker.heading);
@@ -2870,6 +2931,9 @@ function seekerCanSee() {
   if (diff > 1.15) return false;
   if (losBlocked(sx, sz, px, pz)) return false;
   return true;
+}
+function seekerCanSee() {
+  return seekerCanSeePerson(player);
 }
 // V6.1: caught in solo Hide = spectate, NOT round over. The player
 // freezes (❌ tag, caught pill), the seeker patrols on, and the round
@@ -2883,6 +2947,10 @@ function catchPlayerSolo() {
   player.tag.visible = true;
   setTagText(player, (myName || 'မင်း') + ' ❌');
   sfx('caught');
+  // V6.3: if the 4 AI hiders are already found, that makes 5/5.
+  if (foundCount >= hiders.length) {
+    endRound(false, 'အကုန်မိသွားပြီ!', 'ရှာသူက ၅ ယောက်လုံးကို တွေ့သွားတယ်။');
+  }
 }
 function seekerCheckWardrobe() {
   const w = seeker.checkW;
@@ -2893,6 +2961,8 @@ function seekerCheckWardrobe() {
   w.target = 1;
   if (w.inside === player) {
     catchPlayerSolo();
+  } else if (w.inside) {
+    revealInsideHider(w.inside);
   }
 }
 function updateSeeker(dt, timeDt) {
@@ -2915,6 +2985,34 @@ function updateSeeker(dt, timeDt) {
     moveToward(seeker, px, pz, 4.0 * DIFFS[difficulty].speed, dt);
     if (warnT < 0.2) showWarn('🏃 ပြေးတော့! ရှာသူ မင်းကို တွေ့သွားပြီ!', 0.6);
     return;
+  }
+  // V6.3: in solo Hide the seeker also hunts the 4 AI hiders.
+  if (mode === 'hide') {
+    let target = null;
+    let bestD = 1e9;
+    for (const h of hiders) {
+      if (h.found) continue;
+      if (seekerCanSeePerson(h)) {
+        const d = dist2(seeker.g.position.x, seeker.g.position.z, h.g.position.x, h.g.position.z);
+        if (d < bestD) { bestD = d; target = h; }
+      }
+    }
+    if (target) {
+      if (bestD < 2.0) {
+        markHiderFound(target);
+        return;
+      }
+      moveToward(seeker, target.g.position.x, target.g.position.z, 4.0 * DIFFS[difficulty].speed, dt);
+      return;
+    }
+    for (const h of hiders) {
+      if (h.found || h.insideWardrobe) continue;
+      const d = dist2(seeker.g.position.x, seeker.g.position.z, h.g.position.x, h.g.position.z);
+      if (d < 2.0 && !losBlocked(seeker.g.position.x, seeker.g.position.z, h.g.position.x, h.g.position.z)) {
+        markHiderFound(h);
+        return;
+      }
+    }
   }
   chaseT += timeDt;
   const dNow = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
@@ -2976,11 +3074,15 @@ function updateHiders(dt, timeDt) {
     const alive = hiders.filter((h) => !h.found);
     if (alive.length) sfx('giggle');
   }
+  // V6.3: found hiders gather at the map's gather point.
+  const g = MAPS[currentMapIdx].layout.gather;
   for (const h of hiders) {
     if (h.found && h.state === 'caught') {
-      if (navigateTo(h, 0, 3 + hiders.indexOf(h) * 1.6, 3.2, dt)) h.state = 'done';
+      const gi = hiders.indexOf(h);
+      if (navigateTo(h, g[0] + g[2] * gi * 1.6, g[1] + g[3] * gi * 1.6, 3.2, dt)) h.state = 'done';
     }
   }
+  if (mode !== 'seek') return;
   nearestHider = null;
   let best = 2.8;
   for (const h of hiders) {
@@ -3041,11 +3143,17 @@ function updateHUD(dt) {
     if (netFound[myPeerId] && netPhase === 'seek') {
       $('caughtPill').style.display = 'block';
       $('joy').style.display = 'none';
-      $('btns').style.display = 'none';
+      $('runBtn').style.display = 'none';
+      $('sneakBtn').style.display = 'none';
+      $('actBtn').style.display = 'none';
+      $('findBtn').style.display = 'none';
+      $('quitBtn').style.display = 'block';
     } else {
       $('caughtPill').style.display = 'none';
       $('joy').style.display = '';
-      $('btns').style.display = '';
+      $('runBtn').style.display = '';
+      $('sneakBtn').style.display = '';
+      $('quitBtn').style.display = '';
     }
     return;
   }
@@ -3054,24 +3162,32 @@ function updateHUD(dt) {
   else timePill.textContent = fmtTime(timeLeft);
   const cn = $('countNum');
   if (gameState === 'countdown' && mode === 'hide') { cn.style.display = 'block'; cn.textContent = Math.max(0, Math.ceil(countT)); } else cn.style.display = 'none';
-  if (mode === 'hide') scorePill.textContent = player && player.hidden ? '🫣 ပုန်းနေတယ်' : '👀 မြင်ရတယ်';
+  if (mode === 'hide') scorePill.textContent = 'တွေ့တာ ' + (foundCount + (playerCaught ? 1 : 0)) + '/5';
   else if (mode === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/5';
   else scorePill.textContent = 'ပုန်းတမ်း';
-  scorePill.classList.toggle('count', mode === 'seek');
+  scorePill.classList.toggle('count', mode === 'seek' || mode === 'hide');
   // V6.1: caught in solo Hide — spectate until the timer ends.
   if (mode === 'hide' && playerCaught) {
-    scorePill.textContent = '😢 မိသွားပြီ';
+    scorePill.textContent = '😢 မိသွားပြီ ' + (foundCount + 1) + '/5';
     $('caughtPill').style.display = 'block';
     $('joy').style.display = 'none';
-    $('btns').style.display = 'none';
+    $('runBtn').style.display = 'none';
+    $('sneakBtn').style.display = 'none';
+    $('actBtn').style.display = 'none';
+    $('findBtn').style.display = 'none';
+    $('quitBtn').style.display = 'block';
   } else {
     $('caughtPill').style.display = 'none';
+    $('runBtn').style.display = '';
+    $('sneakBtn').style.display = '';
+    $('quitBtn').style.display = '';
   }
   nearestSpot = null;
   nearestWardrobe = null;
   if (mode === 'hide' && player && !player.hidden && !player.insideWardrobe) {
     let best = 2.4;
     for (const s of hideSpots) {
+      if (s.taken) continue;
       const d = dist2(player.g.position.x, player.g.position.z, s.x, s.z);
       if (d < best) { best = d; nearestSpot = s; }
     }
@@ -3079,10 +3195,10 @@ function updateHUD(dt) {
   if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
   $('actBtn').style.display = 'none';
   $('findBtn').style.display = 'none';
-  if (player && player.insideWardrobe) {
+  if (!playerCaught && player && player.insideWardrobe) {
     $('actBtn').textContent = '🚪 ထွက်မယ်';
     $('actBtn').style.display = 'block';
-  } else if (nearestWardrobe) {
+  } else if (!playerCaught && nearestWardrobe) {
     if (isHiderRole() && nearestWardrobe.target === 1) {
       $('actBtn').textContent = '🙈 ဝင်ပုန်း';
       $('actBtn').style.display = 'block';
@@ -3093,11 +3209,11 @@ function updateHUD(dt) {
       $('actBtn').textContent = '🚪 ဖွင့်';
       $('actBtn').style.display = 'block';
     }
-  } else if ((gameState === 'playing' || gameState === 'countdown') && mode === 'hide' && nearestSpot) {
+  } else if (!playerCaught && (gameState === 'playing' || gameState === 'countdown') && mode === 'hide' && nearestSpot) {
     $('actBtn').textContent = '🫣 ပုန်းမယ် (' + nearestSpot.label + ')';
     $('actBtn').style.display = 'block';
   }
-  if (gameState === 'playing' && mode === 'seek' && nearestHider) $('findBtn').style.display = 'block';
+  if (!playerCaught && gameState === 'playing' && mode === 'seek' && nearestHider) $('findBtn').style.display = 'block';
   if (warnT > 0) {
     warnT -= dt;
     if (warnT <= 0) warnEl.style.display = 'none';
@@ -3159,7 +3275,7 @@ function animate() {
         if (mode === 'online') updateNet(mdt, mdt);
         else {
           if (mode === 'hide' && seeker) updateSeeker(mdt, mdt);
-          if (mode === 'seek' && gameState === 'playing') updateHiders(mdt, mdt);
+          if ((mode === 'seek' || mode === 'hide') && gameState === 'playing') updateHiders(mdt, mdt);
         }
         if (roundOver) break;
       }
@@ -3797,13 +3913,22 @@ $('againBtn').addEventListener('click', () => {
   }
   startSolo();
 });
-$('menuBtn').addEventListener('click', () => {
+function quitToMenu() {
   if (mode === 'online') { netLeave(); return; }
   endEl.style.display = 'none';
+  $('role').style.display = 'none';
+  $('eyes').style.display = 'none';
+  $('countNum').style.display = 'none';
+  warnEl.style.display = 'none';
+  caughtEl.style.display = 'none';
   clearPeople();
   gameState = 'menu';
   startEl.style.display = 'flex';
   updateBest();
+}
+$('menuBtn').addEventListener('click', () => {
+  if (mode === 'online') { netLeave(); return; }
+  quitToMenu();
 });
 $('createBtn').addEventListener('click', createRoom);
 $('joinBtn').addEventListener('click', joinRoom);
