@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.3</p>
+    <p class="ver">Hide &amp; Seek • V3.4</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -832,8 +832,10 @@ function buildMap(idx) {
     const s3 = new THREE.Mesh(decoGeos.cloudC, MAT.cloud);
     s3.position.set(-2.1, 0.3, -0.2);
     cl.add(s1); cl.add(s2); cl.add(s3);
-    cl.position.set((rng() * 2 - 1) * 55, 10 + rng() * 4, (rng() * 2 - 1) * 55);
-    cl.scale.setScalar(1.8 + rng() * 0.6);
+    const ca = rng() * Math.PI * 2;
+    const cr = 50 + rng() * 10;
+    cl.position.set(Math.cos(ca) * cr, 10 + rng() * 4, Math.sin(ca) * cr);
+    cl.scale.setScalar(1.2 + rng() * 0.6);
     worldGroup.add(cl);
   }
   for (let i = 0; i < def.flowers; i++) {
