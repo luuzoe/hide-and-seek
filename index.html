@@ -51,6 +51,24 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
 #findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
 #quitBtn{background:linear-gradient(135deg,#78909c,#455a64)}
+#chatBtn{background:linear-gradient(135deg,#7b1fa2,#4a148c);display:none}
+#giggleBtn{background:linear-gradient(135deg,#fb8c00,#e65100);display:none}
+#chatPanel{position:fixed;left:16px;bottom:150px;width:264px;max-width:72vw;background:rgba(18,26,20,.94);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:12px;z-index:35;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#chatList{max-height:120px;overflow-y:auto;font-size:13px;line-height:1.5;text-align:left;margin-bottom:8px}
+#chatList b{color:#a5d6a7}
+#chatEmotes{display:flex;gap:6px;margin-bottom:8px}
+#chatEmotes button{flex:1;border:none;border-radius:10px;background:rgba(255,255,255,.12);font-size:18px;padding:5px 0}
+#chatRow{display:flex;gap:6px}
+#chatInput{flex:1;min-width:0;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(255,255,255,.1);color:#fff;padding:7px 9px;font-size:13px}
+#chatSend{border:none;border-radius:10px;background:linear-gradient(135deg,#43a047,#1b5e20);color:#fff;font-weight:700;font-size:13px;padding:7px 12px}
+#scoreBoard{margin:6px 0 2px;font-size:13px;text-align:left}
+.scoreTitle{text-align:center;font-weight:800;font-size:14px;margin-bottom:4px}
+.scoreRow{display:flex;justify-content:space-between;padding:3px 6px;border-radius:8px;background:rgba(0,0,0,.06)}
+#lobbyScores{font-size:12px;text-align:left;margin:6px 0}
+.mapPickLabel{font-size:13px;font-weight:700;text-align:center;margin-bottom:4px}
+.mapPickRow{display:flex;gap:6px;justify-content:center}
+.mapBtn{flex:1;border:1px solid rgba(0,0,0,.15);border-radius:10px;background:#fff;font-size:18px;padding:6px 0}
+.mapBtn.on{background:#c8e6c9;border-color:#43a047}
 #cornerSetBtn{position:fixed;top:8px;z-index:35;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
 #cornerSetBtn{right:20px}
 
@@ -184,7 +202,22 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button id="actBtn">🫣 ပုန်းမယ်</button>
   <button id="sneakBtn">🐢 ချောင်း</button>
   <button id="runBtn">🏃 ပြေးမယ်</button>
+  <button id="giggleBtn">😂 ရယ်မယ်</button>
+  <button id="chatBtn">💬 စကားပြော</button>
   <button id="quitBtn">🚪 ထွက်</button>
+</div>
+<div id="chatPanel" style="display:none">
+  <div id="chatList"></div>
+  <div id="chatEmotes">
+    <button data-e="😂">😂</button>
+    <button data-e="👍">👍</button>
+    <button data-e="😱">😱</button>
+    <button data-e="🎉">🎉</button>
+  </div>
+  <div id="chatRow">
+    <input id="chatInput" placeholder="စာရိုက်..." maxlength="60">
+    <button id="chatSend">ပို့မယ်</button>
+  </div>
 </div>
 <div id="rotate">
   <div class="big">📱</div>
@@ -207,7 +240,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V6.5</p>
+    <p class="ver">Hide &amp; Seek • V6.6</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -227,7 +260,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
     <p>❌ <b>မိသွားရင်</b> — ခေါင်းပေါ် ❌ ပေါ်ပြီး လှုပ်မရတော့ဘူး၊ ရှာသူ တွေ့တာ ဘယ်နှယောက်လဲ မြင်ရမယ်။ အကုန်မိရင် ပွဲပြီးမယ်။</p>
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
-    <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
+    <p>🚪 <b>ဗီရို / လော့ကာ / သေတ္တာ</b> — ရောင်စုံတံခါးရှိတဲ့ ပစ္စည်းတွေပဲ ဖွင့်လို့ရတယ်။ အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
     <p>🎨 Characters — KayKit (CC0), KhronosGroup (CC0), three.js (MIT).</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
@@ -260,8 +293,21 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div id="netCode" style="display:none"></div>
     <button class="ghostBtn" id="copyLinkBtn" style="display:none">🔗 လင့်ခ်ကူးမယ်</button>
     <div id="netList"></div>
+    <div id="mapPick" style="display:none">
+      <div class="mapPickLabel">🗺️ Map ရွေး</div>
+      <div class="mapPickRow">
+        <button class="mapBtn" data-m="-1">🎲</button>
+        <button class="mapBtn" data-m="0">🏢</button>
+        <button class="mapBtn" data-m="1">🏠</button>
+        <button class="mapBtn" data-m="2">🏫</button>
+        <button class="mapBtn" data-m="3">🏥</button>
+        <button class="mapBtn" data-m="4">📚</button>
+      </div>
+    </div>
+    <div id="lobbyScores"></div>
     <p id="netStatus"></p>
     <button class="bigBtn" id="netStartBtn" style="display:none">▶️ စဆော့မယ်</button>
+    <button class="ghostBtn" id="lobbyChatBtn">💬 စကားပြော</button>
     <button class="ghostBtn" id="netLeaveBtn">ထွက်မယ်</button>
   </div>
 </div>
@@ -282,7 +328,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="card">
     <h2 id="endTitle">နိုင်ပြီ!</h2>
     <p id="endTxt"></p>
+    <div id="scoreBoard"></div>
     <button class="bigBtn" id="againBtn">တစ်ပွဲထပ်ဆော့မယ်</button>
+    <button class="bigBtn" id="rematchBtn" style="display:none;background:linear-gradient(135deg,#fb8c00,#e65100)">🔄 နောက်တစ်ပွဲ</button>
     <button class="ghostBtn" id="menuBtn">မုဒ်ရွေးမယ်</button>
   </div>
 </div>
@@ -682,7 +730,9 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = false;
 scene.add(ground);
 function addBoxCollider(x, z, hx, hz) {
-  colliders.push({ minX: x - hx, maxX: x + hx, minZ: z - hz, maxZ: z + hz, circle: false });
+  const b = { minX: x - hx, maxX: x + hx, minZ: z - hz, maxZ: z + hz, circle: false };
+  colliders.push(b);
+  return b;
 }
 function addCircleCollider(x, z, r) {
   colliders.push({ x, z, r, circle: true });
@@ -1067,6 +1117,10 @@ function makeLocker(c) {
     h.scale.set(0.06, 0.18, 0.06);
     h.position.set(hx, 1.15, 0.06);
     pv.add(h);
+    const bar = new THREE.Mesh(unitBox, MAT.whitePure);
+    bar.scale.set(0.4, 0.07, 0.05);
+    bar.position.set(hx > 0 ? 0.35 : -0.35, 1.15, 0.06);
+    pv.add(bar);
     for (const vy of [1.85, 1.7]) {
       const vent = new THREE.Mesh(unitBox, MAT.darkblue);
       vent.scale.set(0.4, 0.05, 0.05);
@@ -1114,14 +1168,20 @@ function makeBigCrate(c) {
   pivotL.position.set(-0.88, 0, 0.7);
   const pivotR = new THREE.Group();
   pivotR.position.set(0.88, 0, 0.7);
-  const doorL = new THREE.Mesh(unitBox, MAT.trunk);
+  const doorL = new THREE.Mesh(unitBox, MAT[c]);
   doorL.scale.set(0.85, 1.05, 0.06);
   doorL.position.set(0.425, 0.95, 0);
   pivotL.add(doorL);
-  const doorR = new THREE.Mesh(unitBox, MAT.trunk);
+  const doorR = new THREE.Mesh(unitBox, MAT[c]);
   doorR.scale.set(0.85, 1.05, 0.06);
   doorR.position.set(-0.425, 0.95, 0);
   pivotR.add(doorR);
+  for (const [pv, bx] of [[pivotL, 0.425], [pivotR, -0.425]]) {
+    const bar = new THREE.Mesh(unitBox, MAT.whitePure);
+    bar.scale.set(0.5, 0.07, 0.05);
+    bar.position.set(bx, 0.95, 0.06);
+    pv.add(bar);
+  }
   g.add(pivotL);
   g.add(pivotR);
   g.userData.wardrobe = { pivotL, pivotR, openT: 0, target: 0, inside: null, x: 0, z: 0, rot: 0, fx: 0, fz: 1 };
@@ -2049,7 +2109,7 @@ function buildMap(idx) {
     const spec = FURN[f.kind];
     const rot = f.rot || 0;
     const sideways = Math.abs(Math.sin(rot)) > 0.7;
-    addBoxCollider(f.x, f.z, sideways ? spec.d / 2 : spec.w / 2, sideways ? spec.w / 2 : spec.d / 2);
+    const col = addBoxCollider(f.x, f.z, sideways ? spec.d / 2 : spec.w / 2, sideways ? spec.w / 2 : spec.d / 2);
     const g = spec.make(f.c || 'blue');
     g.position.set(f.x, 0, f.z);
     g.rotation.y = rot;
@@ -2057,12 +2117,57 @@ function buildMap(idx) {
     if ((f.kind === 'wardrobe' || f.kind === 'locker' || f.kind === 'bigCrate') && g.userData.wardrobe) {
       const w = g.userData.wardrobe;
       w.kind = f.kind;
+      w.group = g;
+      w.collider = col;
+      w.furn = f;
       w.x = f.x;
       w.z = f.z;
       w.rot = rot;
       w.fx = Math.sin(rot);
       w.fz = Math.cos(rot);
       wardrobes.push(w);
+    }
+  }
+  // V6.6: every container must be openable — some point inside the prompt
+  // window (within 3.2m, cos(angle) > -0.3 from the front axis) must be
+  // walkable. Try the current facing, then 180, +90, -90 degrees; keep the
+  // first facing with such a point. A 90-degree turn swaps the collider
+  // half-extents, so the stored box is updated to match the new facing.
+  const approachOk = (x, z, fx, fz) => {
+    for (const dist of [1.6, 2.0, 2.4, 2.8, 3.1]) {
+      for (const adeg of [-90, -60, -30, 0, 30, 60, 90]) {
+        const a = (adeg * Math.PI) / 180;
+        const px = x + (Math.cos(a) * fx - Math.sin(a) * fz) * dist;
+        const pz = z + (Math.cos(a) * fz + Math.sin(a) * fx) * dist;
+        if (!blockedByCollider(px, pz, 0.35)) return true;
+      }
+    }
+    return false;
+  };
+  for (const w of wardrobes) {
+    const spec = FURN[w.kind];
+    const rots = [w.rot, w.rot + Math.PI, w.rot + Math.PI / 2, w.rot - Math.PI / 2];
+    for (const r of rots) {
+      const fx = Math.sin(r), fz = Math.cos(r);
+      const side = Math.abs(Math.sin(r)) > 0.7;
+      if (!approachOk(w.x, w.z, fx, fz)) continue;
+      if (r !== w.rot) {
+        const wasSide = Math.abs(Math.sin(w.rot)) > 0.7;
+        w.rot = r;
+        w.fx = fx;
+        w.fz = fz;
+        if (w.group) w.group.rotation.y = r;
+        if (w.furn) w.furn.rot = r;
+        if (w.collider && wasSide !== side) {
+          const hx = side ? spec.d / 2 : spec.w / 2;
+          const hz = side ? spec.w / 2 : spec.d / 2;
+          w.collider.minX = w.x - hx;
+          w.collider.maxX = w.x + hx;
+          w.collider.minZ = w.z - hz;
+          w.collider.maxZ = w.z + hz;
+        }
+      }
+      break;
     }
   }
   // Hide spots: TALL furniture + LOW pieces (table, desk, bed, sofa,
@@ -2844,13 +2949,13 @@ function wardrobeNear(x, z, r) {
 }
 function nearestFrontWardrobe(px, pz) {
   let best = null;
-  let bestD = 2.5;
+  let bestD = 3.2;
   for (const w of wardrobes) {
     const dx = px - w.x;
     const dz = pz - w.z;
     const d = Math.hypot(dx, dz);
-    if (d >= bestD) continue;
-    if (dx * w.fx + dz * w.fz <= 0) continue;
+    if (d >= bestD || d <= 0) continue;
+    if ((dx * w.fx + dz * w.fz) / d <= -0.3) continue;
     best = w;
     bestD = d;
   }
@@ -3012,6 +3117,7 @@ function endRound(win, title, txt) {
   if (win) { sfx('win'); spawnConfetti(); } else sfx('caught');
   $('endTitle').textContent = title;
   $('endTxt').textContent = txt;
+  $('rematchBtn').style.display = 'none';
   endEl.style.display = 'flex';
   updateBest();
 }
@@ -3254,6 +3360,11 @@ function updateHUD(dt) {
   const isSeek = mode === 'seek' || (mode === 'online' && netRole === 'seeker');
   const isHide = mode === 'hide' || (mode === 'online' && netRole === 'hider');
   modePill.className = 'pill' + (isSeek ? ' seek' : isHide ? ' hide' : '');
+  $('chatBtn').style.display = mode === 'online' ? 'block' : 'none';
+  if (giggleCdT > 0) giggleCdT -= dt;
+  const showGiggle = (mode === 'hide' || (mode === 'online' && netRole === 'hider')) && gameState === 'playing' && !playerCaught && !netFound[myPeerId];
+  $('giggleBtn').style.display = showGiggle ? 'block' : 'none';
+  $('giggleBtn').style.opacity = giggleCdT > 0 ? '0.45' : '';
   if (roleT > 0) {
     roleT -= dt;
     if (roleT <= 0) $('role').style.display = 'none';
@@ -3407,7 +3518,6 @@ function animate() {
         sfx('go');
         if (mode === 'seek') { $('eyes').style.display = 'none'; showWarn('🔍 စရှာပြီ!', 1.2); }
         else showWarn('🔍 ရှာသူ လာရှာပြီ!', 1.2);
-        if (mode === 'hide' && seeker) seekerMemory = { x: player.g.position.x, z: player.g.position.z };
       }
     } else if (mode !== 'online') {
       timeLeft -= timeDt;
@@ -3434,6 +3544,16 @@ function animate() {
       }
       updateCamera(dt);
       for (const p of people) updatePersonAnim(p, dt);
+      for (const p of people) {
+        if (p.emoteT > 0) {
+          p.emoteT -= dt;
+          if (p.emoteT <= 0) {
+            const vis = p.tag.visible;
+            setTagText(p, p.name + (p.found ? ' ❌' : ''));
+            p.tag.visible = vis;
+          }
+        }
+      }
       updateHUD(timeDt);
     }
   }
@@ -3497,9 +3617,73 @@ let netLeaving = false;
 let roleT = 0;
 let nearestNetHider = null;
 let netMapIdx = -1;
+let netScores = {};
+let hostMapIdx = -1;
 function netColor(i) { return NET_COLORS[i % NET_COLORS.length]; }
 function netStatus(txt) { $('netStatus').textContent = txt || ''; }
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+// V6.6: room chat + emotes (online only). Chat/emote/giggle messages carry
+// names and text/emoji ONLY — never positions (grep-verified).
+let chatLog = [];
+function chatAdd(name, text) {
+  chatLog.push({ name: String(name || 'Player').slice(0, 12), text: String(text || '').slice(0, 60) });
+  if (chatLog.length > 30) chatLog.shift();
+  const el = $('chatList');
+  if (!el) return;
+  el.innerHTML = chatLog.map((m) => '<div><b>' + escapeHtml(m.name) + '</b> ' + escapeHtml(m.text) + '</div>').join('');
+  el.scrollTop = el.scrollHeight;
+}
+function sendChat() {
+  if (mode !== 'online') return;
+  const inp = $('chatInput');
+  const text = (inp.value || '').trim().slice(0, 60);
+  if (!text) return;
+  inp.value = '';
+  chatAdd(myName || 'မင်း', text);
+  if (isHost) hostSendAll({ t: 'chat', id: myPeerId, name: myName || 'မင်း', text });
+  else { try { netConns['host'].send({ t: 'chat', text }); } catch (e) {} }
+}
+function showEmoteBubble(p, emoji) {
+  if (!p || !p.tag) return;
+  const vis = p.tag.visible;
+  setTagText(p, p.name + ' ' + emoji);
+  p.tag.visible = vis;
+  p.emoteT = 3;
+}
+function sendEmote(emoji) {
+  if (mode !== 'online') return;
+  showEmoteBubble(player, emoji);
+  chatAdd(myName || 'မင်း', emoji);
+  if (isHost) hostSendAll({ t: 'emote', id: myPeerId, name: myName || 'မင်း', emoji });
+  else { try { netConns['host'].send({ t: 'emote', emoji }); } catch (e) {} }
+}
+let giggleCdT = 0;
+function doGiggle() {
+  if (giggleCdT > 0) return;
+  if (!isHiderRole()) return;
+  if (playerCaught || netFound[myPeerId]) return;
+  if (gameState !== 'playing') return;
+  giggleCdT = 8;
+  sfx('giggle');
+  if (mode === 'hide' && seeker) {
+    const rr = roomOf(player.g.position.x, player.g.position.z);
+    let tx = 0, tz = 0;
+    if (rr >= 0) {
+      const r = ROOMS[rr];
+      tx = (r.x0 + r.x1) / 2;
+      tz = (r.z0 + r.z1) / 2;
+    }
+    const pt = pickNearWalkable(tx, tz, 2, 6);
+    seeker.target = { x: pt.x, z: pt.z };
+    seeker.waitT = 0;
+    seekerMemory = null;
+  } else if (mode === 'online') {
+    showEmoteBubble(player, '😂');
+    chatAdd(myName || 'မင်း', '😂');
+    if (isHost) hostSendAll({ t: 'giggle', id: myPeerId, name: myName || 'မင်း' });
+    else { try { netConns['host'].send({ t: 'giggle' }); } catch (e) {} }
+  }
+}
 function randomCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
   let c = '';
@@ -3544,8 +3728,16 @@ function netRenderLobby() {
     list.appendChild(d);
   });
   $('netStartBtn').style.display = isHost ? 'block' : 'none';
+  $('mapPick').style.display = isHost ? 'block' : 'none';
+  renderMapPick();
+  renderLobbyScores();
   $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 ဖိတ်မယ်';
   if (isHost) $('netStartBtn').textContent = '▶️ စဆော့မယ် (' + netPlayers.length + '/5)';
+}
+function renderMapPick() {
+  document.querySelectorAll('#mapPick .mapBtn').forEach((b) => {
+    if (b.classList) b.classList.toggle('on', parseInt(b.dataset.m, 10) === hostMapIdx);
+  });
 }
 function openLobby() {
   if (typeof Peer === 'undefined') { showWarn('အင်တာနက် လိုတယ်!', 3); return; }
@@ -3563,6 +3755,8 @@ function createRoom() {
   sessionStorage.setItem('hs_name', name);
   if (peerObj) peerObj.destroy();
   roomCode = randomCode();
+  netScores = {};
+  hostMapIdx = -1;
   netStatus('အခန်း ဖွင့်နေတယ်...');
   peerObj = new Peer('hs-' + roomCode, PEER_CONFIG);
   peerObj.on('open', (id) => {
@@ -3610,6 +3804,28 @@ function hostHandle(conn, msg) {
     hostPos[conn.peer] = { x: msg.x, z: msg.z, heading: msg.heading, moving: !!msg.moving, crouched: !!msg.crouched, found: !!msg.found, inside: (msg.inside === undefined || msg.inside === null) ? -1 : msg.inside };
   } else if (msg.t === 'door') {
     hostApplyDoor(conn.peer, msg.i, msg.open ? 1 : 0);
+  } else if (msg.t === 'chat') {
+    const p = netPlayers.find((x) => x.id === conn.peer);
+    const nm = p ? p.name : 'Player';
+    const text = String(msg.text || '').slice(0, 60);
+    if (!text) return;
+    chatAdd(nm, text);
+    hostSendAll({ t: 'chat', id: conn.peer, name: nm, text });
+  } else if (msg.t === 'emote') {
+    const p = netPlayers.find((x) => x.id === conn.peer);
+    const nm = p ? p.name : 'Player';
+    const em = String(msg.emoji || '').slice(0, 4);
+    if (!em) return;
+    chatAdd(nm, em);
+    showEmoteBubble(remotePeople[conn.peer], em);
+    hostSendAll({ t: 'emote', id: conn.peer, name: nm, emoji: em });
+  } else if (msg.t === 'giggle') {
+    const p = netPlayers.find((x) => x.id === conn.peer);
+    const nm = p ? p.name : 'Player';
+    chatAdd(nm, '😂');
+    showEmoteBubble(remotePeople[conn.peer], '😂');
+    sfx('giggle');
+    hostSendAll({ t: 'giggle', id: conn.peer, name: nm });
   } else if (msg.t === 'catch') {
     if (conn.peer !== netSeekerId) return;
     hostCatch(msg.target);
@@ -3646,11 +3862,12 @@ function hostApplyDoor(actorId, i, open) {
     s = hostPos[actorId];
   }
   if (!s) return;
-  if (dist2(s.x, s.z, w.x, w.z) > 3) return;
+  const dd = dist2(s.x, s.z, w.x, w.z);
+  if (dd > 3.2) return;
   const insideIdx = (s.inside === undefined || s.inside === null) ? -1 : s.inside;
   if (insideIdx !== i) {
-    const dot = (s.x - w.x) * w.fx + (s.z - w.z) * w.fz;
-    if (dot <= 0) return;
+    if (dd <= 0) return;
+    if (((s.x - w.x) * w.fx + (s.z - w.z) * w.fz) / dd <= -0.3) return;
   }
   w.target = open ? 1 : 0;
   if (open) hostRevealWardrobe(i);
@@ -3709,15 +3926,44 @@ function hostStart() {
   netPhase = 'hide';
   netTimeLeft = 60;
   netStarted = true;
-  netMapIdx = pickMapIdx();
+  netMapIdx = hostMapIdx >= 0 ? hostMapIdx : pickMapIdx();
   hostSendAll({ t: 'start', seekerId: netSeekerId, players: netPlayers, phase: 'hide', timeLeft: 60, mapIdx: netMapIdx });
   netBeginRound();
+}
+function hostScoreUpdate(winner) {
+  const foundN = Object.keys(netFound).length;
+  for (const p of netPlayers) {
+    if (!netScores[p.id]) netScores[p.id] = { survived: 0, found: 0 };
+    if (p.id === netSeekerId) netScores[p.id].found += foundN;
+    else if (!netFound[p.id]) netScores[p.id].survived += 1;
+  }
+}
+function renderScoreBoard() {
+  const el = $('scoreBoard');
+  if (!el) return;
+  if (mode !== 'online' || !netScores || !Object.keys(netScores).length) { el.innerHTML = ''; return; }
+  const rows = netPlayers.map((p) => {
+    const s = netScores[p.id] || { survived: 0, found: 0 };
+    return { name: p.name, survived: s.survived, found: s.found, total: s.survived + s.found };
+  }).sort((a, b) => b.total - a.total);
+  el.innerHTML = '<div class="scoreTitle">🏆 အမှတ်စာရင်း</div>' + rows.map((r) => '<div class="scoreRow"><span>' + escapeHtml(r.name) + '</span><span>🙈 ' + r.survived + ' · 🔍 ' + r.found + '</span></div>').join('');
+}
+function renderLobbyScores() {
+  const el = $('lobbyScores');
+  if (!el) return;
+  if (!netScores || !Object.keys(netScores).length) { el.innerHTML = ''; return; }
+  const rows = netPlayers.map((p) => {
+    const s = netScores[p.id] || { survived: 0, found: 0 };
+    return { name: p.name, survived: s.survived, found: s.found, total: s.survived + s.found };
+  }).sort((a, b) => b.total - a.total);
+  el.innerHTML = '🏆 ' + rows.map((r) => escapeHtml(r.name) + ' 🙈' + r.survived + ' 🔍' + r.found).join(' · ');
 }
 function hostEndRound(winner) {
   if (!netStarted) return;
   netStarted = false;
   netPhase = 'end';
-  hostSendAll({ t: 'end', winner });
+  hostScoreUpdate(winner);
+  hostSendAll({ t: 'end', winner, scores: netScores });
   netShowEnd(winner);
 }
 function netShowEnd(winner) {
@@ -3733,6 +3979,8 @@ function netShowEnd(winner) {
   } else {
     endRound(iWon, '🙈 ပုန်းသူတွေ နိုင်ပြီ!', '၃ မိနစ် ပြည့်ပြီ!');
   }
+  $('rematchBtn').style.display = isHost ? 'block' : 'none';
+  renderScoreBoard();
 }
 function joinRoom() {
   const name = ($('netName').value || 'Player').trim().slice(0, 12);
@@ -3742,6 +3990,7 @@ function joinRoom() {
   sessionStorage.setItem('hs_name', name);
   if (peerObj) peerObj.destroy();
   roomCode = code;
+  netScores = {};
   netStatus('အခန်းကို ချိတ်နေတယ်...');
   peerObj = new Peer(PEER_CONFIG);
   netJoined = false;
@@ -3811,11 +4060,26 @@ function clientHandle(msg) {
       sfx('go');
       showWarn('🔍 စရှာပြီ!', 2);
     }
+  } else if (msg.t === 'chat') {
+    if (msg.id === myPeerId) return;
+    chatAdd(msg.name || 'Player', String(msg.text || '').slice(0, 60));
+  } else if (msg.t === 'emote') {
+    if (msg.id === myPeerId) return;
+    const em = String(msg.emoji || '').slice(0, 4);
+    chatAdd(msg.name || 'Player', em);
+    showEmoteBubble(msg.id === myPeerId ? player : remotePeople[msg.id], em);
+  } else if (msg.t === 'giggle') {
+    if (msg.id === myPeerId) return;
+    chatAdd(msg.name || 'Player', '😂');
+    showEmoteBubble(remotePeople[msg.id], '😂');
+    sfx('giggle');
   } else if (msg.t === 'caught') {
     netOnCaught(msg.id);
   } else if (msg.t === 'end') {
+    if (msg.scores) netScores = msg.scores;
     netShowEnd(msg.winner);
   } else if (msg.t === 'backToLobby') {
+    if (msg.scores) netScores = msg.scores;
     endEl.style.display = 'none';
     netPhase = 'lobby';
     netStarted = false;
@@ -3825,6 +4089,7 @@ function clientHandle(msg) {
   }
 }
 function netBeginRound() {
+  endEl.style.display = 'none';
   closeLobby();
   tryFullscreen();
   let mapName;
@@ -4004,6 +4269,8 @@ function netLeave(msg) {
   if (peerObj) { try { peerObj.destroy(); } catch (e) {} peerObj = null; }
   netConns = {};
   netPlayers = [];
+  netScores = {};
+  hostMapIdx = -1;
   netStarted = false;
   isHost = false;
   netPhase = 'lobby';
@@ -4056,7 +4323,7 @@ $('charOkBtn').addEventListener('click', () => {
 $('againBtn').addEventListener('click', () => {
   if (mode === 'online') {
     endEl.style.display = 'none';
-    if (isHost) hostSendAll({ t: 'backToLobby' });
+    if (isHost) hostSendAll({ t: 'backToLobby', scores: netScores });
     netPhase = 'lobby';
     netStarted = false;
     gameState = 'lobby';
@@ -4086,7 +4353,25 @@ $('menuBtn').addEventListener('click', () => {
 $('createBtn').addEventListener('click', createRoom);
 $('joinBtn').addEventListener('click', joinRoom);
 $('netStartBtn').addEventListener('click', hostStart);
+$('rematchBtn').addEventListener('click', () => {
+  if (!isHost || mode !== 'online') return;
+  if (netPlayers.length < 5) { showWarn('၅ ယောက် ပြည့်မှ စလို့ရမယ် (အခု ' + netPlayers.length + '/5)', 2.5); return; }
+  endEl.style.display = 'none';
+  hostStart();
+});
+document.querySelectorAll('#mapPick .mapBtn').forEach((b) => b.addEventListener('click', () => {
+  if (!isHost) return;
+  hostMapIdx = parseInt(b.dataset.m, 10);
+  renderMapPick();
+}));
 $('netLeaveBtn').addEventListener('click', () => netLeave());
+$('chatSend').addEventListener('click', sendChat);
+$('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+document.querySelectorAll('#chatEmotes button').forEach((b) => b.addEventListener('click', () => sendEmote(b.dataset.e)));
+const toggleChat = () => { const p = $('chatPanel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; };
+$('chatBtn').addEventListener('click', toggleChat);
+$('giggleBtn').addEventListener('click', doGiggle);
+$('lobbyChatBtn').addEventListener('click', toggleChat);
 $('inviteBtn').addEventListener('click', doShareInvite);
 $('copyLinkBtn').addEventListener('click', async () => {
   try {
