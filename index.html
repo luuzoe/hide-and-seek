@@ -25,10 +25,14 @@
 }
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#7ec850;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#menuBg{position:fixed;inset:0;z-index:1;pointer-events:none}
 
 /* ---------- HUD ---------- */
-#hud{position:fixed;top:8px;left:8px;right:116px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
-.pill{background:rgba(0,0,0,.5);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
+#hud{position:fixed;top:8px;left:8px;right:68px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
+.pill{background:linear-gradient(180deg,rgba(20,28,22,.72),rgba(0,0,0,.55));color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.pill.seek{background:linear-gradient(135deg,rgba(198,40,40,.88),rgba(120,20,20,.88))}
+.pill.hide{background:linear-gradient(135deg,rgba(46,125,50,.88),rgba(20,60,25,.88))}
+.pill.count{background:linear-gradient(135deg,#c62828,#ef6c00);border-color:rgba(255,255,255,.55);font-size:15px}
 .pill b{color:var(--gold)}
 #warn{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
 #caught{position:fixed;top:104px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:10px 20px;border-radius:16px;font-size:20px;font-weight:800;z-index:12;display:none;text-align:center;max-width:92vw;box-shadow:0 6px 20px rgba(0,0,0,.45)}
@@ -39,23 +43,30 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #btns{position:fixed;right:26px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:52px;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 10px;touch-action:none;transition:transform .1s ease}
+#btns button{min-width:52px;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);padding:0 10px;touch-action:none;transition:transform .1s ease}
 #btns button:active{transform:scale(.93)}
-#runBtn{background:var(--blue)}
-#sneakBtn{background:var(--brown)}
+#runBtn{background:linear-gradient(135deg,#1e88e5,#0d47a1)}
+#sneakBtn{background:linear-gradient(135deg,#8d6e63,#5d4037)}
 #sneakBtn.on{background:var(--amber)}
-#actBtn{background:var(--green);display:none}
-#findBtn{background:var(--red);display:none}
-#muteBtn,#fsBtn,#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
-#muteBtn{right:20px}
-#fsBtn{right:68px}
-#cornerSetBtn{right:116px}
+#actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
+#findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
+#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
+#cornerSetBtn{right:20px}
 
 /* ---------- overlays, cards, buttons (shared) ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .card{background:var(--cream);border-radius:20px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:var(--shadow-card);animation:pop .3s ease}
 @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+/* settings: dark glass (V6.0) */
+#settings .card{background:rgba(18,26,20,.94);color:#fff;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14)}
+#settings .card h2{color:#fff}
+#settings .card .ghostBtn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#settings .card .ghostBtn:active{transform:scale(.97)}
+#settings .card #setName{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
+#settings .card #setName::placeholder{color:rgba(255,255,255,.55)}
+#settings .card #setName:focus{border-color:#43a047}
+#settings .card .bigBtn{background:linear-gradient(135deg,#43a047,#1b5e20)}
 .card h1{margin:0 0 4px;font-size:26px;background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
 .card h2{margin:0 0 8px;font-size:22px;color:var(--ink)}
 .card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
@@ -63,14 +74,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 /* main menu: no white card, smaller (Zaw 2026-11-08) */
 #start.overlay{background:rgba(0,0,0,.62)}
 #start .card{background:transparent;box-shadow:none;padding:10px 12px;max-width:340px}
-#start .card h1{background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;-webkit-text-fill-color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+#start .card h1{background:linear-gradient(180deg,#ffffff,#c8e6c9);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 8px rgba(0,0,0,.75))}
 #start .ver{color:rgba(255,255,255,.8)}
 #start #best{color:rgba(255,255,255,.8)}
 .bigBtn{width:100%;margin-top:10px;padding:8px 12px;border:none;border-radius:10px;font-size:14px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
 .bigBtn:active{transform:scale(.97)}
 .ghostBtn{width:100%;margin-top:8px;padding:7px 10px;border:none;border-radius:10px;font-size:13px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
 .ghostBtn:active{transform:scale(.97)}
-#startBtn{width:auto;display:block;margin:10px auto 0;padding:8px 30px;font-size:15px}
+#startBtn{width:auto;display:block;margin:10px auto 0;padding:8px 30px;font-size:15px;background:linear-gradient(135deg,#43a047,#1b5e20);box-shadow:0 6px 18px rgba(27,94,32,.55),inset 0 1px 0 rgba(255,255,255,.3)}
 #charPreview{display:block;margin:4px auto 0;width:140px;height:140px}
 #charPickBtn{width:auto;display:block;margin:4px auto 0;padding:4px 14px;font-size:13px}
 #charGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
@@ -93,11 +104,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #loadBar{width:220px;height:12px;background:rgba(255,255,255,.35);border-radius:999px;margin-top:16px;overflow:hidden}
 #loadFill{height:100%;width:5%;background:#fff;border-radius:999px}
 #loadTxt{margin-top:10px;font-size:14px}
-#splash{position:fixed;inset:0;background:var(--brand);z-index:70;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
+#splash{position:fixed;inset:0;background:linear-gradient(135deg,rgba(46,125,50,.84),rgba(239,108,0,.80));z-index:70;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
 #splash h1{font-size:52px;margin:0;text-shadow:0 4px 16px rgba(0,0,0,.3)}
 #splash .sub{font-size:18px;margin:10px 0 28px;opacity:.95}
-#splashBtn{padding:18px 44px;border:none;border-radius:18px;font-size:24px;font-weight:800;color:var(--green);background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-#splashBtn:active{transform:scale(.96)}
+#splashBtn{padding:18px 48px;border:none;border-radius:12px;font-size:24px;font-weight:800;color:#fff;background:linear-gradient(135deg,#43a047,#1b5e20);box-shadow:0 10px 28px rgba(0,0,0,.45),0 0 0 2px rgba(255,255,255,.28);animation:btnPulse 1.8s ease-in-out infinite}
+@keyframes btnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+#splashBtn:active{transform:scale(.96);animation:none}
 #splash .tip{font-size:14px;margin-top:20px;opacity:.85}
 #rotate{position:fixed;inset:0;background:var(--green-deep);z-index:80;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
 #rotate .big{font-size:64px;animation:rot 1.6s ease-in-out infinite}
@@ -161,8 +173,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div id="caught"></div>
 <div id="countNum">60</div>
 <div id="hint">Joystick နဲ့ လမ်း — ညာဘက်ကို ပွတ်ပြီး ကင်မရာ လှည့်</div>
-<button id="fsBtn" title="fullscreen">⛶</button>
-<button id="muteBtn" title="အသံ">🔊</button>
 <button id="cornerSetBtn" title="ဆက်တင်">⚙️</button>
 <div id="joy"><div id="knob"></div></div>
 <div id="btns">
@@ -192,7 +202,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.9</p>
+    <p class="ver">Hide &amp; Seek • V6.0</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -200,7 +210,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div class="menuRow">
       <button class="ghostBtn" id="menuOnlineBtn">👥 အွန်လိုင်း</button>
       <button class="ghostBtn" id="howtoBtn">📖 ကစားနည်း</button>
-      <button class="ghostBtn" id="menuFsBtn">⛶ မျက်နှာပြင်</button>
       <button class="ghostBtn" id="installBtn">📲 Install</button>
     </div>
   </div>
@@ -459,6 +468,64 @@ function buildCharPreview() {
   const m = MODELS[myCharIdx];
   $('charPickBtn').textContent = m ? m.emoji + ' ' + m.short : '🎭 ရွေး';
 }
+// ---------- menu background: character lineup (V6.0) ----------
+// A second small renderer draws all 10 characters in a row on a
+// transparent full-screen canvas behind the splash/menu, so the menu
+// background is the game's own cast (Zaw 2026-11-08). It only renders
+// while the splash/menu/lobby is visible.
+let bgRenderer = null, bgScene = null, bgCam = null, bgGroup = null;
+let bgMixers = [];
+let bgT = 0;
+function buildMenuBg() {
+  const cv = document.createElement('canvas');
+  cv.id = 'menuBg';
+  document.body.appendChild(cv);
+  bgRenderer = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+  bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  bgScene = new THREE.Scene();
+  bgScene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a5a, 1.2));
+  const dl = new THREE.DirectionalLight(0xffffff, 1.5);
+  dl.position.set(3, 5, 4);
+  bgScene.add(dl);
+  bgCam = new THREE.PerspectiveCamera(40, 1, 0.1, 50);
+  bgCam.position.set(0, 1.2, 8.5);
+  bgCam.lookAt(0, 0.6, 0);
+  bgGroup = new THREE.Group();
+  bgScene.add(bgGroup);
+  rebuildMenuBg();
+  const resizeBg = () => {
+    bgRenderer.setSize(window.innerWidth, window.innerHeight, false);
+    bgCam.aspect = window.innerWidth / window.innerHeight;
+    bgCam.position.z = bgCam.aspect >= 1 ? 8.5 : 12;
+    bgCam.updateProjectionMatrix();
+  };
+  window.addEventListener('resize', resizeBg);
+  resizeBg();
+}
+function rebuildMenuBg() {
+  if (!bgGroup) return;
+  while (bgGroup.children.length) bgGroup.remove(bgGroup.children[0]);
+  bgMixers = [];
+  MODELS.forEach((m, i) => {
+    const cache = MODEL_CACHE[i];
+    let bodyG;
+    if (cache && cache.state === 'ok') {
+      bodyG = normalizeModel(cloneSkinned(cache.scene));
+      const anims = cache.animations || [];
+      const idle = anims.find((a) => /^idle/i.test(a.name)) || anims.find((a) => /idle/i.test(a.name)) || null;
+      if (idle) {
+        const mx = new THREE.AnimationMixer(bodyG);
+        mx.clipAction(idle).play();
+        bgMixers.push(mx);
+      }
+    } else {
+      const c = SHIRT[i % SHIRT.length];
+      bodyG = makeChibi(c.hex, c.css).bodyG;
+    }
+    bodyG.position.set((i - 4.5) * 1.05, 0, 0);
+    bgGroup.add(bodyG);
+  });
+}
 function saveChar() {
   try { localStorage.setItem('hs_character', String(myCharIdx)); } catch (e) {}
 }
@@ -716,6 +783,7 @@ function preloadModels() {
     loader.load(m.url, (gltf) => {
       MODEL_CACHE[i] = { state: 'ok', scene: gltf.scene, animations: gltf.animations || [] };
       if (i === myCharIdx) buildCharPreview();
+      rebuildMenuBg();
     }, undefined, () => {
       MODEL_CACHE[i] = { state: 'fail', scene: null, animations: [] };
     });
@@ -2058,17 +2126,6 @@ $('runBtn').addEventListener('mousedown', () => { runHeld = true; });
 $('runBtn').addEventListener('mouseup', () => { runHeld = false; });
 $('actBtn').addEventListener('click', doAction);
 $('findBtn').addEventListener('click', doFind);
-$('fsBtn').addEventListener('click', () => {
-  try {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else requestFullscreenNow();
-  } catch (e) {}
-});
-$('muteBtn').addEventListener('click', () => {
-  muted = !muted;
-  localStorage.setItem('hs_muted', muted ? '1' : '0');
-  $('muteBtn').textContent = muted ? '🔇' : '🔊';
-});
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -2468,15 +2525,8 @@ function tryFullscreen() {
   // full screen" toast on every fullscreen entry and Zaw has to swipe it
   // away by hand. The installed PWA already runs fullscreen via the
   // manifest (display: fullscreen) with no toast, so the API call only
-  // hurts in the browser. Manual fullscreen buttons use requestFullscreenNow().
-  tryLandscape();
-}
-function requestFullscreenNow() {
-  try {
-    const el = document.documentElement;
-    if (el.requestFullscreen) { const p = el.requestFullscreen(); if (p && p.then) p.then(() => tryLandscape()).catch(() => {}); }
-    else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); tryLandscape(); }
-  } catch (e) {}
+  // hurts in the browser. V6.0: the fullscreen + sound buttons were
+  // removed entirely (Zaw) — the installed PWA is fullscreen already.
   tryLandscape();
 }
 function startMode(m) {
@@ -2924,6 +2974,17 @@ function updateHiders(dt, timeDt) {
 
 // ---------- HUD ----------
 function updateHUD(dt) {
+  // V6.0: HUD + joystick + buttons only show inside a round (countdown /
+  // playing). On the menu/lobby they showed through the transparent menu
+  // and cluttered it (Zaw 2026-11-08).
+  const inGameUI = gameState === 'countdown' || gameState === 'playing';
+  $('hud').style.display = inGameUI ? '' : 'none';
+  $('joy').style.display = inGameUI ? '' : 'none';
+  $('btns').style.display = inGameUI ? '' : 'none';
+  // Role pill colour (V6.0).
+  const isSeek = mode === 'seek' || (mode === 'online' && netRole === 'seeker');
+  const isHide = mode === 'hide' || (mode === 'online' && netRole === 'hider');
+  modePill.className = 'pill' + (isSeek ? ' seek' : isHide ? ' hide' : '');
   if (roleT > 0) {
     roleT -= dt;
     if (roleT <= 0) $('role').style.display = 'none';
@@ -2935,6 +2996,7 @@ function updateHUD(dt) {
     if (netPhase === 'hide') scorePill.textContent = netRole === 'seeker' ? '🙈 မျက်လုံးမှိတ်' : 'ပုန်းနေချိန် 60s';
     else if (netPhase === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundN + '/' + totalHiders;
     else scorePill.textContent = 'ပုန်းတမ်း';
+    scorePill.classList.toggle('count', netPhase === 'seek');
     nearestWardrobe = null;
     if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
     $('actBtn').style.display = 'none';
@@ -2981,6 +3043,7 @@ function updateHUD(dt) {
   if (mode === 'hide') scorePill.textContent = player && player.hidden ? '🫣 ပုန်းနေတယ်' : '👀 မြင်ရတယ်';
   else if (mode === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/5';
   else scorePill.textContent = 'ပုန်းတမ်း';
+  scorePill.classList.toggle('count', mode === 'seek');
   nearestSpot = null;
   nearestWardrobe = null;
   if (mode === 'hide' && player && !player.hidden && !player.insideWardrobe) {
@@ -3084,6 +3147,16 @@ function animate() {
     if (pvGroup) pvGroup.rotation.y += dt * 0.6;
     if (pvMixer) pvMixer.update(dt);
     pvRenderer.render(pvScene, pvCam);
+  }
+  if (bgRenderer) {
+    const showBg = $('splash').style.display !== 'none' || startEl.style.display === 'flex' || $('lobby').style.display === 'flex';
+    bgRenderer.domElement.style.display = showBg ? '' : 'none';
+    if (showBg) {
+      bgT += dt;
+      bgGroup.rotation.y = Math.sin(bgT * 0.25) * 0.3;
+      for (const mx of bgMixers) mx.update(dt);
+      bgRenderer.render(bgScene, bgCam);
+    }
   }
 }
 
@@ -3719,7 +3792,6 @@ $('setCloseBtn').addEventListener('click', () => { $('settings').style.display =
 $('setSoundBtn').addEventListener('click', () => {
   muted = !muted;
   localStorage.setItem('hs_muted', muted ? '1' : '0');
-  $('muteBtn').textContent = muted ? '🔇' : '🔊';
   refreshSettingsUI();
 });
 $('setQualityBtn').addEventListener('click', () => {
@@ -3745,13 +3817,13 @@ $('setResetBtn').addEventListener('click', () => {
   updateBest();
   $('setResetBtn').textContent = '✅ ဖျက်ပြီးပြီ';
 });
-$('muteBtn').textContent = muted ? '🔇' : '🔊';
 applyQuality();
 try {
   const sv = parseInt(localStorage.getItem('hs_character') || '', 10);
   if (sv >= 0 && sv < MODELS.length) myCharIdx = sv;
 } catch (e) {}
 buildCharPreview();
+buildMenuBg();
 buildMap(currentMapIdx);
 loadFill.style.width = '100%';
 loadTxt.textContent = 'ပြီးပြီ!';
@@ -3767,7 +3839,6 @@ $('splashBtn').addEventListener('click', () => {
   const q = new URLSearchParams(location.search).get('room');
   if (q) openLobby();
 });
-$('menuFsBtn').addEventListener('click', () => { requestFullscreenNow(); });
 let deferredPrompt = null;
 function updateInstallBtn() {
   const b = $('installBtn');
