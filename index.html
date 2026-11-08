@@ -1260,7 +1260,7 @@ function updateCamera(dt) {
   if (!player) return;
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  const dist = window.innerWidth < window.innerHeight ? 9 : 6;
+  const dist = window.innerWidth < window.innerHeight ? 7 : 4.5;
   const h = 2.4 + camPitch * 3.0;
   const cx = px + Math.sin(camYaw) * dist;
   const cz = pz + Math.cos(camYaw) * dist;
@@ -1283,7 +1283,7 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camera.position.set(player.g.position.x, 3.0, player.g.position.z + 6.5);
+  camera.position.set(player.g.position.x, 2.6, player.g.position.z + 5.0);
   camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
 }
 function tryLandscape() {
