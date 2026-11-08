@@ -44,9 +44,23 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #loadBar{width:220px;height:12px;background:rgba(255,255,255,.35);border-radius:6px;margin-top:16px;overflow:hidden}
 #loadFill{height:100%;width:5%;background:#fff;border-radius:6px}
 #loadTxt{margin-top:10px;font-size:14px}
+#lobby .card{text-align:left}
+#netList{margin:10px 0}
+.netPlayer{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;margin-top:6px;font-size:15px;font-weight:600}
+.netDot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+#netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:12px;padding:8px;margin:8px 0}
+#netName,#netJoinCode{width:100%;padding:12px;border:2px solid #ccc;border-radius:12px;font-size:16px;margin-top:8px}
+.netRow{display:flex;gap:8px}
+.netRow button{flex:1}
+#netStatus{font-size:14px;color:#c62828;min-height:20px;text-align:center}
+#eyes{position:fixed;inset:0;background:#000;z-index:31;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+#eyesNum{font-size:110px;font-weight:800;line-height:1}
+#role{position:fixed;inset:0;z-index:32;display:none;align-items:center;justify-content:center;pointer-events:none;padding:20px}
+#role .card{max-width:340px}
 @media(pointer:fine){#joy{display:none}#hint{display:block}}
 @media(max-width:700px){#hint{display:none}}
 </style>
+<script src="./js/peerjs.min.js"></script>
 <script type="importmap">{"imports":{"three":"./js/three.module.js","three/addons/":"./js/addons/"}}</script>
 </head>
 <body>
@@ -75,10 +89,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V1.2</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
+    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.0</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
     <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
     <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
-    <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းနဲ့ တူတူဆော့မယ်<small>ဖုန်းတစ်လုံးတည်း လှည့်ဆော့ — တစ်ယောက်ပုန်း၊ တစ်ယောက်ရှာ</small></button>
+    <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းတွေနဲ့ အွန်လိုင်းဆော့<small>အခန်းဖွင့်၊ သူငယ်ချင်း ၅ ယောက်ထိ invite — random တစ်ယောက် ရှာသူ၊ ၁၅ စက္ကန့်ပုန်း၊ ၃ မိနစ်ရှာ</small></button>
     <p id="best"></p>
     <p style="font-size:13px;color:#666">လမ်းလျှောက်: Joystick / WASD • ပြေး: ပြေးမယ် ခလုတ် / Shift • ချောင်းသွား: C • ပုန်း/တွေ့ပြီ: E</p>
   </div>
@@ -90,6 +104,31 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="bigBtn" id="passGo">P2 ရှာမယ် — စမယ်</button>
   </div>
 </div>
+<div class="overlay" id="lobby" style="display:none">
+  <div class="card">
+    <h2>👥 သူငယ်ချင်းတွေနဲ့ ဆော့</h2>
+    <p style="font-size:14px">၅ ယောက်အထိ — တစ်ယောက်က အခန်းဖွင့်၊ ကျန်သူတွေ ကုဒ်နဲ့ ဝင်။ စတာနဲ့ random တစ်ယောက် ရှာသူ ဖြစ်မယ်။</p>
+    <input id="netName" placeholder="မင်းနာမည် (ဥပမာ Zaw)" maxlength="12">
+    <button class="bigBtn" id="createBtn">🏠 အခန်းဖွင့်မယ်</button>
+    <div class="netRow">
+      <input id="netJoinCode" placeholder="ကုဒ် ၄ လုံး" maxlength="4" style="text-transform:uppercase">
+      <button class="bigBtn" id="joinBtn" style="background:#1565c0">ဝင်မယ်</button>
+    </div>
+    <div id="netCode" style="display:none"></div>
+    <button class="ghostBtn" id="copyLinkBtn" style="display:none">🔗 လင့်ခ်ကူးမယ်</button>
+    <div id="netList"></div>
+    <p id="netStatus"></p>
+    <button class="bigBtn" id="netStartBtn" style="display:none">▶️ စဆော့မယ်</button>
+    <button class="ghostBtn" id="netLeaveBtn">ထွက်မယ်</button>
+  </div>
+</div>
+<div id="eyes">
+  <div style="font-size:64px">🙈</div>
+  <h2 style="font-size:28px;margin:10px 0">မျက်လုံးမှိတ်ထားပါ!</h2>
+  <div id="eyesNum">15</div>
+  <p>သူငယ်ချင်းတွေ ပုန်းနေတယ်...</p>
+</div>
+<div id="role"><div class="card"><h2 id="roleTitle"></h2><p id="roleTxt"></p></div></div>
 <div class="overlay" id="end" style="display:none">
   <div class="card">
     <h2 id="endTitle">နိုင်ပြီ!</h2>
@@ -763,6 +802,10 @@ function moveToward(p, tx, tz, speed, dt) {
 }
 function playerMoveInput(dt) {
   if (!player || (gameState !== 'playing' && gameState !== 'countdown')) return;
+  if (mode === 'online') {
+    if (netFound[myPeerId]) { player.moving = false; setClip(player, 'idle'); return; }
+    if (netRole === 'seeker' && netPhase === 'hide') { player.moving = false; setClip(player, 'idle'); return; }
+  }
   {
     let ix = joy.x;
     let iy = joy.y;
@@ -910,6 +953,13 @@ function doAction() {
   }
 }
 function doFind() {
+  if (mode === 'online') {
+    if (gameState !== 'playing' || !nearestNetHider) return;
+    const target = nearestNetHider.netId;
+    if (isHost) hostCatch(target);
+    else { try { netConns['host'].send({ t: 'catch', target }); } catch (e) {} }
+    return;
+  }
   if (gameState !== 'playing' || !nearestHider || !player) return;
   const h = nearestHider;
   h.found = true;
@@ -1067,6 +1117,21 @@ function updateHiders(dt, timeDt) {
 
 // ---------- HUD ----------
 function updateHUD(dt) {
+  if (mode === 'online') {
+    timePill.textContent = fmtTime(netTimeLeft);
+    const totalHiders = netPlayers.filter((p) => p.id !== netSeekerId).length;
+    const foundN = Object.keys(netFound).length;
+    if (netPhase === 'hide') scorePill.textContent = netRole === 'seeker' ? '🙈 မျက်လုံးမှိတ်ထား' : 'ပုန်းနေချိန် 15s';
+    else if (netPhase === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundN + '/' + totalHiders;
+    else scorePill.textContent = 'ပုန်းတမ်း';
+    $('actBtn').style.display = 'none';
+    $('findBtn').style.display = (gameState === 'playing' && netRole === 'seeker' && netPhase === 'seek' && nearestNetHider) ? 'block' : 'none';
+    if (warnT > 0) {
+      warnT -= dt;
+      if (warnT <= 0) warnEl.style.display = 'none';
+    }
+    return;
+  }
   if (gameState === 'countdown') timePill.textContent = 'ရေတွက် ' + Math.max(0, Math.ceil(countT));
   else timePill.textContent = fmtTime(timeLeft);
   if (mode === 'hide') scorePill.textContent = player && player.hidden ? '🫣 ပုန်းနေတယ်' : '🙈 မတွေ့အောင် ပုန်း';
@@ -1107,7 +1172,7 @@ function animate() {
   const rawDt = clock.getDelta();
   const dt = Math.min(rawDt, 0.1);
   const timeDt = Math.min(rawDt, 1.0);
-  if (gameState === 'menu' || gameState === 'loading') {
+  if (gameState === 'menu' || gameState === 'loading' || gameState === 'lobby') {
     menuAngle += dt * 0.12;
     camera.position.set(Math.sin(menuAngle) * 24, 11, Math.cos(menuAngle) * 24);
     camera.lookAt(0, 1, 0);
@@ -1122,7 +1187,7 @@ function animate() {
         sfx('go');
         showWarn('🔍 ရှာသူ လာရှာပြီ!', 2);
       }
-    } else {
+    } else if (mode !== 'online') {
       timeLeft -= timeDt;
       if (timeLeft <= 0) {
         timeLeft = 0;
@@ -1139,8 +1204,12 @@ function animate() {
     if (gameState === 'countdown' || gameState === 'playing') {
       playerMoveInput(dt);
       updateCamera(dt);
-      if (mode === 'hide' && seeker) updateSeeker(dt, timeDt);
-      if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt, timeDt);
+      if (mode === 'online') {
+        updateNet(dt, timeDt);
+      } else {
+        if (mode === 'hide' && seeker) updateSeeker(dt, timeDt);
+        if (mode === 'seek' || hotPhase === 'p2seek') updateHiders(dt, timeDt);
+      }
       for (const p of people) if (p.mixer && !p.moving) p.mixer.update(dt);
       updateHUD(timeDt);
     }
@@ -1148,18 +1217,479 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+// ---------- online multiplayer (PeerJS, host-authoritative) ----------
+const NET_COLORS = [
+  { hex: 0x4caf50, css: '#4caf50' },
+  { hex: 0xef6c00, css: '#ef6c00' },
+  { hex: 0x2196f3, css: '#2196f3' },
+  { hex: 0xe91e63, css: '#e91e63' },
+  { hex: 0x9c27b0, css: '#9c27b0' },
+];
+let peerObj = null;
+let isHost = false;
+let roomCode = '';
+let myPeerId = '';
+let myName = localStorage.getItem('hs_name') || '';
+let myColorIdx = 0;
+let netConns = {};
+let netPlayers = [];
+let netSeekerId = '';
+let netPhase = 'lobby';
+let netTimeLeft = 0;
+let netFound = {};
+let remotePeople = {};
+let hostPos = {};
+let lastPosSend = 0;
+let lastStateSend = 0;
+let netRole = '';
+let netStarted = false;
+let netLeaving = false;
+let roleT = 0;
+let nearestNetHider = null;
+function netColor(i) { return NET_COLORS[i % NET_COLORS.length]; }
+function netStatus(txt) { $('netStatus').textContent = txt || ''; }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function randomCode() {
+  const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+  let c = '';
+  for (let i = 0; i < 4; i++) c += L[Math.floor(Math.random() * L.length)];
+  return c;
+}
+function netRoomLink() { return location.origin + location.pathname + '?room=' + roomCode; }
+function netRenderLobby() {
+  const list = $('netList');
+  list.innerHTML = '';
+  netPlayers.forEach((p) => {
+    const d = document.createElement('div');
+    d.className = 'netPlayer';
+    d.innerHTML = '<span class="netDot" style="background:' + netColor(p.colorIdx).css + '"></span>' + escapeHtml(p.name) + (p.isHost ? ' 👑' : '') + (p.id === myPeerId ? ' (မင်း)' : '');
+    list.appendChild(d);
+  });
+  $('netStartBtn').style.display = isHost ? 'block' : 'none';
+  if (isHost) $('netStartBtn').textContent = '▶️ စဆော့မယ် (' + netPlayers.length + '/5)';
+}
+function openLobby() {
+  if (typeof Peer === 'undefined') { showWarn('အင်တာနက်ချိတ်ဆက်မှု လိုတယ် — PeerJS တင်မရဘူး', 3); return; }
+  startEl.style.display = 'none';
+  $('lobby').style.display = 'flex';
+  if (myName) $('netName').value = myName;
+  const q = new URLSearchParams(location.search).get('room');
+  if (q) $('netJoinCode').value = q.toUpperCase();
+}
+function closeLobby() { $('lobby').style.display = 'none'; }
+function createRoom() {
+  const name = ($('netName').value || 'Player').trim().slice(0, 12);
+  myName = name;
+  localStorage.setItem('hs_name', name);
+  if (peerObj) peerObj.destroy();
+  roomCode = randomCode();
+  netStatus('အခန်း ဖွင့်နေတယ်...');
+  peerObj = new Peer('hs-' + roomCode);
+  peerObj.on('open', (id) => {
+    isHost = true;
+    myPeerId = id;
+    myColorIdx = 0;
+    netPlayers = [{ id, name, colorIdx: 0, isHost: true }];
+    hostPos = {};
+    netPhase = 'lobby';
+    $('netCode').style.display = 'block';
+    $('netCode').textContent = roomCode;
+    $('copyLinkBtn').style.display = 'block';
+    netStatus('သူငယ်ချင်းတွေကို ကုဒ် (သို့) လင့်ခ် ပို့လိုက်ပါ!');
+    netRenderLobby();
+  });
+  peerObj.on('connection', (conn) => setupHostConn(conn));
+  peerObj.on('error', (err) => { netStatus('အခန်း ဖွင့်မရဘူး: ' + (err.type || 'error')); });
+}
+function setupHostConn(conn) {
+  conn.on('open', () => { netConns[conn.peer] = conn; });
+  conn.on('data', (msg) => hostHandle(conn, msg));
+  conn.on('close', () => { netPlayerLeft(conn.peer); });
+  conn.on('error', () => {});
+}
+function hostSendAll(msg) {
+  for (const id in netConns) { try { netConns[id].send(msg); } catch (e) {} }
+}
+function hostHandle(conn, msg) {
+  if (!msg || !msg.t) return;
+  if (msg.t === 'hello') {
+    if (netPhase !== 'lobby') { try { conn.send({ t: 'busy' }); } catch (e) {} return; }
+    if (netPlayers.length >= 5) { try { conn.send({ t: 'full' }); } catch (e) {} return; }
+    const colorIdx = netPlayers.length;
+    const p = { id: conn.peer, name: String(msg.name || 'Player').slice(0, 12), colorIdx, isHost: false };
+    netPlayers.push(p);
+    try { conn.send({ t: 'welcome', id: conn.peer, colorIdx, players: netPlayers, code: roomCode }); } catch (e) {}
+    hostSendAll({ t: 'lobby', players: netPlayers });
+    netRenderLobby();
+    sfx('found');
+  } else if (msg.t === 'pos') {
+    hostPos[conn.peer] = { x: msg.x, z: msg.z, heading: msg.heading, moving: !!msg.moving, crouched: !!msg.crouched, found: !!msg.found };
+  } else if (msg.t === 'catch') {
+    if (conn.peer !== netSeekerId) return;
+    hostCatch(msg.target);
+  }
+}
+function hostCatch(target) {
+  if (!netStarted || netPhase !== 'seek') return;
+  if (!target || netFound[target]) return;
+  const s = hostPos[netSeekerId];
+  const h = hostPos[target];
+  if (!s || !h) return;
+  if (dist2(s.x, s.z, h.x, h.z) > 4) return;
+  netOnCaught(target);
+  hostSendAll({ t: 'caught', id: target, by: netSeekerId });
+  const remaining = netPlayers.filter((p) => p.id !== netSeekerId && !netFound[p.id]).length;
+  if (remaining <= 0) hostEndRound('seeker');
+}
+function netOnCaught(id) {
+  netFound[id] = true;
+  const p = netPlayers.find((x) => x.id === id);
+  if (id === myPeerId) {
+    setCrouch(player, false);
+    showWarn('😢 မိသွားပြီ! စောင့်နေပါ', 2);
+  } else {
+    showWarn('👀 မိသွားပြီ! ' + (p ? p.name : ''), 1.6);
+  }
+  sfx('found');
+}
+function netPlayerLeft(id) {
+  delete netConns[id];
+  delete hostPos[id];
+  netPlayers = netPlayers.filter((p) => p.id !== id);
+  if (netStarted) {
+    if (id === netSeekerId) { hostEndRound('hiders'); return; }
+    const remaining = netPlayers.filter((p) => p.id !== netSeekerId && !netFound[p.id]).length;
+    hostSendAll({ t: 'lobby', players: netPlayers });
+    netRenderLobby();
+    if (remaining <= 0) { hostEndRound('seeker'); return; }
+    hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId });
+  } else {
+    hostSendAll({ t: 'lobby', players: netPlayers });
+    netRenderLobby();
+  }
+}
+function hostStart() {
+  if (!isHost) return;
+  if (netPlayers.length < 2) { netStatus('အနည်းဆုံး ၂ ယောက် လိုတယ် — သူငယ်ချင်း ဝင်လာအောင် စောင့်ပါ'); return; }
+  const seeker = netPlayers[Math.floor(Math.random() * netPlayers.length)];
+  netSeekerId = seeker.id;
+  netFound = {};
+  netPhase = 'hide';
+  netTimeLeft = 15;
+  netStarted = true;
+  hostSendAll({ t: 'start', seekerId: netSeekerId, players: netPlayers, phase: 'hide', timeLeft: 15 });
+  netBeginRound();
+}
+function hostEndRound(winner) {
+  if (!netStarted) return;
+  netStarted = false;
+  netPhase = 'end';
+  hostSendAll({ t: 'end', winner });
+  netShowEnd(winner);
+}
+function netShowEnd(winner) {
+  gameState = 'roundEnd';
+  netPhase = 'end';
+  netStarted = false;
+  $('eyes').style.display = 'none';
+  $('role').style.display = 'none';
+  const iWon = (winner === 'seeker' && netRole === 'seeker') || (winner === 'hiders' && netRole === 'hider');
+  if (winner === 'seeker') {
+    const sk = netPlayers.find((p) => p.id === netSeekerId);
+    endRound(iWon, '🔍 ရှာသူ နိုင်ပြီ!', (sk ? sk.name : 'ရှာသူ') + ' က ၃ မိနစ်အတွင်း အကုန်ရှာတွေ့သွားတယ်။');
+  } else {
+    endRound(iWon, '🙈 ပုန်းသူတွေ နိုင်ပြီ!', '၃ မိနစ် ပြည့်သွားတယ် — ရှာသူ အကုန်မတွေ့နိုင်ခဲ့ဘူး။');
+  }
+}
+
+function joinRoom() {
+  const name = ($('netName').value || 'Player').trim().slice(0, 12);
+  const code = ($('netJoinCode').value || '').trim().toUpperCase();
+  if (!code || code.length !== 4) { netStatus('ကုဒ် ၄ လုံး ရိုက်ထည့်ပါ'); return; }
+  myName = name;
+  localStorage.setItem('hs_name', name);
+  if (peerObj) peerObj.destroy();
+  roomCode = code;
+  netStatus('အခန်းကို ချိတ်နေတယ်...');
+  peerObj = new Peer();
+  peerObj.on('open', (id) => {
+    myPeerId = id;
+    const conn = peerObj.connect('hs-' + code, { reliable: true });
+    netConns['host'] = conn;
+    conn.on('open', () => { try { conn.send({ t: 'hello', name }); } catch (e) {} });
+    conn.on('data', (msg) => clientHandle(msg));
+    conn.on('close', () => { if (!netLeaving) netLeave('Host ထွက်သွားပြီ'); });
+    conn.on('error', () => {});
+  });
+  peerObj.on('error', (err) => {
+    if (err && err.type === 'peer-unavailable') netStatus('အခန်း မတွေ့ဘူး — ကုဒ် မှားနေလား၊ Host ဖွင့်ထားလား စစ်ပါ');
+    else if (err) netStatus('ချိတ်မရဘူး: ' + (err.type || 'error'));
+  });
+}
+function clientHandle(msg) {
+  if (!msg || !msg.t) return;
+  if (msg.t === 'welcome') {
+    myPeerId = msg.id;
+    myColorIdx = msg.colorIdx;
+    netPlayers = msg.players;
+    roomCode = msg.code;
+    $('netCode').style.display = 'block';
+    $('netCode').textContent = roomCode;
+    netStatus('အခန်းထဲ ရောက်ပြီ — Host စတာကို စောင့်နေတယ်');
+    netRenderLobby();
+  } else if (msg.t === 'lobby') {
+    netPlayers = msg.players;
+    netRenderLobby();
+  } else if (msg.t === 'busy') {
+    netStatus('ပွဲ ကစားနေပြီ — ပြီးမှ ထပ်ဝင်ကြည့်ပါ');
+  } else if (msg.t === 'full') {
+    netStatus('အခန်း ပြည့်နေပြီ (၅ ယောက်)');
+  } else if (msg.t === 'start') {
+    netPlayers = msg.players;
+    netSeekerId = msg.seekerId;
+    netPhase = msg.phase;
+    netTimeLeft = msg.timeLeft;
+    netStarted = true;
+    netBeginRound();
+  } else if (msg.t === 'state') {
+    netPhase = msg.phase;
+    netTimeLeft = msg.timeLeft;
+    netSeekerId = msg.seekerId;
+    netPlayers = msg.players;
+    netFound = msg.found || {};
+    applyNetState(msg.pos || {});
+  } else if (msg.t === 'phase') {
+    netPhase = msg.phase;
+    netTimeLeft = msg.timeLeft;
+    if (netPhase === 'seek') {
+      $('eyes').style.display = 'none';
+      sfx('go');
+      showWarn('🔍 ရှာသူ မျက်လုံးပွင့်ပြီ — စရှာပြီ!', 2);
+    }
+  } else if (msg.t === 'caught') {
+    netOnCaught(msg.id);
+  } else if (msg.t === 'end') {
+    netShowEnd(msg.winner);
+  } else if (msg.t === 'backToLobby') {
+    endEl.style.display = 'none';
+    netPhase = 'lobby';
+    netStarted = false;
+    gameState = 'lobby';
+    $('lobby').style.display = 'flex';
+    netRenderLobby();
+  }
+}
+function netBeginRound() {
+  closeLobby();
+  clearPeople();
+  remotePeople = {};
+  netFound = {};
+  roundOver = false;
+  sneakOn = false;
+  setSneakBtn();
+  mode = 'online';
+  gameState = 'playing';
+  netRole = (myPeerId === netSeekerId) ? 'seeker' : 'hider';
+  const myIdx = Math.max(0, netPlayers.findIndex((p) => p.id === myPeerId));
+  const myC = netColor(netPlayers[myIdx] ? netPlayers[myIdx].colorIdx : myColorIdx);
+  player = makePerson(myName || 'မင်း', myC.hex, myC.css, (myIdx % 2) + 1);
+  const hiderSpots = [[0, 4], [3, 6], [-3, 6], [2, 2], [-2, 2]];
+  if (netRole === 'seeker') {
+    player.g.position.set(0, 0, -24);
+    player.heading = Math.PI;
+    player.g.rotation.y = Math.PI;
+  } else {
+    const s = hiderSpots[myIdx % hiderSpots.length];
+    player.g.position.set(s[0], 0, s[1]);
+  }
+  netPlayers.forEach((p, i) => {
+    if (p.id === myPeerId) return;
+    const c = netColor(p.colorIdx);
+    const rp = makePerson(p.name, c.hex, c.css, (i % 2) + 1);
+    if (p.id === netSeekerId) {
+      rp.g.position.set(0, 0, -24);
+      rp.heading = Math.PI;
+      rp.g.rotation.y = Math.PI;
+      rp.isSeeker = true;
+    } else {
+      const s = hiderSpots[i % hiderSpots.length];
+      rp.g.position.set(s[0], 0, s[1]);
+    }
+    rp.netId = p.id;
+    rp.tx = rp.g.position.x;
+    rp.tz = rp.g.position.z;
+    remotePeople[p.id] = rp;
+  });
+  modePill.textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ' : '🙈 မင်းက ပုန်းသူ';
+  $('roleTitle').textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ!' : '🙈 မင်းက ပုန်းသူ!';
+  $('roleTxt').textContent = netRole === 'seeker'
+    ? '၁၅ စက္ကန့် မျက်လုံးမှိတ်ထား — ပြီးရင် ၃ မိနစ်အတွင်း အကုန်ရှာ!'
+    : '၁၅ စက္ကန့်အတွင်း ပုန်းစရာနေရာ ရှာ — ရှာသူ အနီးရောက်ရင် သတိထား!';
+  $('role').style.display = 'flex';
+  roleT = 2.5;
+  if (netRole === 'seeker') {
+    $('eyes').style.display = 'flex';
+    $('eyesNum').textContent = '15';
+  } else {
+    $('eyes').style.display = 'none';
+  }
+  snapCameraBehind();
+  sfx('go');
+}
+function applyNetState(pos) {
+  for (const id in remotePeople) {
+    const rp = remotePeople[id];
+    const s = pos[id];
+    if (!s) continue;
+    rp.tx = s.x;
+    rp.tz = s.z;
+    rp.targetHeading = s.heading;
+    rp.netMoving = !!s.moving;
+    rp.netCrouched = !!s.crouched;
+    if (s.found && !rp.found) {
+      rp.found = true;
+      setCrouch(rp, false);
+      rp.state = 'caught';
+    }
+  }
+}
+function updateNet(dt, timeDt) {
+  if (!player) return;
+  if (roleT > 0) {
+    roleT -= timeDt;
+    if (roleT <= 0) $('role').style.display = 'none';
+  }
+  if (netRole === 'seeker' && netPhase === 'hide') $('eyesNum').textContent = Math.max(0, Math.ceil(netTimeLeft));
+  if (isHost && netStarted) {
+    hostPos[myPeerId] = { x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId] };
+    if (netPhase === 'hide' || netPhase === 'seek') {
+      netTimeLeft -= timeDt;
+      if (netPhase === 'hide' && netTimeLeft <= 0) {
+        netPhase = 'seek';
+        netTimeLeft = 180;
+        hostSendAll({ t: 'phase', phase: 'seek', timeLeft: 180 });
+        if (netRole === 'seeker') $('eyes').style.display = 'none';
+        sfx('go');
+        showWarn('🔍 ရှာသူ မျက်လုံးပွင့်ပြီ — စရှာပြီ!', 2);
+      } else if (netPhase === 'seek' && netTimeLeft <= 0) {
+        hostEndRound('hiders');
+        return;
+      }
+    }
+    lastStateSend += timeDt;
+    if (lastStateSend >= 0.1) {
+      lastStateSend = 0;
+      applyNetState(hostPos);
+      hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId });
+    }
+  } else if (peerObj && netConns['host']) {
+    lastPosSend += timeDt;
+    if (lastPosSend >= 0.1) {
+      lastPosSend = 0;
+      try { netConns['host'].send({ t: 'pos', x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId] }); } catch (e) {}
+    }
+  }
+  for (const id in remotePeople) {
+    const rp = remotePeople[id];
+    const dx = (rp.tx !== undefined ? rp.tx : rp.g.position.x) - rp.g.position.x;
+    const dz = (rp.tz !== undefined ? rp.tz : rp.g.position.z) - rp.g.position.z;
+    const d = Math.hypot(dx, dz);
+    if (d > 0.05) {
+      const step = Math.min(d, 8 * dt);
+      rp.g.position.x += dx / d * step;
+      rp.g.position.z += dz / d * step;
+      rp.moving = true;
+    } else {
+      rp.moving = false;
+    }
+    if (rp.targetHeading !== undefined) {
+      let diff = rp.targetHeading - rp.g.rotation.y;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      rp.g.rotation.y += diff * Math.min(1, dt * 10);
+    }
+    setClip(rp, rp.moving ? 'walk' : 'idle');
+    if (rp.mixer && rp.moving) rp.mixer.update(dt);
+    if (rp.netCrouched !== undefined) setCrouch(rp, rp.netCrouched);
+  }
+  nearestNetHider = null;
+  if (netPhase === 'seek' && !netFound[myPeerId]) {
+    if (netRole === 'hider') {
+      const sk = remotePeople[netSeekerId];
+      if (sk) {
+        const d = dist2(player.g.position.x, player.g.position.z, sk.g.position.x, sk.g.position.z);
+        if (d < 8 && warnT < 0.2) showWarn(d < 4 ? '😱 ရှာသူ အရမ်းအနီးမှာ!' : '👀 ရှာသူ အနီးမှာ!', 0.6);
+      }
+    } else if (netRole === 'seeker') {
+      let best = 2.8;
+      for (const id in remotePeople) {
+        const rp = remotePeople[id];
+        if (rp.found || id === netSeekerId) continue;
+        const dd = dist2(player.g.position.x, player.g.position.z, rp.g.position.x, rp.g.position.z);
+        if (dd < best && !losBlocked(player.g.position.x, player.g.position.z, rp.g.position.x, rp.g.position.z)) {
+          best = dd;
+          nearestNetHider = rp;
+        }
+      }
+    }
+  }
+}
+function netLeave(msg) {
+  netLeaving = true;
+  if (peerObj) { try { peerObj.destroy(); } catch (e) {} peerObj = null; }
+  netConns = {};
+  netPlayers = [];
+  netStarted = false;
+  isHost = false;
+  netPhase = 'lobby';
+  roomCode = '';
+  remotePeople = {};
+  $('eyes').style.display = 'none';
+  $('role').style.display = 'none';
+  closeLobby();
+  clearPeople();
+  gameState = 'menu';
+  startEl.style.display = 'flex';
+  updateBest();
+  if (msg) showWarn(msg, 2.5);
+  setTimeout(() => { netLeaving = false; }, 500);
+}
+
 // ---------- wire up + init ----------
 $('modeHide').addEventListener('click', () => startMode('hide'));
 $('modeSeek').addEventListener('click', () => startMode('seek'));
-$('modeHot').addEventListener('click', () => startMode('hot'));
-$('againBtn').addEventListener('click', () => startMode(mode));
+$('modeHot').addEventListener('click', openLobby);
+$('againBtn').addEventListener('click', () => {
+  if (mode === 'online') {
+    endEl.style.display = 'none';
+    if (isHost) hostSendAll({ t: 'backToLobby' });
+    netPhase = 'lobby';
+    netStarted = false;
+    gameState = 'lobby';
+    $('lobby').style.display = 'flex';
+    netRenderLobby();
+    return;
+  }
+  startMode(mode);
+});
 $('menuBtn').addEventListener('click', () => {
+  if (mode === 'online') { netLeave(); return; }
   endEl.style.display = 'none';
   gameState = 'menu';
   startEl.style.display = 'flex';
   updateBest();
 });
 $('passGo').addEventListener('click', startP2Seek);
+$('createBtn').addEventListener('click', createRoom);
+$('joinBtn').addEventListener('click', joinRoom);
+$('netStartBtn').addEventListener('click', hostStart);
+$('netLeaveBtn').addEventListener('click', () => netLeave());
+$('copyLinkBtn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(netRoomLink());
+    $('copyLinkBtn').textContent = '✅ လင့်ခ်ကူးပြီးပြီ';
+  } catch (e) { netStatus('လင့်ခ်: ' + netRoomLink()); }
+});
 loadProgress = 15;
 updateLoad();
 loadNpcModels();
