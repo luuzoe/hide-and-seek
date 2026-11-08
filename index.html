@@ -28,7 +28,16 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #muteBtn{position:fixed;top:8px;right:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .card{background:#fffbe8;border-radius:22px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
-.card h1{margin:0 0 4px;font-size:30px}
+.card h1{margin:0 0 4px;font-size:30px;background:linear-gradient(135deg,#2e7d32,#ef6c00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.overlay{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.card{animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.modeBtn{transition:transform .12s ease, box-shadow .12s ease}
+.modeBtn:active{transform:scale(.97)}
+#btns button{transition:transform .1s ease}
+#btns button:active{transform:scale(.93)}
+#setName{width:100%;padding:12px;border:2px solid #ccc;border-radius:12px;font-size:16px;margin-top:8px}
 .card h2{margin:0 0 8px;font-size:24px}
 .card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
 .modeBtn{display:block;width:100%;margin-top:10px;padding:14px;border:none;border-radius:14px;font-size:17px;font-weight:700;color:#fff;text-align:left}
@@ -89,12 +98,23 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.0</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
+    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.1</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
     <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
     <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
     <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းတွေနဲ့ အွန်လိုင်းဆော့<small>အခန်းဖွင့်၊ သူငယ်ချင်း ၅ ယောက်ထိ invite — random တစ်ယောက် ရှာသူ၊ ၁၅ စက္ကန့်ပုန်း၊ ၃ မိနစ်ရှာ</small></button>
     <p id="best"></p>
     <p style="font-size:13px;color:#666">လမ်းလျှောက်: Joystick / WASD • ပြေး: ပြေးမယ် ခလုတ် / Shift • ချောင်းသွား: C • ပုန်း/တွေ့ပြီ: E</p>
+    <button class="ghostBtn" id="settingsBtn">⚙️ ဆက်တင်</button>
+  </div>
+</div>
+<div class="overlay" id="settings" style="display:none">
+  <div class="card">
+    <h2>⚙️ ဆက်တင်</h2>
+    <button class="ghostBtn" id="setSoundBtn">🔊 အသံ: ဖွင့်</button>
+    <button class="ghostBtn" id="setQualityBtn">🎨 ရုပ်ထွက်: အကောင်း</button>
+    <input id="setName" placeholder="မင်းနာမည်" maxlength="12">
+    <button class="ghostBtn" id="setResetBtn">🗑️ အမှတ်တရတွေ ဖျက်မယ်</button>
+    <button class="bigBtn" id="setCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
 <div class="overlay" id="pass" style="display:none">
@@ -107,7 +127,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="lobby" style="display:none">
   <div class="card">
     <h2>👥 သူငယ်ချင်းတွေနဲ့ ဆော့</h2>
-    <p style="font-size:14px">၅ ယောက်အထိ — တစ်ယောက်က အခန်းဖွင့်၊ ကျန်သူတွေ ကုဒ်နဲ့ ဝင်။ စတာနဲ့ random တစ်ယောက် ရှာသူ ဖြစ်မယ်။</p>
+    <p style="font-size:14px">၅ ယောက် ပြည့်မှ စလို့ရမယ် — တစ်ယောက်က အခန်းဖွင့်၊ ကျန်သူတွေ ကုဒ်နဲ့ ဝင်။ စတာနဲ့ random တစ်ယောက် ရှာသူ ဖြစ်မယ်။</p>
     <input id="netName" placeholder="မင်းနာမည် (ဥပမာ Zaw)" maxlength="12">
     <button class="bigBtn" id="createBtn">🏠 အခန်းဖွင့်မယ်</button>
     <div class="netRow">
@@ -173,7 +193,12 @@ let foundCount = 0;
 let roundOver = false;
 let camYaw = 0;
 let camPitch = 0.32;
-let muted = false;
+let muted = localStorage.getItem('hs_muted') === '1';
+let quality = localStorage.getItem('hs_quality') || 'high';
+function applyQuality() {
+  renderer.setPixelRatio(quality === 'low' ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
 let audioCtx = null;
 let modelsReady = false;
 let npcSource = null;
@@ -426,94 +451,149 @@ for (const [ry, len, px, pz, rot] of [[0.55, 54, 0, -27, 0], [1.15, 54, 0, -27, 
   scene.add(rail);
 }
 
-// ---------- houses (real GLB, Box3-normalized) ----------
-const HOUSE_DEFS = [
-  { file: 'models/house-real-1s.glb', x: -18, z: -15, w: 10 },
-  { file: 'models/house-real-2s.glb', x: 17, z: -16, w: 9 },
-  { file: 'models/house-real-3s.glb', x: -17, z: 16, w: 10 },
+// ---------- 5 random maps (one picked per round) ----------
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+const MAPS = [
+  { name: 'ရွာဝန်း', tint: 0xffffff, sky: 0x87ceeb, fog: 0x9fd3e8,
+    houses: [{ f: 1, x: -18, z: -15, w: 10 }, { f: 2, x: 17, z: -16, w: 9 }, { f: 3, x: -17, z: 16, w: 10 }],
+    trees: [[-8, -6], [5, -14], [-2, 6], [12, 8], [-10, 10], [20, 12], [8, 20], [-24, 6], [24, -4], [0, 22], [-4, -18], [14, -2]],
+    hay: [[8, 10], [-6, 20], [20, 4]], crates: [[0, -8], [12, 18], [-20, 2]], bushes: [[-4, -18], [14, -2], [4, 14], [-14, -2]] },
+  { name: 'ကျောင်းဝန်း', tint: 0xf5e6c8, sky: 0x8ecae6, fog: 0xa8d0e8,
+    houses: [{ f: 1, x: -20, z: -14, w: 10 }, { f: 2, x: 18, z: -14, w: 9 }],
+    trees: [[-24, 0], [-24, 12], [24, 0], [24, 12], [-12, 22], [12, 22], [-22, -22], [22, -22]],
+    hay: [[20, 18]], crates: [[-6, -4], [6, -4], [0, 12]], bushes: [[-10, 16], [10, 16], [-20, 6], [20, -6]] },
+  { name: 'ဈေးတန်း', tint: 0xe8d8b0, sky: 0x87ceeb, fog: 0x9fd3e8,
+    houses: [{ f: 3, x: 20, z: 18, w: 9 }],
+    trees: [[-22, 18], [22, -18], [-22, -20], [0, -20]],
+    hay: [[-20, 14], [20, -6]], crates: [[-16, -10], [-6, -10], [4, -10], [14, -10], [-11, 8], [-3, 10], [9, 8]], bushes: [[-16, 18], [16, -14], [-22, 2]] },
+  { name: 'လယ်ကွင်း', tint: 0xe8e8a0, sky: 0x9fd3e8, fog: 0xb8d8a8,
+    houses: [{ f: 1, x: -20, z: 18, w: 10 }],
+    trees: [[-14, -16], [14, -18], [-22, -2], [22, 2], [-8, 20], [16, 20]],
+    hay: [[-12, -6], [0, -12], [12, -6], [-6, 10], [8, 12], [-18, 8]], crates: [[0, 18]], bushes: [[-4, -20], [6, -18], [20, 10], [-20, -12]] },
+  { name: 'ဘုရားဝန်း', tint: 0xf0e8d8, sky: 0x87ceeb, fog: 0x9fd3e8,
+    houses: [{ f: 2, x: -20, z: -16, w: 10 }, { f: 3, x: 20, z: -16, w: 9 }],
+    trees: [[-24, 4], [-24, 14], [24, 4], [24, 14], [-12, -22], [12, -22], [-20, 20], [20, 20]],
+    hay: [[0, -14]], crates: [[-8, 8], [8, 8]], bushes: [[-14, 0], [14, 0], [0, 18], [-6, -20]] },
 ];
-for (const h of HOUSE_DEFS) {
-  addBoxCollider(h.x, h.z, h.w / 2, 4);
-  loader.load(h.file, (gltf) => {
-    const g = gltf.scene;
-    const junk = [];
-    g.traverse((o) => { if (o.isMesh && /Area Light|Cobblestone|Ground Material|Grass_Grass/i.test(o.name)) junk.push(o); });
-    for (const o of junk) if (o.parent) o.parent.remove(o);
+const houseTemplates = {};
+const treeVariants = [];
+let templatesLoaded = 0;
+let worldBuilt = false;
+let currentMapIdx = Math.floor(Math.random() * MAPS.length);
+const strawMat = new THREE.MeshLambertMaterial({ map: strawTexture() });
+const crateMat = new THREE.MeshLambertMaterial({ map: woodTexture() });
+const leafMat = new THREE.MeshLambertMaterial({ map: leafTexture() });
+function maybeBuildWorld() {
+  if (templatesLoaded >= 4 && !worldBuilt) { worldBuilt = true; buildMap(currentMapIdx); }
+}
+function buildMap(idx) {
+  const def = MAPS[idx];
+  currentMapIdx = idx;
+  while (worldGroup.children.length) {
+    const c = worldGroup.children[0];
+    worldGroup.remove(c);
+    c.traverse((o) => { if (o.isMesh && (o.material === strawMat || o.material === crateMat || o.material === leafMat)) o.geometry.dispose(); });
+  }
+  colliders.length = 0;
+  hideSpots.length = 0;
+  for (const h of def.houses) {
+    addBoxCollider(h.x, h.z, h.w / 2, 4);
+    const tpl = houseTemplates[h.f];
+    if (!tpl) continue;
+    const g = tpl.clone(true);
     const bb = new THREE.Box3().setFromObject(g);
     const sc = h.w / Math.max(0.1, bb.max.x - bb.min.x, bb.max.z - bb.min.z);
     g.scale.setScalar(sc);
     g.position.set(h.x - (bb.max.x + bb.min.x) / 2 * sc, 0.05 - bb.min.y * sc, h.z - (bb.max.z + bb.min.z) / 2 * sc);
-    g.traverse((o) => { if (o.isMesh) o.castShadow = false; });
-    scene.add(g);
-  }, undefined, () => {});
+    worldGroup.add(g);
+  }
+  for (const [tx, tz] of def.trees) addCircleCollider(tx, tz, 0.7);
+  if (treeVariants.length) {
+    def.trees.forEach(([tx, tz], i) => {
+      const src = treeVariants[i % treeVariants.length];
+      const cl = src.clone(true);
+      const bb = new THREE.Box3().setFromObject(cl);
+      const hgt = Math.max(0.1, bb.max.y - bb.min.y);
+      const s = 7 / hgt;
+      cl.scale.setScalar(s);
+      cl.rotation.y = (i * 2.4) % (Math.PI * 2);
+      cl.position.set(tx - (bb.max.x + bb.min.x) / 2 * s, -bb.min.y * s, tz - (bb.max.z + bb.min.z) / 2 * s);
+      worldGroup.add(cl);
+    });
+  }
+  for (const [hx, hz] of def.hay) {
+    addCircleCollider(hx, hz, 1.5);
+    const hay = new THREE.Mesh(new THREE.ConeGeometry(1.7, 3.2, 12), strawMat);
+    hay.position.set(hx, 1.6, hz);
+    worldGroup.add(hay);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.9, 0.5, 12), strawMat);
+    base.position.set(hx, 0.25, hz);
+    worldGroup.add(base);
+  }
+  for (const [cx, cz] of def.crates) {
+    addBoxCollider(cx, cz, 1.3, 1.3);
+    const c1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), crateMat);
+    c1.position.set(cx, 0.8, cz);
+    c1.rotation.y = 0.3;
+    worldGroup.add(c1);
+    const c2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), crateMat);
+    c2.position.set(cx + 0.4, 2.2, cz - 0.3);
+    c2.rotation.y = 0.9;
+    worldGroup.add(c2);
+  }
+  for (const [bx, bz] of def.bushes) {
+    addCircleCollider(bx, bz, 1.0);
+    const bush = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8), leafMat);
+    bush.scale.y = 0.75;
+    bush.position.set(bx, 0.8, bz);
+    worldGroup.add(bush);
+  }
+  for (const h of def.houses) {
+    hideSpots.push({ x: h.x, z: h.z + 5.2, label: 'အိမ်နောက်', taken: false });
+    hideSpots.push({ x: h.x + h.w / 2 + 1.2, z: h.z, label: 'အိမ်နောက်', taken: false });
+  }
+  for (const [tx, tz] of def.trees) hideSpots.push({ x: tx + 1.6, z: tz + 0.4, label: 'သစ်ပင်နောက်', taken: false });
+  for (const [hx, hz] of def.hay) hideSpots.push({ x: hx + 2.2, z: hz + 0.6, label: 'ကောက်ရိုးပုံနောက်', taken: false });
+  for (const [cx, cz] of def.crates) hideSpots.push({ x: cx + 2.0, z: cz, label: 'သေတ္တာနောက်', taken: false });
+  for (const [bx, bz] of def.bushes) hideSpots.push({ x: bx + 1.7, z: bz, label: 'ချုံနောက်', taken: false });
+  ground.material.color.setHex(def.tint);
+  scene.background.setHex(def.sky);
+  scene.fog.color.setHex(def.fog);
 }
-
-// ---------- trees (real GLB variants) ----------
-const TREE_SPOTS = [[-8, -6], [5, -14], [-2, 6], [12, 8], [-10, 10], [20, 12], [8, 20], [-24, 6], [24, -4], [0, 22], [-4, -18], [14, -2]];
-for (const [tx, tz] of TREE_SPOTS) addCircleCollider(tx, tz, 0.7);
+function pickRandomMap() {
+  let n = currentMapIdx;
+  while (n === currentMapIdx && MAPS.length > 1) n = Math.floor(Math.random() * MAPS.length);
+  if (worldBuilt) buildMap(n);
+  else currentMapIdx = n;
+  return MAPS[currentMapIdx].name;
+}
+// load GLB templates once; world builds when all 4 are in (or failed)
+const HOUSE_FILES = [
+  { f: 1, file: 'models/house-real-1s.glb' },
+  { f: 2, file: 'models/house-real-2s.glb' },
+  { f: 3, file: 'models/house-real-3s.glb' },
+];
+for (const { f, file } of HOUSE_FILES) {
+  loader.load(file, (gltf) => {
+    const g = gltf.scene;
+    const junk = [];
+    g.traverse((o) => { if (o.isMesh && /Area Light|Cobblestone|Ground Material|Grass_Grass/i.test(o.name)) junk.push(o); });
+    for (const o of junk) if (o.parent) o.parent.remove(o);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+    houseTemplates[f] = g;
+    templatesLoaded++;
+    maybeBuildWorld();
+  }, undefined, () => { templatesLoaded++; maybeBuildWorld(); });
+}
 loader.load('models/tree-tropics-real.glb', (gltf) => {
-  const variants = [];
   for (const nm of ['Tree_0', 'Tree_1', 'Tree_2']) {
     const v = gltf.scene.getObjectByName(nm);
-    if (v) variants.push(v);
+    if (v) treeVariants.push(v);
   }
-  if (!variants.length) return;
-  TREE_SPOTS.forEach(([tx, tz], i) => {
-    const src = variants[i % variants.length];
-    const cl = src.clone(true);
-    const bb = new THREE.Box3().setFromObject(cl);
-    const hgt = Math.max(0.1, bb.max.y - bb.min.y);
-    const s = 7 / hgt;
-    cl.scale.setScalar(s);
-    cl.rotation.y = (i * 2.4) % (Math.PI * 2);
-    cl.position.set(tx - (bb.max.x + bb.min.x) / 2 * s, -bb.min.y * s, tz - (bb.max.z + bb.min.z) / 2 * s);
-    scene.add(cl);
-  });
-}, undefined, () => {});
-
-// ---------- haystacks, crates, bushes (textured props) ----------
-const HAY_SPOTS = [[8, 10], [-6, 20], [20, 4]];
-const strawMat = new THREE.MeshLambertMaterial({ map: strawTexture() });
-for (const [hx, hz] of HAY_SPOTS) {
-  addCircleCollider(hx, hz, 1.5);
-  const hay = new THREE.Mesh(new THREE.ConeGeometry(1.7, 3.2, 12), strawMat);
-  hay.position.set(hx, 1.6, hz);
-  scene.add(hay);
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.9, 0.5, 12), strawMat);
-  base.position.set(hx, 0.25, hz);
-  scene.add(base);
-}
-const crateMat = new THREE.MeshLambertMaterial({ map: woodTexture() });
-const CRATE_SPOTS = [[0, -8], [12, 18], [-20, 2]];
-for (const [cx, cz] of CRATE_SPOTS) {
-  addBoxCollider(cx, cz, 1.3, 1.3);
-  const c1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), crateMat);
-  c1.position.set(cx, 0.8, cz);
-  c1.rotation.y = 0.3;
-  scene.add(c1);
-  const c2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), crateMat);
-  c2.position.set(cx + 0.4, 2.2, cz - 0.3);
-  c2.rotation.y = 0.9;
-  scene.add(c2);
-}
-const leafMat = new THREE.MeshLambertMaterial({ map: leafTexture() });
-const BUSH_SPOTS = [[-4, -18], [14, -2], [4, 14], [-14, -2]];
-for (const [bx, bz] of BUSH_SPOTS) {
-  addCircleCollider(bx, bz, 1.0);
-  const bush = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8), leafMat);
-  bush.scale.y = 0.75;
-  bush.position.set(bx, 0.8, bz);
-  scene.add(bush);
-}
-
-// ---------- hide spots ----------
-const SPOT_DEFS = [
-  [-18, -9.8, 'အိမ်နောက်'], [17, -10.8, 'အိမ်နောက်'], [-17, 10.8, 'အိမ်နောက်'],
-  [-8, -4.4, 'သစ်ပင်နောက်'], [5, -12.4, 'သစ်ပင်နောက်'], [12, 9.6, 'သစ်ပင်နောက်'],
-  [8, 11.9, 'ကောက်ရိုးပုံနောက်'], [-6, 21.9, 'ကောက်ရိုးပုံနောက်'], [20, 5.9, 'ကောက်ရိုးပုံနောက်'],
-  [1.9, -8, 'သေတ္တာနောက်'], [13.9, 18, 'သေတ္တာနောက်'], [-4, -16.1, 'ချုံနောက်'],
-];
-for (const [sx, sz, label] of SPOT_DEFS) hideSpots.push({ x: sx, z: sz, label, taken: false });
+  templatesLoaded++;
+  maybeBuildWorld();
+}, undefined, () => { templatesLoaded++; maybeBuildWorld(); });
 function dist2(ax, az, bx, bz) {
   const dx = ax - bx;
   const dz = az - bz;
@@ -768,6 +848,7 @@ $('actBtn').addEventListener('click', doAction);
 $('findBtn').addEventListener('click', doFind);
 $('muteBtn').addEventListener('click', () => {
   muted = !muted;
+  localStorage.setItem('hs_muted', muted ? '1' : '0');
   $('muteBtn').textContent = muted ? '🔇' : '🔊';
 });
 window.addEventListener('resize', () => {
@@ -876,6 +957,7 @@ function snapCameraBehind() {
 }
 function startMode(m) {
   mode = m;
+  const mapName = pickRandomMap();
   clearPeople();
   for (const s of hideSpots) s.taken = false;
   sneakOn = false;
@@ -931,6 +1013,7 @@ function startMode(m) {
     modePill.textContent = '👥 P1 ပုန်းမယ်';
     showWarn('P1 — ၂၅ စက္ကန့်အတွင်း ပုန်းပြီး ✅ နှိပ်ပါ!', 2.5);
   }
+  modePill.textContent += ' • ' + mapName;
   snapCameraBehind();
 }
 function setSneakBtn() {
@@ -1380,7 +1463,7 @@ function netPlayerLeft(id) {
 }
 function hostStart() {
   if (!isHost) return;
-  if (netPlayers.length < 2) { netStatus('အနည်းဆုံး ၂ ယောက် လိုတယ် — သူငယ်ချင်း ဝင်လာအောင် စောင့်ပါ'); return; }
+  if (netPlayers.length < 5) { netStatus('၅ ယောက် ပြည့်မှ စလို့ရမယ် (အခု ' + netPlayers.length + '/5)'); return; }
   const seeker = netPlayers[Math.floor(Math.random() * netPlayers.length)];
   netSeekerId = seeker.id;
   netFound = {};
@@ -1502,6 +1585,7 @@ function clientHandle(msg) {
 }
 function netBeginRound() {
   closeLobby();
+  const mapName = pickRandomMap();
   clearPeople();
   remotePeople = {};
   netFound = {};
@@ -1514,7 +1598,7 @@ function netBeginRound() {
   const myIdx = Math.max(0, netPlayers.findIndex((p) => p.id === myPeerId));
   const myC = netColor(netPlayers[myIdx] ? netPlayers[myIdx].colorIdx : myColorIdx);
   player = makePerson(myName || 'မင်း', myC.hex, myC.css, (myIdx % 2) + 1);
-  const hiderSpots = [[0, 4], [3, 6], [-3, 6], [2, 2], [-2, 2]];
+  const hiderSpots = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2]];
   if (netRole === 'seeker') {
     player.g.position.set(0, 0, -24);
     player.heading = Math.PI;
@@ -1541,7 +1625,7 @@ function netBeginRound() {
     rp.tz = rp.g.position.z;
     remotePeople[p.id] = rp;
   });
-  modePill.textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ' : '🙈 မင်းက ပုန်းသူ';
+  modePill.textContent = (netRole === 'seeker' ? '🔍 မင်းက ရှာသူ' : '🙈 မင်းက ပုန်းသူ') + ' • ' + mapName;
   $('roleTitle').textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ!' : '🙈 မင်းက ပုန်းသူ!';
   $('roleTxt').textContent = netRole === 'seeker'
     ? '၁၅ စက္ကန့် မျက်လုံးမှိတ်ထား — ပြီးရင် ၃ မိနစ်အတွင်း အကုန်ရှာ!'
@@ -1716,6 +1800,42 @@ $('copyLinkBtn').addEventListener('click', async () => {
     $('copyLinkBtn').textContent = '✅ လင့်ခ်ကူးပြီးပြီ';
   } catch (e) { netStatus('လင့်ခ်: ' + netRoomLink()); }
 });
+function refreshSettingsUI() {
+  $('setSoundBtn').textContent = muted ? '🔇 အသံ: ပိတ်' : '🔊 အသံ: ဖွင့်';
+  $('setQualityBtn').textContent = quality === 'low' ? '🎨 ရုပ်ထွက်: သက်သာ' : '🎨 ရုပ်ထွက်: အကောင်း';
+  $('setName').value = myName || '';
+}
+$('settingsBtn').addEventListener('click', () => { refreshSettingsUI(); $('settings').style.display = 'flex'; });
+$('setCloseBtn').addEventListener('click', () => { $('settings').style.display = 'none'; });
+$('setSoundBtn').addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('hs_muted', muted ? '1' : '0');
+  $('muteBtn').textContent = muted ? '🔇' : '🔊';
+  refreshSettingsUI();
+});
+$('setQualityBtn').addEventListener('click', () => {
+  quality = quality === 'low' ? 'high' : 'low';
+  localStorage.setItem('hs_quality', quality);
+  applyQuality();
+  refreshSettingsUI();
+});
+$('setName').addEventListener('change', () => {
+  myName = $('setName').value.trim().slice(0, 12);
+  sessionStorage.setItem('hs_name', myName);
+});
+$('setResetBtn').addEventListener('click', () => {
+  localStorage.removeItem('hs_best_hide');
+  localStorage.removeItem('hs_best_seek');
+  localStorage.removeItem('hs_hot_p1');
+  localStorage.removeItem('hs_hot_p2');
+  bestHide = 0;
+  bestSeek = 0;
+  hotWins = { p1: 0, p2: 0 };
+  updateBest();
+  $('setResetBtn').textContent = '✅ ဖျက်ပြီးပြီ';
+});
+$('muteBtn').textContent = muted ? '🔇' : '🔊';
+applyQuality();
 loadProgress = 15;
 updateLoad();
 loadNpcModels();
@@ -1723,3 +1843,4 @@ animate();
 </script>
 </body>
 </html>
+
