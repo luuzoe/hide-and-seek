@@ -39,14 +39,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:52px;height:40px;border-radius:999px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 10px;touch-action:none;transition:transform .1s ease}
+#btns button{min-width:52px;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 10px;touch-action:none;transition:transform .1s ease}
 #btns button:active{transform:scale(.93)}
 #runBtn{background:var(--blue)}
 #sneakBtn{background:var(--brown)}
 #sneakBtn.on{background:var(--amber)}
 #actBtn{background:var(--green);display:none}
 #findBtn{background:var(--red);display:none}
-#muteBtn,#fsBtn,#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#muteBtn,#fsBtn,#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
 #muteBtn{right:8px}
 #fsBtn{right:56px}
 #cornerSetBtn{right:104px}
@@ -66,9 +66,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #start .card h1{background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;-webkit-text-fill-color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
 #start .ver{color:rgba(255,255,255,.8)}
 #start #best{color:rgba(255,255,255,.8)}
-.bigBtn{width:100%;margin-top:10px;padding:8px 12px;border:none;border-radius:999px;font-size:14px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
+.bigBtn{width:100%;margin-top:10px;padding:8px 12px;border:none;border-radius:10px;font-size:14px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
 .bigBtn:active{transform:scale(.97)}
-.ghostBtn{width:100%;margin-top:8px;padding:7px 10px;border:none;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
+.ghostBtn{width:100%;margin-top:8px;padding:7px 10px;border:none;border-radius:10px;font-size:13px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
 .ghostBtn:active{transform:scale(.97)}
 #startBtn{width:auto;display:block;margin:10px auto 0;padding:8px 30px;font-size:15px}
 #charPreview{display:block;margin:4px auto 0;width:140px;height:140px}
@@ -114,7 +114,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .netPlayer{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:6px;font-size:15px;font-weight:600;color:var(--ink)}
 .netDot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
 #netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:14px;padding:8px;margin:8px 0}
-.netRow{display:flex;gap:8px}
+.netRow{display:flex;gap:8px;align-items:center}
+#netJoinCode{width:auto;flex:1;min-width:0;margin-top:8px;padding:10px;font-size:15px}
+#joinBtn{flex:0 0 auto;padding:8px 18px}
 .netRow button{flex:1}
 .netRow .bigBtn{margin-top:8px}
 #netStatus{font-size:14px;color:#c62828;min-height:20px;text-align:center}
