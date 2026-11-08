@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#2e7d32">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ပုန်းတမ်း — Hide &amp; Seek</title>
 <meta property="og:title" content="ပုန်းတမ်း — Hide &amp; Seek">
 <meta property="og:description" content="ချစ်စရာ ဇာတ်ကောင်လေးတွေနဲ့ သူငယ်ချင်းတွေ တူတူ ပုန်းတမ်းဆော့ပါ။">
@@ -176,7 +178,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.0</p>
+    <p class="ver">Hide &amp; Seek • V5.1</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -187,6 +189,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
       <button class="ghostBtn" id="settingsBtn">⚙️ ဆက်တင်</button>
       <button class="ghostBtn" id="howtoBtn">📖 ကစားနည်း</button>
       <button class="ghostBtn" id="menuFsBtn">⛶ မျက်နှာပြင်</button>
+      <button class="ghostBtn" id="installBtn">📲 Install</button>
     </div>
   </div>
 </div>
@@ -197,8 +200,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>🔍 <b>ရှာသူ</b> — ပုန်းနေတဲ့ ၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ။</p>
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
+    <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
-    <p>🎨 Characters (CC-BY) — Chibi Boy: Leon Nygaard; Max: varunpatel899; Mack: TikkiToon; Anime + Green: sonbeo131.</p>
+    <p>🎨 Characters (CC0) — Farmer, Worker, Adventurer, Casual + T-Rex: Quaternius (quaternius.com).</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
@@ -257,6 +261,7 @@ setTimeout(function () {
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 
 // ---------- state (all declared before any use) ----------
 const BOUND = 20;
@@ -287,6 +292,8 @@ function applyQuality() {
 let audioCtx = null;
 const colliders = [];
 const hideSpots = [];
+const wardrobes = [];
+let nearestWardrobe = null;
 const people = [];
 let player = null;
 let seeker = null;
@@ -523,18 +530,20 @@ const decoGeos = {
   patch: new THREE.CircleGeometry(2.2, 12),
 };
 
-// ---------- Sketchfab characters (CC-BY, credits in the How-to overlay) ----------
-// 5 GLB models, preloaded at boot; each person uses one slot. If a GLB is not
-// loaded yet (or fails to load), the person falls back to the code-built chibi,
-// so a character is never broken or missing. Normalised to ~0.9m tall at runtime.
+// ---------- Quaternius animated characters (CC0, credits in the How-to overlay) ----------
+// 5 GLB models, preloaded at boot; each person uses one slot. All are skinned with
+// real Walk/Idle/Run clips (Farmer/Worker/Adventurer/Casual share the 24-clip
+// CharacterArmature set; T-Rex has Walk/Idle/Run). If a GLB is not loaded yet
+// (or fails to load), the person falls back to the code-built chibi, so a
+// character is never broken or missing. Normalised to ~0.9m tall at runtime.
 const MODELS = [
-  { url: 'models/boy.glb', name: 'Chibi Boy', author: 'Leon Nygaard' },
-  { url: 'models/max.glb', name: 'Max', author: 'varunpatel899' },
-  { url: 'models/mack.glb', name: 'Mack', author: 'TikkiToon' },
-  { url: 'models/anime.glb', name: 'Anime Chibi', author: 'sonbeo131' },
-  { url: 'models/green.glb', name: 'Green-haired Chibi', author: 'sonbeo131' },
+  { url: 'models/farmer.glb', name: 'Farmer', author: 'Quaternius' },
+  { url: 'models/trex.glb', name: 'T-Rex', author: 'Quaternius' },
+  { url: 'models/worker.glb', name: 'Worker', author: 'Quaternius' },
+  { url: 'models/adventurer.glb', name: 'Adventurer', author: 'Quaternius' },
+  { url: 'models/casual.glb', name: 'Casual', author: 'Quaternius' },
 ];
-const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null }));
+const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null, animations: [] }));
 function normalizeModel(src) {
   const box = new THREE.Box3().setFromObject(src);
   const h = Math.max(0.01, box.max.y - box.min.y);
@@ -551,9 +560,9 @@ function preloadModels() {
   const loader = new GLTFLoader();
   MODELS.forEach((m, i) => {
     loader.load(m.url, (gltf) => {
-      MODEL_CACHE[i] = { state: 'ok', scene: gltf.scene };
+      MODEL_CACHE[i] = { state: 'ok', scene: gltf.scene, animations: gltf.animations || [] };
     }, undefined, () => {
-      MODEL_CACHE[i] = { state: 'fail', scene: null };
+      MODEL_CACHE[i] = { state: 'fail', scene: null, animations: [] };
     });
   });
 }
@@ -623,8 +632,17 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
   const slot = ((modelIdx === undefined ? people.length : modelIdx) % MODELS.length + MODELS.length) % MODELS.length;
   const cache = MODEL_CACHE[slot];
   let bodyG, armL = null, armR = null;
+  let mixer = null, clipIdle = null, clipWalk = null, clipRun = null;
   if (cache.state === 'ok') {
-    bodyG = normalizeModel(cache.scene.clone(true));
+    bodyG = normalizeModel(cloneSkinned(cache.scene));
+    const anims = cache.animations || [];
+    if (anims.length) {
+      mixer = new THREE.AnimationMixer(bodyG);
+      const pick = (re) => anims.find((a) => re.test(a.name.toLowerCase())) || null;
+      clipWalk = pick(/walk/);
+      clipRun = pick(/run$/);
+      clipIdle = pick(/idle$/) || pick(/idle/);
+    }
   } else {
     const chibi = makeChibi(colorHex, colorCss);
     bodyG = chibi.bodyG; armL = chibi.armL; armR = chibi.armR;
@@ -632,7 +650,8 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
   g.add(bodyG);
   const p = {
     g, tag, ring, bodyG, armL, armR, name, colorHex,
-    moving: false, crouched: false, hidden: false,
+    mixer, clipIdle, clipWalk, clipRun, curClip: null, curAction: null,
+    moving: false, crouched: false, hidden: false, insideWardrobe: null, insideSince: 0,
     heading: 0, homeSpot: null, state: 'idle', target: null, waitT: 0,
     giggleT: 6 + Math.random() * 8, found: false, isSeeker: false,
     bobT: Math.random() * 6, anim: 'idle',
@@ -648,15 +667,42 @@ function setCrouch(p, on) {
   p.bodyG.scale.y = on ? 0.7 : 1;
 }
 function updatePersonAnim(p, dt) {
+  const speed = p.speed || 4.0;
+  if (p.mixer) {
+    const want = p.moving ? (speed > 5 && p.clipRun ? p.clipRun : p.clipWalk) : p.clipIdle;
+    if (want && want !== p.curClip) {
+      const action = p.mixer.clipAction(want);
+      if (p.curAction) p.curAction.fadeOut(0.2);
+      action.reset().fadeIn(0.2).play();
+      p.curClip = want;
+      p.curAction = action;
+    }
+    if (p.curAction) {
+      if (p.moving) {
+        const base = p.curClip === p.clipRun ? 6.4 : 4.0;
+        p.curAction.timeScale = Math.max(0.2, speed / base);
+      } else {
+        p.curAction.timeScale = 1;
+      }
+    }
+    p.mixer.update(dt);
+    return;
+  }
   if (p.moving) {
     p.bobT += dt * 11;
-    p.bodyG.position.y = Math.abs(Math.sin(p.bobT)) * 0.06;
-    p.bodyG.rotation.x = 0.1;
-    if (p.armL) p.armL.rotation.x = Math.sin(p.bobT) * 0.7;
-    if (p.armR) p.armR.rotation.x = -Math.sin(p.bobT) * 0.7;
+    const sw = Math.sin(p.bobT);
+    const runK = speed > 5 ? 1.35 : 1;
+    p.bodyG.position.y = Math.abs(sw) * 0.11 * runK;
+    p.bodyG.rotation.x = (0.1 + speed * 0.012) * runK;
+    p.bodyG.rotation.z = sw * 0.13;
+    p.bodyG.rotation.y = sw * 0.07;
+    if (p.armL) p.armL.rotation.x = sw * 0.7;
+    if (p.armR) p.armR.rotation.x = -sw * 0.7;
   } else {
-    p.bodyG.position.y = Math.sin(elapsed * 2 + p.bobT) * 0.015;
+    p.bodyG.position.y = Math.sin(elapsed * 2 + p.bobT) * 0.02;
     p.bodyG.rotation.x = 0;
+    p.bodyG.rotation.z = Math.sin(elapsed * 2 + p.bobT) * 0.02;
+    p.bodyG.rotation.y = 0;
     if (p.armL) p.armL.rotation.x *= 0.9;
     if (p.armR) p.armR.rotation.x *= 0.9;
   }
@@ -686,24 +732,54 @@ function makeBed(c) {
 }
 function makeWardrobe(c) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(unitBox, MAT[c]);
-  body.scale.set(2.4, 2.6, 1.0);
-  body.position.y = 1.3;
-  g.add(body);
+  const shell = MAT[c];
+  const back = new THREE.Mesh(unitBox, shell);
+  back.scale.set(2.4, 2.6, 0.08);
+  back.position.set(0, 1.3, -0.46);
+  g.add(back);
+  for (const sx of [-1.16, 1.16]) {
+    const side = new THREE.Mesh(unitBox, shell);
+    side.scale.set(0.08, 2.6, 1.0);
+    side.position.set(sx, 1.3, 0);
+    g.add(side);
+  }
+  const top = new THREE.Mesh(unitBox, shell);
+  top.scale.set(2.4, 0.08, 1.0);
+  top.position.set(0, 2.56, 0);
+  g.add(top);
+  const plinth = new THREE.Mesh(unitBox, shell);
+  plinth.scale.set(2.4, 0.15, 1.0);
+  plinth.position.set(0, 0.075, 0);
+  g.add(plinth);
+  const inner = new THREE.Mesh(unitBox, MAT.black);
+  inner.scale.set(2.24, 2.3, 0.8);
+  inner.position.set(0, 1.32, -0.08);
+  g.add(inner);
   const trim = new THREE.Mesh(unitBox, MAT.whitePure);
   trim.scale.set(2.5, 0.15, 1.1);
   trim.position.y = 2.65;
   g.add(trim);
-  const seam = new THREE.Mesh(unitBox, MAT.darkblue);
-  seam.scale.set(0.06, 2.2, 0.05);
-  seam.position.set(0, 1.3, 0.52);
-  g.add(seam);
-  for (const hx of [-0.4, 0.4]) {
+  const pivotL = new THREE.Group();
+  pivotL.position.set(-1.17, 0, 0.5);
+  const pivotR = new THREE.Group();
+  pivotR.position.set(1.17, 0, 0.5);
+  const doorL = new THREE.Mesh(unitBox, shell);
+  doorL.scale.set(1.15, 2.2, 0.06);
+  doorL.position.set(0.575, 1.3, 0);
+  pivotL.add(doorL);
+  const doorR = new THREE.Mesh(unitBox, shell);
+  doorR.scale.set(1.15, 2.2, 0.06);
+  doorR.position.set(-0.575, 1.3, 0);
+  pivotR.add(doorR);
+  for (const [pv, hx] of [[pivotL, 0.95], [pivotR, -0.95]]) {
     const h = new THREE.Mesh(unitSphere, MAT.black);
     h.scale.setScalar(0.08);
-    h.position.set(hx, 1.3, 0.55);
-    g.add(h);
+    h.position.set(hx, 1.3, 0.06);
+    pv.add(h);
   }
+  g.add(pivotL);
+  g.add(pivotR);
+  g.userData.wardrobe = { pivotL, pivotR, openT: 0, target: 0, inside: null, x: 0, z: 0, rot: 0, fx: 0, fz: 1 };
   return g;
 }
 function makeSofa(c) {
@@ -1126,7 +1202,7 @@ const MAPS = [
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[7.8, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
-    palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter'],
+    palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter', 'wardrobe'],
     furniture: [
       ['blackboard', -11, -16, 0, ''],
       ['desk', -16, -11, 0, 'blue'],
@@ -1193,10 +1269,18 @@ const MAPS = [
       ['desk', 16.1, -13.6, 1.6, 'mint'],
       ['shelf', 15.1, 15.6, 0, 'orange'],
       ['shelf', 4.4, -3.5, 0, 'red'],
+      ['wardrobe', -18, -18, 0, 'pink'],
+      ['wardrobe', 4.5, -18, 0, 'blue'],
+      ['wardrobe', -18, 14, -1.57, 'mint'],
+      ['wardrobe', 4.5, 4.5, 0, 'yellow'],
+      ['wardrobe', -18, -16, 0, 'pink'],
+      ['wardrobe', 4.5, -15, 1.57, 'blue'],
+      ['wardrobe', -18, 17, 0, 'mint'],
+      ['wardrobe', 4.5, 6.5, 0, 'yellow'],
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
-    palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate'],
+    palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate', 'wardrobe'],
     furniture: [
       ['hospitalBed', -11, -11, 0, ''],
       ['curtain', -16, -11, 1.6, 'blue'],
@@ -1270,10 +1354,18 @@ const MAPS = [
       ['hospitalBed', -15.5, 3.6, 0, 'red'],
       ['curtain', 15, -8, 0, 'white'],
       ['hospitalBed', 10.6, 18.1, 0, 'purple'],
+      ['wardrobe', -18, -8.5, 1.57, 'pink'],
+      ['wardrobe', 4.5, -18, 0, 'blue'],
+      ['wardrobe', -18, 12.5, 1.57, 'mint'],
+      ['wardrobe', 4.5, 4.5, 1.57, 'yellow'],
+      ['wardrobe', -18, -5, 1.57, 'pink'],
+      ['wardrobe', 4.5, -16, 0, 'blue'],
+      ['wardrobe', -18, 18, 0, 'mint'],
+      ['wardrobe', 4.5, 8, 0, 'yellow'],
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-15, 5.3, 8, 5, 'red'], [15, 5.3, 8, 5, 'blue'], [6.8, 15, 8, 5, 'mint']],
-    palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter'],
+    palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter', 'wardrobe'],
     furniture: [
       ['shelf', -16, -11, 1.6, 'orange'],
       ['shelf', -11, -16, 0, 'blue'],
@@ -1342,6 +1434,14 @@ const MAPS = [
       ['chair', 18.2, -14, 0, 'white'],
       ['desk', 15.6, -4.9, 0, 'purple'],
       ['chair', -15, -18.2, 0, 'blue'],
+      ['wardrobe', -18, -18, 0, 'pink'],
+      ['wardrobe', 4.5, -15, 1.57, 'blue'],
+      ['wardrobe', -18, 4.5, 0, 'mint'],
+      ['wardrobe', 4.5, 6.5, 0, 'yellow'],
+      ['wardrobe', -18, -11.5, -1.57, 'pink'],
+      ['wardrobe', 4.5, -9, 3.14, 'blue'],
+      ['wardrobe', -18, 10, -1.57, 'mint'],
+      ['wardrobe', 6, 17, 1.57, 'yellow'],
     ] },
 ];
 const worldGroup = new THREE.Group();
@@ -1362,6 +1462,7 @@ function buildMap(idx) {
   while (worldGroup.children.length) worldGroup.remove(worldGroup.children[0]);
   colliders.length = 0;
   hideSpots.length = 0;
+  wardrobes.length = 0;
   const wallMat = new THREE.MeshLambertMaterial({ color: def.wall });
   const winMat = new THREE.MeshLambertMaterial({ color: 0xbfe3ff });
   const doorMat = new THREE.MeshLambertMaterial({ color: 0x8d6e63 });
@@ -1507,6 +1608,15 @@ function buildMap(idx) {
     g.position.set(f.x, 0, f.z);
     g.rotation.y = rot;
     worldGroup.add(g);
+    if (f.kind === 'wardrobe' && g.userData.wardrobe) {
+      const w = g.userData.wardrobe;
+      w.x = f.x;
+      w.z = f.z;
+      w.rot = rot;
+      w.fx = Math.sin(rot);
+      w.fz = Math.cos(rot);
+      wardrobes.push(w);
+    }
   }
   // Hide spots: TALL furniture only, BEHIND only — a 0.9m chibi (0.63m crouched)
   // is genuinely concealed only behind a 2.4m+ piece, tucked tight against it.
@@ -1526,9 +1636,13 @@ function buildMap(idx) {
   scene.background.setHex(def.sky);
   scene.fog.color.setHex(def.fog);
 }
-function pickRandomMap() {
+function pickMapIdx() {
   let n = currentMapIdx;
   while (n === currentMapIdx && MAPS.length > 1) n = Math.floor(Math.random() * MAPS.length);
+  return n;
+}
+function pickRandomMap() {
+  const n = pickMapIdx();
   buildMap(n);
   return MAPS[currentMapIdx].icon + ' ' + MAPS[currentMapIdx].name;
 }
@@ -1763,6 +1877,7 @@ function tryMove(p, dx, dz) {
   if (!blockedByCollider(nx, nz, r)) p.g.position.z = nz;
 }
 function moveToward(p, tx, tz, speed, dt) {
+  p.speed = speed;
   const dx = tx - p.g.position.x;
   const dz = tz - p.g.position.z;
   const d = Math.hypot(dx, dz);
@@ -2037,6 +2152,18 @@ function playerMoveInput(dt) {
     if (netRole === 'seeker' && netPhase === 'hide') { player.moving = false; setClip(player, 'idle'); return; }
   }
   if (mode === 'seek' && gameState === 'countdown') { player.moving = false; setClip(player, 'idle'); return; }
+  if (player.insideWardrobe) {
+    let ix = joy.x;
+    let iy = joy.y;
+    if (keys['w'] || keys['arrowup']) iy -= 1;
+    if (keys['s'] || keys['arrowdown']) iy += 1;
+    if (keys['a'] || keys['arrowleft']) ix -= 1;
+    if (keys['d'] || keys['arrowright']) ix += 1;
+    if (Math.hypot(ix, iy) > 0.01 && elapsed - player.insideSince > 0.5) exitWardrobe();
+    player.moving = false;
+    setClip(player, 'idle');
+    return;
+  }
   let ix = joy.x;
   let iy = joy.y;
   if (keys['w'] || keys['arrowup']) iy -= 1;
@@ -2052,6 +2179,7 @@ function playerMoveInput(dt) {
     const wx = nx * cos + ny * sin;
     const wz = -nx * sin + ny * cos;
     const speed = player.crouched ? 1.8 : (runHeld ? 6.4 : 4.0);
+    player.speed = speed;
     tryMove(player, wx * speed * dt, wz * speed * dt);
     player.heading = Math.atan2(wx, wz);
     player.g.rotation.y = player.heading;
@@ -2072,6 +2200,14 @@ function playerMoveInput(dt) {
 }
 function updateCamera(dt) {
   if (!player) return;
+  const walking = player.moving && (joy.active || keys['w'] || keys['arrowup'] || keys['s'] || keys['arrowdown'] || keys['a'] || keys['arrowleft'] || keys['d'] || keys['arrowright']);
+  const dragging = dragId !== null || pendingDragId !== null || mouseDrag || mousePending;
+  if (walking && !dragging) {
+    let diff = (player.heading + Math.PI) - camYaw;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    camYaw += diff * Math.min(1, dt * 3);
+  }
   const px = player.g.position.x;
   const pz = player.g.position.z;
   const fullDist = window.innerWidth < window.innerHeight ? 4.5 : 2.8;
@@ -2145,6 +2281,7 @@ function startMode(m) {
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
     seeker.g.position.set(0, 0, -18);
     seeker.isSeeker = true;
+    seeker.checkW = null;
     seeker.heading = Math.PI;
     seeker.g.rotation.y = Math.PI;
     timeLeft = 90;
@@ -2183,6 +2320,29 @@ function startMode(m) {
       h.tag.visible = false;
       hiders.push(h);
     });
+    // V5.1: 1-2 hiders hide INSIDE wardrobes instead of behind spots.
+    if (wardrobes.length) {
+      const inCount = wardrobes.length >= 2 && Math.random() < 0.5 ? 2 : 1;
+      const shuffledH = hiders.slice().sort(() => Math.random() - 0.5);
+      const shuffledW = wardrobes.slice().sort(() => Math.random() - 0.5);
+      let placed = 0;
+      const usedRooms = [];
+      for (const w of shuffledW) {
+        if (placed >= inCount) break;
+        const rr = roomOf(w.x, w.z);
+        if (usedRooms.indexOf(rr) >= 0) continue;
+        const h = shuffledH[placed];
+        if (!h) break;
+        if (h.homeSpot) h.homeSpot.taken = false;
+        h.homeSpot = null;
+        h.insideWardrobe = w;
+        h.hidden = true;
+        w.inside = h;
+        h.g.position.set(w.x, 0, w.z);
+        usedRooms.push(rr);
+        placed++;
+      }
+    }
     timeLeft = 120;
     countT = 60;
     gameState = 'countdown';
@@ -2197,9 +2357,141 @@ function setSneakBtn() {
   $('sneakBtn').classList.toggle('on', sneakOn);
   $('sneakBtn').textContent = sneakOn ? '🐢 ချောင်းနေတယ်' : '🐢 ချောင်း';
 }
+function wardrobeNear(x, z, r) {
+  let best = null;
+  let bestD = r;
+  for (const w of wardrobes) {
+    const d = dist2(x, z, w.x, w.z);
+    if (d < bestD) { best = w; bestD = d; }
+  }
+  return best;
+}
+function nearestFrontWardrobe(px, pz) {
+  let best = null;
+  let bestD = 2.5;
+  for (const w of wardrobes) {
+    const dx = px - w.x;
+    const dz = pz - w.z;
+    const d = Math.hypot(dx, dz);
+    if (d >= bestD) continue;
+    if (dx * w.fx + dz * w.fz <= 0) continue;
+    best = w;
+    bestD = d;
+  }
+  return best;
+}
+function isHiderRole() {
+  if (mode === 'hide') return true;
+  if (mode === 'seek') return false;
+  if (mode === 'online') return netRole === 'hider';
+  return false;
+}
+function canUseDoors() {
+  if (gameState !== 'playing' && gameState !== 'countdown') return false;
+  if (!player) return false;
+  if (mode === 'online') {
+    if (netFound[myPeerId]) return false;
+    if (netRole === 'seeker' && netPhase !== 'seek') return false;
+    return true;
+  }
+  if (mode === 'seek' && gameState === 'countdown') return false;
+  return true;
+}
+function findExitSpot(w) {
+  const cands = [];
+  for (const dd of [1.3, 2.0, 2.8]) {
+    cands.push([w.x + w.fx * dd, w.z + w.fz * dd]);
+    cands.push([w.x + w.fx * dd - w.fz * 0.9, w.z + w.fz * dd + w.fx * 0.9]);
+    cands.push([w.x + w.fx * dd + w.fz * 0.9, w.z + w.fz * dd - w.fx * 0.9]);
+  }
+  for (const [x, z] of cands) {
+    if (!blockedByCollider(x, z, 0.35)) return { x, z };
+  }
+  for (let a = 0; a < 8; a++) {
+    const ang = (a / 8) * Math.PI * 2;
+    const x = w.x + Math.cos(ang) * 2.2;
+    const z = w.z + Math.sin(ang) * 2.2;
+    if (!blockedByCollider(x, z, 0.35)) return { x, z };
+  }
+  return { x: 0, z: 4 };
+}
+function enterWardrobe(w) {
+  player.g.position.x = w.x;
+  player.g.position.z = w.z;
+  player.insideWardrobe = w;
+  player.insideSince = elapsed;
+  w.inside = player;
+  player.hidden = true;
+  sneakOn = true;
+  setCrouch(player, true);
+  setSneakBtn();
+  player.tag.visible = false;
+  w.target = 0;
+  if (mode === 'online') sendDoorMsg(w, 0);
+  sfx('hide');
+  showWarn('🫣 ဗီရိုထဲ ပုန်းနေပြီ — မလှုပ်နဲ့!', 2);
+}
+function exitWardrobe() {
+  const w = player.insideWardrobe;
+  if (!w) return;
+  const pt = findExitSpot(w);
+  player.g.position.x = pt.x;
+  player.g.position.z = pt.z;
+  player.insideWardrobe = null;
+  w.inside = null;
+  player.hidden = false;
+  setCrouch(player, sneakOn);
+  player.tag.visible = true;
+  w.target = 1;
+  if (mode === 'online') sendDoorMsg(w, 1);
+  showWarn('🚪 ထွက်လာပြီ!', 1.4);
+}
+function ejectFromWardrobe(p) {
+  const w = p.insideWardrobe;
+  if (!w) return;
+  const pt = findExitSpot(w);
+  p.g.position.x = pt.x;
+  p.g.position.z = pt.z;
+  p.insideWardrobe = null;
+  w.inside = null;
+  p.hidden = false;
+  p.tag.visible = true;
+}
+function toggleWardrobeLocal(w) {
+  w.target = w.target ? 0 : 1;
+  if (mode === 'online') sendDoorMsg(w, w.target);
+  if (w.target === 1 && w.inside && w.inside !== player && mode === 'seek') revealInsideHider(w.inside);
+}
+function markHiderFound(h) {
+  h.found = true;
+  h.tag.visible = true;
+  h.state = 'caught';
+  setCrouch(h, false);
+  foundCount++;
+  sfx('found');
+  const total = hiders.length;
+  showWarn('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')', 1.6);
+  if (foundCount >= total) {
+    const used = Math.round(120 - timeLeft);
+    if (!bestSeek || used < bestSeek) { bestSeek = used; localStorage.setItem('hs_best_seek', String(used)); }
+    endRound(true, 'အကုန်တွေ့ပြီ!', 'သူငယ်ချင်း ၅ ယောက်လုံးကို ' + used + ' စက္ကန့်နဲ့ ရှာတွေ့ခဲ့တယ်။');
+  }
+}
+function revealInsideHider(h) {
+  if (!h || h.found) return;
+  ejectFromWardrobe(h);
+  markHiderFound(h);
+}
 function doAction() {
   if (gameState !== 'playing' && gameState !== 'countdown') return;
   if (!player) return;
+  if (player.insideWardrobe) { exitWardrobe(); return; }
+  if (canUseDoors() && nearestWardrobe) {
+    const w = nearestWardrobe;
+    if (isHiderRole() && w.target === 1) { enterWardrobe(w); return; }
+    toggleWardrobeLocal(w);
+    return;
+  }
   if (mode === 'hide' && nearestSpot && !player.hidden) {
     player.g.position.x = nearestSpot.x;
     player.g.position.z = nearestSpot.z;
@@ -2220,20 +2512,7 @@ function doFind() {
     return;
   }
   if (gameState !== 'playing' || !nearestHider || !player) return;
-  const h = nearestHider;
-  h.found = true;
-  h.tag.visible = true;
-  h.state = 'caught';
-  setCrouch(h, false);
-  foundCount++;
-  sfx('found');
-  const total = hiders.length;
-  showWarn('👀 တွေ့ပြီ! ' + h.name + ' (' + foundCount + '/' + total + ')', 1.6);
-  if (foundCount >= total) {
-    const used = Math.round(120 - timeLeft);
-    if (!bestSeek || used < bestSeek) { bestSeek = used; localStorage.setItem('hs_best_seek', String(used)); }
-    endRound(true, 'အကုန်တွေ့ပြီ!', 'သူငယ်ချင်း ၅ ယောက်လုံးကို ' + used + ' စက္ကန့်နဲ့ ရှာတွေ့ခဲ့တယ်။');
-  }
+  markHiderFound(nearestHider);
 }
 function endRound(win, title, txt) {
   if (roundOver) return;
@@ -2293,6 +2572,7 @@ function updateConfetti(dt) {
 // ---------- seeker AI ----------
 function seekerCanSee() {
   if (!seeker || !player) return false;
+  if (player.insideWardrobe) return false;
   const sx = seeker.g.position.x;
   const sz = seeker.g.position.z;
   const px = player.g.position.x;
@@ -2306,6 +2586,17 @@ function seekerCanSee() {
   if (diff > 1.15) return false;
   if (losBlocked(sx, sz, px, pz)) return false;
   return true;
+}
+function seekerCheckWardrobe() {
+  const w = seeker.checkW;
+  seeker.checkW = null;
+  if (!w || !seeker) return;
+  if (dist2(seeker.g.position.x, seeker.g.position.z, w.x, w.z) > 3) return;
+  if (w.target === 1) return;
+  w.target = 1;
+  if (w.inside === player) {
+    endRound(false, 'မိသွားပြီ!', 'ရှာသူက ဗီရိုထဲက မင်းကို ရှာတွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
+  }
 }
 function updateSeeker(dt, timeDt) {
   if (!seeker) return;
@@ -2330,9 +2621,13 @@ function updateSeeker(dt, timeDt) {
   }
   chaseT += timeDt;
   const dNow = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
-  if (!seekerMemory && chaseT < 1.0 && dNow < 12) seekerMemory = { x: px, z: pz };
+  if (!seekerMemory && chaseT < 1.0 && dNow < 12) {
+    seekerMemory = { x: px, z: pz };
+    const w = wardrobeNear(px, pz, 1.5);
+    if (w) seeker.checkW = w;
+  }
   if (seekerMemory) {
-    if (navigateTo(seeker, seekerMemory.x, seekerMemory.z, 3.4 * DIFFS[difficulty].speed, dt)) { seekerMemory = null; seekerLoseT = 0; }
+    if (navigateTo(seeker, seekerMemory.x, seekerMemory.z, 3.4 * DIFFS[difficulty].speed, dt)) { seekerMemory = null; seekerLoseT = 0; seekerCheckWardrobe(); }
     return;
   }
   if (!seeker.target && seeker.waitT <= 0) {
@@ -2347,6 +2642,13 @@ function updateSeeker(dt, timeDt) {
       const jx = s.x + (Math.random() * 2 - 1);
       const jz = s.z + (Math.random() * 2 - 1);
       seeker.target = blockedByCollider(jx, jz, 0.35) ? { x: s.x, z: s.z } : { x: jx, z: jz };
+    } else if (r < 0.92 && wardrobes.length) {
+      const closed = wardrobes.filter((w) => w.target === 0);
+      const pool = closed.length ? closed : wardrobes;
+      const w = pool[Math.floor(Math.random() * pool.length)];
+      const pt = findExitSpot(w);
+      seeker.target = { x: pt.x, z: pt.z };
+      seeker.checkW = w;
     } else {
       const pt = pickRandomRoomPoint();
       seeker.target = { x: pt.x, z: pt.z };
@@ -2364,6 +2666,7 @@ function updateSeeker(dt, timeDt) {
     seeker.waitT = seeker.navStuck ? 0.5 : 1.0;
     seeker.target = null;
     seekerLoseT = 0;
+    seekerCheckWardrobe();
   }
 }
 
@@ -2402,7 +2705,24 @@ function updateHUD(dt) {
     if (netPhase === 'hide') scorePill.textContent = netRole === 'seeker' ? '🙈 မျက်လုံးမှိတ်' : 'ပုန်းနေချိန် 60s';
     else if (netPhase === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundN + '/' + totalHiders;
     else scorePill.textContent = 'ပုန်းတမ်း';
+    nearestWardrobe = null;
+    if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
     $('actBtn').style.display = 'none';
+    if (player && player.insideWardrobe) {
+      $('actBtn').textContent = '🚪 ထွက်မယ်';
+      $('actBtn').style.display = 'block';
+    } else if (nearestWardrobe) {
+      if (netRole === 'hider' && nearestWardrobe.target === 1) {
+        $('actBtn').textContent = '🙈 ဝင်ပုန်း';
+        $('actBtn').style.display = 'block';
+      } else if (nearestWardrobe.target === 1) {
+        $('actBtn').textContent = '🚪 ပိတ်';
+        $('actBtn').style.display = 'block';
+      } else {
+        $('actBtn').textContent = '🚪 ဖွင့်';
+        $('actBtn').style.display = 'block';
+      }
+    }
     $('findBtn').style.display = (gameState === 'playing' && netRole === 'seeker' && netPhase === 'seek' && nearestNetHider) ? 'block' : 'none';
     if (warnT > 0) {
       warnT -= dt;
@@ -2419,16 +2739,32 @@ function updateHUD(dt) {
   else if (mode === 'seek') scorePill.textContent = 'တွေ့တာ ' + foundCount + '/5';
   else scorePill.textContent = 'ပုန်းတမ်း';
   nearestSpot = null;
-  if (mode === 'hide' && player && !player.hidden) {
+  nearestWardrobe = null;
+  if (mode === 'hide' && player && !player.hidden && !player.insideWardrobe) {
     let best = 2.4;
     for (const s of hideSpots) {
       const d = dist2(player.g.position.x, player.g.position.z, s.x, s.z);
       if (d < best) { best = d; nearestSpot = s; }
     }
   }
+  if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
   $('actBtn').style.display = 'none';
   $('findBtn').style.display = 'none';
-  if ((gameState === 'playing' || gameState === 'countdown') && mode === 'hide' && nearestSpot) {
+  if (player && player.insideWardrobe) {
+    $('actBtn').textContent = '🚪 ထွက်မယ်';
+    $('actBtn').style.display = 'block';
+  } else if (nearestWardrobe) {
+    if (isHiderRole() && nearestWardrobe.target === 1) {
+      $('actBtn').textContent = '🙈 ဝင်ပုန်း';
+      $('actBtn').style.display = 'block';
+    } else if (nearestWardrobe.target === 1) {
+      $('actBtn').textContent = '🚪 ပိတ်';
+      $('actBtn').style.display = 'block';
+    } else {
+      $('actBtn').textContent = '🚪 ဖွင့်';
+      $('actBtn').style.display = 'block';
+    }
+  } else if ((gameState === 'playing' || gameState === 'countdown') && mode === 'hide' && nearestSpot) {
     $('actBtn').textContent = '🫣 ပုန်းမယ် (' + nearestSpot.label + ')';
     $('actBtn').style.display = 'block';
   }
@@ -2487,6 +2823,14 @@ function animate() {
       updateHUD(timeDt);
     }
   }
+  for (const w of wardrobes) {
+    if (w.openT !== w.target) {
+      const step = 2.5 * dt;
+      w.openT += Math.max(-step, Math.min(step, w.target - w.openT));
+      w.pivotL.rotation.y = -w.openT * 1.75;
+      w.pivotR.rotation.y = w.openT * 1.75;
+    }
+  }
   updateConfetti(dt);
   renderer.render(scene, camera);
 }
@@ -2523,6 +2867,7 @@ let netStarted = false;
 let netLeaving = false;
 let roleT = 0;
 let nearestNetHider = null;
+let netMapIdx = -1;
 function netColor(i) { return NET_COLORS[i % NET_COLORS.length]; }
 function netStatus(txt) { $('netStatus').textContent = txt || ''; }
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -2601,7 +2946,9 @@ function hostHandle(conn, msg) {
     netRenderLobby();
     sfx('found');
   } else if (msg.t === 'pos') {
-    hostPos[conn.peer] = { x: msg.x, z: msg.z, heading: msg.heading, moving: !!msg.moving, crouched: !!msg.crouched, found: !!msg.found };
+    hostPos[conn.peer] = { x: msg.x, z: msg.z, heading: msg.heading, moving: !!msg.moving, crouched: !!msg.crouched, found: !!msg.found, inside: (msg.inside === undefined || msg.inside === null) ? -1 : msg.inside };
+  } else if (msg.t === 'door') {
+    hostApplyDoor(conn.peer, msg.i, msg.open ? 1 : 0);
   } else if (msg.t === 'catch') {
     if (conn.peer !== netSeekerId) return;
     hostCatch(msg.target);
@@ -2613,11 +2960,52 @@ function hostCatch(target) {
   const s = hostPos[netSeekerId];
   const h = hostPos[target];
   if (!s || !h) return;
+  if (h.inside !== undefined && h.inside !== null && h.inside >= 0) return;
   if (dist2(s.x, s.z, h.x, h.z) > 4) return;
   netOnCaught(target);
   hostSendAll({ t: 'caught', id: target, by: netSeekerId });
   const remaining = netPlayers.filter((p) => p.id !== netSeekerId && !netFound[p.id]).length;
   if (remaining <= 0) hostEndRound('seeker');
+}
+function sendDoorMsg(w, open) {
+  const i = wardrobes.indexOf(w);
+  if (i < 0) return;
+  if (isHost) { hostApplyDoor(myPeerId, i, open ? 1 : 0); return; }
+  try { netConns['host'].send({ t: 'door', i, open: open ? 1 : 0 }); } catch (e) {}
+}
+function hostApplyDoor(actorId, i, open) {
+  const w = wardrobes[i];
+  if (!w || !netStarted) return;
+  if (netFound[actorId]) return;
+  if (actorId === netSeekerId && netPhase !== 'seek') return;
+  let s = null;
+  if (actorId === myPeerId && player) {
+    s = { x: player.g.position.x, z: player.g.position.z, inside: player.insideWardrobe ? wardrobes.indexOf(player.insideWardrobe) : -1 };
+  } else {
+    s = hostPos[actorId];
+  }
+  if (!s) return;
+  if (dist2(s.x, s.z, w.x, w.z) > 3) return;
+  const insideIdx = (s.inside === undefined || s.inside === null) ? -1 : s.inside;
+  if (insideIdx !== i) {
+    const dot = (s.x - w.x) * w.fx + (s.z - w.z) * w.fz;
+    if (dot <= 0) return;
+  }
+  w.target = open ? 1 : 0;
+  if (open) hostRevealWardrobe(i);
+}
+function hostRevealWardrobe(i) {
+  if (!netStarted || netPhase !== 'seek') return;
+  for (const id in hostPos) {
+    const s = hostPos[id];
+    if (s && s.inside === i && id !== netSeekerId && !netFound[id]) {
+      netOnCaught(id);
+      hostSendAll({ t: 'caught', id, by: netSeekerId });
+      const remaining = netPlayers.filter((p) => p.id !== netSeekerId && !netFound[p.id]).length;
+      if (remaining <= 0) hostEndRound('seeker');
+      return;
+    }
+  }
 }
 function netOnCaught(id) {
   netFound[id] = true;
@@ -2625,6 +3013,7 @@ function netOnCaught(id) {
   if (rp) rp.tag.visible = true;
   const p = netPlayers.find((x) => x.id === id);
   if (id === myPeerId) {
+    if (player && player.insideWardrobe) ejectFromWardrobe(player);
     setCrouch(player, false);
     showWarn('😢 မိသွားပြီ! စောင့်နေပါ', 2);
   } else {
@@ -2642,7 +3031,7 @@ function netPlayerLeft(id) {
     hostSendAll({ t: 'lobby', players: netPlayers });
     netRenderLobby();
     if (remaining <= 0) { hostEndRound('seeker'); return; }
-    hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId });
+    hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId, doors: wardrobes.map((w) => w.target) });
   } else {
     hostSendAll({ t: 'lobby', players: netPlayers });
     netRenderLobby();
@@ -2657,7 +3046,8 @@ function hostStart() {
   netPhase = 'hide';
   netTimeLeft = 60;
   netStarted = true;
-  hostSendAll({ t: 'start', seekerId: netSeekerId, players: netPlayers, phase: 'hide', timeLeft: 60 });
+  netMapIdx = pickMapIdx();
+  hostSendAll({ t: 'start', seekerId: netSeekerId, players: netPlayers, phase: 'hide', timeLeft: 60, mapIdx: netMapIdx });
   netBeginRound();
 }
 function hostEndRound(winner) {
@@ -2740,6 +3130,7 @@ function clientHandle(msg) {
     netPhase = msg.phase;
     netTimeLeft = msg.timeLeft;
     netStarted = true;
+    if (msg.mapIdx !== undefined && msg.mapIdx !== null) netMapIdx = msg.mapIdx;
     netBeginRound();
   } else if (msg.t === 'state') {
     netPhase = msg.phase;
@@ -2747,7 +3138,7 @@ function clientHandle(msg) {
     netSeekerId = msg.seekerId;
     netPlayers = msg.players;
     netFound = msg.found || {};
-    applyNetState(msg.pos || {});
+    applyNetState(msg.pos || {}, msg.doors);
   } else if (msg.t === 'phase') {
     netPhase = msg.phase;
     netTimeLeft = msg.timeLeft;
@@ -2773,7 +3164,9 @@ function clientHandle(msg) {
 function netBeginRound() {
   closeLobby();
   tryFullscreen();
-  const mapName = pickRandomMap();
+  let mapName;
+  if (netMapIdx >= 0) { buildMap(netMapIdx); mapName = MAPS[netMapIdx].icon + ' ' + MAPS[netMapIdx].name; netMapIdx = -1; }
+  else mapName = pickRandomMap();
   clearPeople();
   remotePeople = {};
   netFound = {};
@@ -2835,7 +3228,7 @@ function netBeginRound() {
   snapCameraBehind();
   sfx('go');
 }
-function applyNetState(pos) {
+function applyNetState(pos, doors) {
   for (const id in remotePeople) {
     const rp = remotePeople[id];
     const s = pos[id];
@@ -2851,6 +3244,17 @@ function applyNetState(pos) {
       setCrouch(rp, false);
       rp.state = 'caught';
     }
+    if (s.inside !== undefined && s.inside !== null && s.inside >= 0) {
+      rp.tag.visible = false;
+    } else if (s.inside !== undefined && s.inside !== null) {
+      rp.tag.visible = rp.found ? true : (netRole === 'seeker' ? false : true);
+    }
+  }
+  if (doors) {
+    for (let i = 0; i < doors.length; i++) {
+      const w = wardrobes[i];
+      if (w) w.target = doors[i] ? 1 : 0;
+    }
   }
 }
 function updateNet(dt, timeDt) {
@@ -2861,7 +3265,7 @@ function updateNet(dt, timeDt) {
   }
   if (netRole === 'seeker' && netPhase === 'hide') $('eyesNum').textContent = Math.max(0, Math.ceil(netTimeLeft));
   if (isHost && netStarted) {
-    hostPos[myPeerId] = { x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId] };
+    hostPos[myPeerId] = { x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId], inside: player.insideWardrobe ? wardrobes.indexOf(player.insideWardrobe) : -1 };
     if (netPhase === 'hide' || netPhase === 'seek') {
       netTimeLeft -= timeDt;
       if (netPhase === 'hide' && netTimeLeft <= 0) {
@@ -2881,13 +3285,14 @@ function updateNet(dt, timeDt) {
     if (lastStateSend >= 0.1) {
       lastStateSend = 0;
       applyNetState(hostPos);
-      hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId });
+      hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId, doors: wardrobes.map((w) => w.target) });
+      for (let i = 0; i < wardrobes.length; i++) if (wardrobes[i].target === 1) hostRevealWardrobe(i);
     }
   } else if (peerObj && netConns['host']) {
     lastPosSend += timeDt;
     if (lastPosSend >= 0.1) {
       lastPosSend = 0;
-      try { netConns['host'].send({ t: 'pos', x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId] }); } catch (e) {}
+      try { netConns['host'].send({ t: 'pos', x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId], inside: player.insideWardrobe ? wardrobes.indexOf(player.insideWardrobe) : -1 }); } catch (e) {}
     }
   }
   for (const id in remotePeople) {
@@ -3051,6 +3456,30 @@ updateBest();
 animate();
 $('splashBtn').addEventListener('click', () => { tryFullscreen(); $('splash').style.display = 'none'; startEl.style.display = 'flex'; });
 $('menuFsBtn').addEventListener('click', () => { tryFullscreen(); });
+let deferredPrompt = null;
+function updateInstallBtn() {
+  const b = $('installBtn');
+  if (!b) return;
+  const installed = window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches || navigator.standalone;
+  b.style.display = installed ? 'none' : 'block';
+}
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; updateInstallBtn(); });
+window.addEventListener('appinstalled', () => { deferredPrompt = null; updateInstallBtn(); });
+$('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch (e) {}
+    deferredPrompt = null;
+    updateInstallBtn();
+    return;
+  }
+  $('installBtn').textContent = '📲 Chrome menu → Install app';
+  setTimeout(() => { $('installBtn').textContent = '📲 Install'; }, 3000);
+});
+updateInstallBtn();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
