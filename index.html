@@ -66,6 +66,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #eyesNum{font-size:110px;font-weight:800;line-height:1}
 #role{position:fixed;inset:0;z-index:32;display:none;align-items:center;justify-content:center;pointer-events:none;padding:20px}
 #role .card{max-width:340px}
+#rotate{position:fixed;inset:0;background:#1b5e20;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
+#rotate .big{font-size:64px;animation:rot 1.6s ease-in-out infinite}
+@keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+@media (orientation:portrait){#rotate{display:flex}}
 @media(pointer:fine){#joy{display:none}#hint{display:block}}
 @media(max-width:700px){#hint{display:none}}
 </style>
@@ -89,6 +93,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button id="sneakBtn">🐢 ချောင်းပြီး သွားမယ်</button>
   <button id="runBtn">🏃 ပြေးမယ်</button>
 </div>
+<div id="rotate">
+  <div class="big">📱</div>
+  <h2 style="font-size:24px;margin:12px 0">ဖုန်းကို အလျားလိုက် လှည့်ပါ</h2>
+  <p>ဒီဂိမ်းက Landscape (အလျားလိုက်) နဲ့ ဆော့ရတာ အကောင်းဆုံးပါ</p>
+  <button class="bigBtn" id="rotateOk" style="max-width:280px">ဒီတိုင်းဆက်ဆော့မယ်</button>
+</div>
 <div id="load">
   <h1>🙈 ပုန်းတမ်း</h1>
   <p>ရွာထဲကို တည်ဆောက်နေတယ်...</p>
@@ -98,7 +108,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.1</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
+    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.2</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
     <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
     <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
     <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းတွေနဲ့ အွန်လိုင်းဆော့<small>အခန်းဖွင့်၊ သူငယ်ချင်း ၅ ယောက်ထိ invite — random တစ်ယောက် ရှာသူ၊ ၁၅ စက္ကန့်ပုန်း၊ ၃ မိနစ်ရှာ</small></button>
@@ -955,8 +965,12 @@ function snapCameraBehind() {
   camera.position.set(player.g.position.x, 7, player.g.position.z + 13);
   camera.lookAt(player.g.position.x, 1.7, player.g.position.z);
 }
+function tryLandscape() {
+  try { if (screen.orientation && screen.orientation.lock) { const p = screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
+}
 function startMode(m) {
   mode = m;
+  tryLandscape();
   const mapName = pickRandomMap();
   clearPeople();
   for (const s of hideSpots) s.taken = false;
@@ -1112,7 +1126,7 @@ function seekerCanSee() {
   const px = player.g.position.x;
   const pz = player.g.position.z;
   const d = dist2(sx, sz, px, pz);
-  const range = player.hidden ? 4 : player.crouched ? 8 : player.moving ? 16 : 13;
+  const range = player.hidden ? 4 : player.crouched ? 7 : player.moving ? 14 : 12;
   if (d > range) return false;
   const ang = Math.atan2(px - sx, pz - sz);
   let diff = Math.abs(ang - seeker.heading);
@@ -1137,13 +1151,13 @@ function updateSeeker(dt, timeDt) {
       endRound(false, 'မိသွားပြီ!', 'ရှာသူက မင်းကို တွေ့သွားတယ်။ ' + Math.round(90 - timeLeft) + ' စက္ကန့်ပဲ ပုန်းနိုင်ခဲ့တယ်။');
       return;
     }
-    moveToward(seeker, px, pz, 4.3, dt);
+    moveToward(seeker, px, pz, 4.0, dt);
     if (warnT < 0.2) showWarn('🏃 ပြေးတော့! ရှာသူ မင်းကို တွေ့သွားပြီ!', 0.6);
     return;
   }
   chaseT += timeDt;
   if (seekerMemory) {
-    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.6, dt)) seekerMemory = null;
+    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.4, dt)) seekerMemory = null;
     return;
   }
   if (!seeker.target && seeker.waitT <= 0) {
@@ -1171,17 +1185,10 @@ function updateHiders(dt, timeDt) {
     giggleT = 8 + Math.random() * 8;
     const alive = hiders.filter((h) => !h.found);
     if (alive.length) {
-      const h = alive[Math.floor(Math.random() * alive.length)];
-      h.bubble.visible = true;
-      h.bubbleT = 2.5;
       sfx('giggle');
     }
   }
   for (const h of hiders) {
-    if (h.bubbleT > 0) {
-      h.bubbleT -= timeDt;
-      if (h.bubbleT <= 0) h.bubble.visible = false;
-    }
     if (h.found && h.state === 'caught') {
       if (moveToward(h, 0, 3 + h.idx * 1.6, 3.2, dt)) h.state = 'done';
     }
@@ -1585,6 +1592,7 @@ function clientHandle(msg) {
 }
 function netBeginRound() {
   closeLobby();
+  tryLandscape();
   const mapName = pickRandomMap();
   clearPeople();
   remotePeople = {};
@@ -1766,6 +1774,11 @@ function netLeave(msg) {
 }
 
 // ---------- wire up + init ----------
+let rotateDismissed = false;
+$('rotateOk').addEventListener('click', () => { rotateDismissed = true; $('rotate').style.display = 'none'; });
+window.addEventListener('orientationchange', () => {
+  if (!rotateDismissed) $('rotate').style.display = window.innerHeight > window.innerWidth ? 'flex' : 'none';
+});
 $('modeHide').addEventListener('click', () => startMode('hide'));
 $('modeSeek').addEventListener('click', () => startMode('seek'));
 $('modeHot').addEventListener('click', openLobby);
