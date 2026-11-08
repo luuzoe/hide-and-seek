@@ -121,7 +121,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.4</p>
+    <p class="ver">Hide &amp; Seek • V3.5</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -766,33 +766,59 @@ function buildMap(idx) {
   while (worldGroup.children.length) worldGroup.remove(worldGroup.children[0]);
   colliders.length = 0;
   hideSpots.length = 0;
-  for (const h of def.houses) {
+  const srng = mulberry32(idx * 977 + 101);
+  const placed = [];
+  for (const h of def.houses) placed.push([h.x, h.z]);
+  for (const arr of [def.trees, def.bushes, def.hay]) for (const p of arr) placed.push([p[0], p[1]]);
+  for (const bl of def.blocks) placed.push([bl.x, bl.z]);
+  const clearSpot = (x, z, minD) => {
+    if (Math.abs(x) < 7 && Math.abs(z) < 7) return false;
+    if (Math.abs(x) > 24 || Math.abs(z) > 24) return false;
+    for (const s of [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2], [0, 9], [0, -24]]) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 9) return false;
+    for (const p of placed) if ((x - p[0]) * (x - p[0]) + (z - p[1]) * (z - p[1]) < minD * minD) return false;
+    return true;
+  };
+  const scatterOne = (minD) => { for (let g = 0; g < 60; g++) { const x = (srng() * 2 - 1) * 23, z = (srng() * 2 - 1) * 23; if (clearSpot(x, z, minD)) { placed.push([x, z]); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
+  const scatterN = (n, minD) => { const out = []; for (let i = 0; i < n; i++) { const p = scatterOne(minD); if (p) out.push(p); } return out; };
+  const HOUSE_COLORS = [['pink', 'darkred'], ['yellow', 'darkteal'], ['blue', 'darkorange'], ['mint', 'darkpurple'], ['orange', 'darkblue'], ['red', 'darkgreen']];
+  const extraHouses = [];
+  for (let i = 0; i < 2; i++) { const p = scatterOne(7); if (p) { const c = HOUSE_COLORS[Math.floor(srng() * HOUSE_COLORS.length)]; extraHouses.push({ x: p[0], z: p[1], body: c[0], roof: c[1], w: 8, d: 7, rot: Math.round(srng() * 6.28 * 10) / 10 }); } }
+  const extraTrees = scatterN(8, 3.5);
+  const extraBushes = scatterN(8, 3.5);
+  const extraHay = scatterN(4, 3.5);
+  const extraBlocks = scatterN(4, 3.5).map(([x, z]) => ({ x, z, c: ['red', 'yellow', 'blue', 'purple', 'mint'][Math.floor(srng() * 5)] }));
+  const allHouses = [...def.houses, ...extraHouses];
+  const allTrees = [...def.trees, ...extraTrees];
+  const allBushes = [...def.bushes, ...extraBushes];
+  const allHay = [...def.hay, ...extraHay];
+  const allBlocks = [...def.blocks, ...extraBlocks];
+  for (const h of allHouses) {
     const sideways = Math.abs(Math.sin(h.rot || 0)) > 0.7;
     addBoxCollider(h.x, h.z, sideways ? h.d / 2 : h.w / 2, sideways ? h.w / 2 : h.d / 2);
     const g = makeHouse(h.body, h.roof, h.w, h.d, h.rot);
     g.position.set(h.x, 0, h.z);
     worldGroup.add(g);
   }
-  for (const [tx, tz] of def.trees) {
+  for (const [tx, tz] of allTrees) {
     addCircleCollider(tx, tz, 0.7);
     const t = makeTree();
     t.position.set(tx, 0, tz);
     t.rotation.y = (tx * 1.7 + tz) % 6.28;
     worldGroup.add(t);
   }
-  for (const [bx, bz] of def.bushes) {
+  for (const [bx, bz] of allBushes) {
     addCircleCollider(bx, bz, 1.0);
     const b = makeBush();
     b.position.set(bx, 0, bz);
     worldGroup.add(b);
   }
-  for (const [hx, hz] of def.hay) {
+  for (const [hx, hz] of allHay) {
     addCircleCollider(hx, hz, 1.5);
     const hy = makeHaystack();
     hy.position.set(hx, 0, hz);
     worldGroup.add(hy);
   }
-  for (const bl of def.blocks) {
+  for (const bl of allBlocks) {
     addBoxCollider(bl.x, bl.z, 1.1, 1.1);
     const b = makeBlock(bl.c);
     b.position.set(bl.x, 0, bl.z);
@@ -868,14 +894,14 @@ function buildMap(idx) {
     pa.position.set(px2, 0.02, pz2);
     worldGroup.add(pa);
   }
-  for (const h of def.houses) {
+  for (const h of allHouses) {
     hideSpots.push({ x: h.x, z: h.z + 5.2, label: 'အိမ်နောက်', taken: false });
     hideSpots.push({ x: h.x + h.w / 2 + 1.2, z: h.z, label: 'အိမ်နောက်', taken: false });
   }
-  for (const [tx, tz] of def.trees) hideSpots.push({ x: tx + 1.6, z: tz + 0.4, label: 'သစ်ပင်နောက်', taken: false });
-  for (const [hx, hz] of def.hay) hideSpots.push({ x: hx + 2.2, z: hz + 0.6, label: 'ကောက်ရိုးပုံနောက်', taken: false });
-  for (const bl of def.blocks) hideSpots.push({ x: bl.x + 2.0, z: bl.z, label: 'တုံးနောက်', taken: false });
-  for (const [bx, bz] of def.bushes) hideSpots.push({ x: bx + 1.7, z: bz, label: 'ချုံနောက်', taken: false });
+  for (const [tx, tz] of allTrees) hideSpots.push({ x: tx + 1.6, z: tz + 0.4, label: 'သစ်ပင်နောက်', taken: false });
+  for (const [hx, hz] of allHay) hideSpots.push({ x: hx + 2.2, z: hz + 0.6, label: 'ကောက်ရိုးပုံနောက်', taken: false });
+  for (const bl of allBlocks) hideSpots.push({ x: bl.x + 2.0, z: bl.z, label: 'တုံးနောက်', taken: false });
+  for (const [bx, bz] of allBushes) hideSpots.push({ x: bx + 1.7, z: bz, label: 'ချုံနောက်', taken: false });
   ground.material.color.setHex(def.tint);
   scene.background.setHex(def.sky);
   scene.fog.color.setHex(def.fog);
@@ -1093,8 +1119,8 @@ function playerMoveInput(dt) {
     const ny = iy / Math.max(1, len);
     const sin = Math.sin(camYaw);
     const cos = Math.cos(camYaw);
-    const wx = nx * cos - ny * sin;
-    const wz = nx * sin + ny * cos;
+    const wx = nx * cos + ny * sin;
+    const wz = -nx * sin + ny * cos;
     const speed = player.crouched ? 1.8 : (runHeld ? 6.4 : 4.0);
     tryMove(player, wx * speed * dt, wz * speed * dt);
     player.heading = Math.atan2(wx, wz);
@@ -1118,7 +1144,7 @@ function updateCamera(dt) {
   if (!player) return;
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  const dist = window.innerWidth < window.innerHeight ? 12 : 8.5;
+  const dist = window.innerWidth < window.innerHeight ? 9 : 6;
   const h = 2.4 + camPitch * 3.0;
   const cx = px + Math.sin(camYaw) * dist;
   const cz = pz + Math.cos(camYaw) * dist;
@@ -1141,7 +1167,7 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camera.position.set(player.g.position.x, 3.4, player.g.position.z + 9);
+  camera.position.set(player.g.position.x, 3.0, player.g.position.z + 6.5);
   camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
 }
 function tryLandscape() {
@@ -1461,7 +1487,7 @@ function animate() {
   const timeDt = Math.min(rawDt, 1.0);
   if (gameState === 'menu' || gameState === 'loading' || gameState === 'lobby') {
     menuAngle += dt * 0.12;
-    camera.position.set(Math.sin(menuAngle) * 24, 11, Math.cos(menuAngle) * 24);
+    camera.position.set(Math.sin(menuAngle) * 14, 7, Math.cos(menuAngle) * 14);
     camera.lookAt(0, 1, 0);
   } else if (gameState === 'countdown' || gameState === 'playing') {
     elapsed += timeDt;
