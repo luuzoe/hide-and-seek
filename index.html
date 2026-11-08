@@ -140,7 +140,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.9</p>
+    <p class="ver">Hide &amp; Seek • V4.0</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -241,7 +241,7 @@ let elapsed = 0;
 let foundCount = 0;
 let roundOver = false;
 let camYaw = 0;
-let camPitch = 0.32;
+let camPitch = 0.16;
 let muted = localStorage.getItem('hs_muted') === '1';
 let quality = localStorage.getItem('hs_quality') || 'high';
 function applyQuality() {
@@ -1198,6 +1198,7 @@ window.addEventListener('touchmove', (e) => {
   for (const t of e.changedTouches) {
     if (joy.active && t.identifier === joy.id) { e.preventDefault(); joyMove(t); }
     else if (dragId !== null && t.identifier === dragId) {
+      e.preventDefault();
       camYaw -= (t.clientX - dragX) * 0.006;
       camPitch = Math.max(0.08, Math.min(0.9, camPitch + (t.clientY - dragY) * 0.004));
       dragX = t.clientX;
@@ -1218,8 +1219,10 @@ window.addEventListener('touchcancel', (e) => {
   }
   runHeld = false;
 });
-canvas.addEventListener('touchstart', (e) => {
+window.addEventListener('touchstart', (e) => {
   const t = e.changedTouches[0];
+  const el = t.target;
+  if (el.closest && el.closest('#joy, #knob, button')) return;
   if (t.clientX > window.innerWidth * 0.35) { dragId = t.identifier; dragX = t.clientX; dragY = t.clientY; }
 }, { passive: true });
 window.addEventListener('keydown', (e) => {
@@ -1341,10 +1344,12 @@ function updateCamera(dt) {
   if (!player) return;
   const px = player.g.position.x;
   const pz = player.g.position.z;
-  const dist = window.innerWidth < window.innerHeight ? 5.5 : 3.5;
-  const h = 2.4 + camPitch * 3.0;
-  const cx = px + Math.sin(camYaw) * dist;
-  const cz = pz + Math.cos(camYaw) * dist;
+  const fullDist = window.innerWidth < window.innerHeight ? 4.5 : 2.8;
+  let d = fullDist;
+  while (d > 0.8 && blockedByCollider(px + Math.sin(camYaw) * d, pz + Math.cos(camYaw) * d, 0.3)) d -= 0.2;
+  const h = 1.25 + camPitch * 2.5;
+  const cx = px + Math.sin(camYaw) * d;
+  const cz = pz + Math.cos(camYaw) * d;
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
   camera.position.y += (h - camera.position.y) * Math.min(1, dt * 6);
   camera.position.z += (cz - camera.position.z) * Math.min(1, dt * 6);
@@ -1364,7 +1369,8 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camera.position.set(player.g.position.x, 2.2, player.g.position.z + 4.0);
+  camPitch = 0.16;
+  camera.position.set(player.g.position.x, 1.8, player.g.position.z + 3.2);
   camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
 }
 function tryLandscape() {
