@@ -176,7 +176,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V4.2</p>
+    <p class="ver">Hide &amp; Seek • V5.0</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -432,20 +432,20 @@ function nameSprite(text, color) {
   const g = c.getContext('2d');
   g.fillStyle = 'rgba(0,0,0,.62)';
   g.beginPath();
-  g.roundRect(28, 8, 200, 44, 22);
+  g.roundRect(6, 8, 244, 48, 24);
   g.fill();
   g.fillStyle = color;
   g.beginPath();
-  g.arc(52, 30, 10, 0, 7);
+  g.arc(34, 32, 10, 0, 7);
   g.fill();
   g.fillStyle = '#fff';
-  g.font = 'bold 26px system-ui, sans-serif';
+  g.font = 'bold 30px system-ui, sans-serif';
   g.textBaseline = 'middle';
-  g.fillText(text, 72, 32);
+  g.fillText(text, 54, 32);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: true, transparent: true }));
-  sp.scale.set(0.8, 0.2, 1);
+  sp.scale.set(0.42, 0.105, 1);
   return sp;
 }
 
@@ -614,7 +614,7 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
   g.position.set(0, 0, 4);
   scene.add(g);
   const tag = nameSprite(name, colorCss);
-  tag.position.y = 1.35;
+  tag.position.y = 1.04;
   g.add(tag);
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.32, 0.45, 24), new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }));
   ring.rotation.x = -Math.PI / 2;
@@ -937,239 +937,411 @@ const FURN_COLORS = ['pink', 'yellow', 'blue', 'mint', 'orange', 'red', 'white',
 // Lesson from the old version: no collider cluster in the middle — the seeker
 // always needs clear corridors. Furniture lives in the four quadrants only
 // (|x| >= 3.5 AND |z| >= 3.5); the cross |x| < 3.5 OR |z| < 3.5 stays empty.
+// ---------- multi-room layout (V5.0): cross corridor + 4 quadrant rooms ----------
+// Corridor cross: |x| <= 2.5 and |z| <= 2.5. Interior walls run along x=+-2.5
+// (|z|>2.5) and z=+-2.5 (|x|>2.5), 0.4m thick, 3.2m high. Each room has 2
+// doorways (2.0m wide) into the corridor, one in each corridor-facing wall.
+const ROOMS = [
+  { x0: -20, x1: -2.5, z0: -20, z1: -2.5 },
+  { x0: 2.5, x1: 20, z0: -20, z1: -2.5 },
+  { x0: -20, x1: -2.5, z0: 2.5, z1: 20 },
+  { x0: 2.5, x1: 20, z0: 2.5, z1: 20 },
+];
+const WALL_LINES = [
+  { vertical: true, at: -2.5, from: -20, to: -2.5, door: -11 },
+  { vertical: true, at: 2.5, from: -20, to: -2.5, door: -11 },
+  { vertical: true, at: -2.5, from: 2.5, to: 20, door: 11 },
+  { vertical: true, at: 2.5, from: 2.5, to: 20, door: 11 },
+  { vertical: false, at: -2.5, from: -20, to: -2.5, door: -11 },
+  { vertical: false, at: 2.5, from: -20, to: -2.5, door: -11 },
+  { vertical: false, at: -2.5, from: 2.5, to: 20, door: 11 },
+  { vertical: false, at: 2.5, from: 2.5, to: 20, door: 11 },
+];
+const DOORS = [
+  { x: -2.5, z: -11, vertical: true, room: 0 },
+  { x: -11, z: -2.5, vertical: false, room: 0 },
+  { x: 2.5, z: -11, vertical: true, room: 1 },
+  { x: 11, z: -2.5, vertical: false, room: 1 },
+  { x: -2.5, z: 11, vertical: true, room: 2 },
+  { x: -11, z: 2.5, vertical: false, room: 2 },
+  { x: 2.5, z: 11, vertical: true, room: 3 },
+  { x: 11, z: 2.5, vertical: false, room: 3 },
+];
+function roomOf(x, z) {
+  for (let i = 0; i < ROOMS.length; i++) {
+    const r = ROOMS[i];
+    if (x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) return i;
+  }
+  return -1;
+}
 const MAPS = [
   { name: 'တိုက်ခန်း', icon: '🏢', floor: 0xc9a06c, wall: 0xf5e6d3, sky: 0xffe8c9, fog: 0xf5d9b0,
     rugs: [[-12, -12, 7, 5, 'red'], [12, 12, 7, 5, 'blue'], [-12, 15, 6, 4, 'mint']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
-      ['bed', -11, -11, 0, 'blue'], ['wardrobe', -16, -7, 1.57, 'mint'], ['sofa', -7, -16, 3.14, 'red'],
-      ['table', -16, -16, 0, 'yellow'], ['chair', -11, -7, 0.5, 'orange'], ['shelf', -7, -7, 0, 'purple'],
-      ['wardrobe', 11, -11, 0, 'pink'], ['bed', 16, -16, 1.57, 'mint'], ['desk', 7, -7, -1.57, 'blue'],
-      ['shelf', 16, -7, 1.57, 'yellow'], ['crate', 11, -16, 0, 'red'],
-      ['sofa', -11, 11, 0, 'teal'], ['counter', -16, 7, 1.57, 'white'], ['shelf', -7, 16, 0, 'purple'],
-      ['bed', -16, 16, 3.14, 'pink'], ['chair', -7, 11, 1.57, 'blue'], ['curtain', -11, 7, 0, 'red'],
-      ['table', 11, 11, 0, 'orange'], ['wardrobe', 16, 7, -1.57, 'blue'], ['sofa', 7, 16, 0, 'mint'],
-      ['desk', 11, 16, 1.57, 'yellow'], ['curtain', 16, 11, 0, 'pink'],
-      ['wardrobe', -18, -18, 0, 'teal'], ['shelf', 4.5, -18, 0, 'red'], ['curtain', 4.5, 9, 0, 'yellow'],
-      ['wardrobe', -18, -9, 1.57, 'purple'], ['shelf', -9, -18, 0, 'red'], ['curtain', 9, -18, 0, 'blue'],
-      ['wardrobe', 18, -13.5, -1.57, 'yellow'], ['shelf', -13.5, 18, 0, 'teal'], ['curtain', 18, 9, 1.57, 'mint'],
-      ['wardrobe', -13.5, -13.5, 0, 'pink'], ['sofa', -18, 13.5, 1.57, 'blue'], ['table', -9, 9, 0, 'yellow'],
-      ['crate', -13.5, -9, 0, 'red'], ['chair', 9, -9, 0, 'orange'], ['desk', 13.5, 13.5, 0, 'mint'],
-      ['counter', 9, 13.5, 1.57, 'white'], ['bed', -4.5, -13.5, 1.57, 'teal'],
-      ['wardrobe', 3, 15, 0, 'pink'],
-      ['shelf', 9.5, 16.5, 1.57, 'yellow'],
-      ['wardrobe', 5.5, -7.5, 1.57, 'blue'],
-      ['wardrobe', 13.5, -11.5, 1.57, 'mint'],
-      ['wardrobe', -18, 8.5, 0, 'orange'],
-      ['sofa', -4.5, -11.5, 0, 'white'],
-      ['chair', -16, 11, 0, 'purple'],
-      ['wardrobe', 18, 5, 0, 'teal'],
-      ['sofa', 14.5, -14, 0, 'pink'],
+      ['bed', -11, -11, 0, 'blue'],
+      ['wardrobe', -16, -7, 1.6, 'mint'],
+      ['sofa', -7, -16, 3.1, 'red'],
+      ['table', -16, -16, 0, 'yellow'],
+      ['chair', -11, -7, 0.5, 'orange'],
+      ['shelf', -7, -7, 0, 'purple'],
+      ['wardrobe', 11, -11, 0, 'pink'],
+      ['bed', 16, -16, 1.6, 'mint'],
+      ['desk', 7, -7, -1.6, 'blue'],
+      ['shelf', 16, -7, 1.6, 'yellow'],
+      ['crate', 11, -16, 0, 'red'],
+      ['sofa', -11, 11, 0, 'teal'],
+      ['counter', -16, 7, 1.6, 'white'],
+      ['shelf', -7, 16, 0, 'purple'],
+      ['bed', -16, 16, 3.1, 'pink'],
+      ['chair', -7, 11, 1.6, 'blue'],
+      ['curtain', -11, 7, 0, 'red'],
+      ['table', 11, 11, 0, 'orange'],
+      ['wardrobe', 16, 7, -1.6, 'blue'],
+      ['sofa', 7, 16, 0, 'mint'],
+      ['desk', 11, 16, 1.6, 'yellow'],
+      ['curtain', 16, 11, 0, 'pink'],
+      ['wardrobe', -18, -18, 0, 'teal'],
+      ['shelf', 4.5, -18, 0, 'red'],
+      ['curtain', 4.5, 9, 0, 'yellow'],
+      ['wardrobe', -18, -9, 1.6, 'purple'],
+      ['shelf', -9, -18, 0, 'red'],
+      ['curtain', 9, -18, 0, 'blue'],
+      ['wardrobe', 18, -13.5, 0, 'yellow'],
+      ['shelf', -13.5, 18, 1.6, 'teal'],
+      ['curtain', 18.5, 9, 1.6, 'mint'],
+      ['wardrobe', -13.5, -13.5, 1.6, 'pink'],
+      ['sofa', -18, 12.7, 0, 'blue'],
+      ['table', -8.4, 8.4, 1.6, 'yellow'],
+      ['crate', -13.5, -7.4, 0, 'red'],
+      ['chair', 9, -9, 0, 'orange'],
+      ['desk', 13.5, 13.5, 0, 'mint'],
+      ['counter', 9, 13.5, 0, 'white'],
+      ['bed', -6.5, -11.8, 0, 'teal'],
+      ['wardrobe', 4.3, 15, 1.6, 'pink'],
+      ['shelf', 9.5, 18.5, 0, 'yellow'],
+      ['wardrobe', 4.9, -6.9, 1.6, 'blue'],
+      ['wardrobe', 14.3, -11.5, 1.6, 'mint'],
+      ['wardrobe', -18, 8.5, 1.6, 'orange'],
+      ['sofa', -4.4, -7.5, 1.6, 'white'],
+      ['chair', -15.2, 11, 0, 'purple'],
+      ['wardrobe', 18, 5, 1.6, 'teal'],
+      ['sofa', 17.3, -11.2, 0, 'pink'],
       ['curtain', -15.5, -4.5, 0, 'yellow'],
-      ['curtain', 17.5, -6, 1.57, 'blue'],
-      ['curtain', -5.5, -6, 0, 'mint'],
-      ['curtain', 17.5, -17.5, 0, 'red'],
-      ['sofa', -9, -12.5, 1.57, 'white'],
+      ['curtain', 17.5, -6, 1.6, 'blue'],
+      ['curtain', -4.4, -4.9, 0, 'mint'],
+      ['curtain', 17.5, -18.3, 0, 'red'],
+      ['sofa', -10.7, -14.2, 0, 'white'],
       ['wardrobe', 13, 9, 0, 'purple'],
-      ['chair', -18, -16.5, 0, 'teal'],
-      ['wardrobe', 13.5, 17, 1.57, 'pink'],
+      ['chair', -18.5, -15.9, 0, 'teal'],
+      ['wardrobe', 13.5, 17, 1.6, 'pink'],
       ['wardrobe', -11.5, 14, 0, 'yellow'],
-      ['wardrobe', -12.5, -4.5, 0, 'blue'],
-      ['sofa', -17.5, -14, 0, 'mint'],
-      ['bed', 10, -6.5, 0, 'orange'],
-      ['sofa', -2.5, -10, 0, 'red'],
-      ['bed', -14, -2.5, 1.57, 'white'],
-      ['chair', 4.5, -3, 0, 'purple'],
-      ['wardrobe', 13, -9, 0, 'teal'],
-      ['sofa', 5, 10, 0, 'pink'],
-      ['wardrobe', 16, 17, 1.57, 'yellow'],
-      ['wardrobe', -6.5, -2.5, 0, 'blue'],
-      ['curtain', -16, 9.5, 0, 'mint'],
-      ['chair', -3, -2.5, 0, 'orange'],
-      ['wardrobe', 9, -3.5, 0, 'red'],
+      ['wardrobe', -12.5, -4.5, 1.6, 'blue'],
+      ['sofa', -16.9, -13.4, 0, 'mint'],
+      ['bed', 10.8, -6.5, 1.6, 'orange'],
+      ['sofa', -4.4, -18, 0, 'red'],
+      ['bed', -8.3, -4.2, 1.6, 'white'],
+      ['chair', 3.9, -4, 0, 'purple'],
+      ['wardrobe', 14.1, -7.9, 1.6, 'teal'],
+      ['sofa', 7.4, 10, 1.6, 'pink'],
+      ['wardrobe', 16, 17, 1.6, 'yellow'],
+      ['wardrobe', -19, -5.5, -1.6, 'blue'],
+      ['curtain', -15.2, 9.5, 0, 'mint'],
+      ['chair', -19, -11.5, 0, 'orange'],
+      ['wardrobe', 8.4, -3.6, 0, 'red'],
       ['curtain', -7, 5.5, 0, 'white'],
-      ['wardrobe', 17, 12.5, 0, 'purple'],
+      ['wardrobe', 17.6, 13.1, 0, 'purple'],
     ] },
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
-      ['bed', -16, -11, 1.57, 'pink'], ['wardrobe', -7, -16, 0, 'blue'], ['sofa', -11, -7, 0, 'mint'],
-      ['table', -16, -7, 0, 'orange'], ['chair', -7, -11, 1.57, 'red'], ['shelf', -11, -16, 3.14, 'yellow'],
-      ['sofa', 7, -11, 0, 'blue'], ['bed', 11, -16, 0, 'yellow'], ['desk', 16, -7, 1.57, 'pink'],
-      ['wardrobe', 16, -16, 3.14, 'teal'], ['crate', 7, -16, 0, 'mint'], ['curtain', 11, -7, 0, 'red'],
-      ['bed', -11, 16, 0, 'mint'], ['wardrobe', -16, 11, 1.57, 'yellow'], ['sofa', -7, 7, 3.14, 'red'],
-      ['table', -11, 7, 0, 'blue'], ['chair', -16, 7, -1.57, 'purple'], ['shelf', -7, 11, 0, 'pink'],
-      ['sofa', 11, 7, 0, 'orange'], ['desk', 7, 11, 1.57, 'blue'], ['wardrobe', 16, 16, 0, 'mint'],
-      ['table', 16, 11, 0, 'yellow'], ['curtain', 7, 16, 0, 'teal'],
-      ['wardrobe', -18, 18, 0, 'red'], ['shelf', 4.5, -18, 0, 'mint'], ['curtain', -9, -9, 0, 'teal'],
-      ['wardrobe', -18, -13.5, 1.57, 'pink'], ['shelf', -13.5, -18, 0, 'blue'], ['curtain', 13.5, -18, 0, 'yellow'],
-      ['wardrobe', 18, -11, -1.57, 'mint'], ['shelf', -13.5, 13.5, 0, 'red'], ['curtain', 9, 18, 0, 'teal'],
-      ['shelf', 18, 4.5, 1.57, 'orange'], ['sofa', -18, 4.5, 1.57, 'yellow'], ['table', -4.5, -9, 0, 'mint'],
-      ['crate', 13.5, -9, 0, 'blue'], ['chair', -9, 13.5, 0, 'pink'], ['desk', 13.5, 9, 0, 'yellow'],
-      ['counter', 4.5, 9, 1.57, 'white'], ['bed', 4.5, -13.5, 1.57, 'purple'],
-      ['shelf', -15.5, -2.5, 1.57, 'yellow'],
-      ['wardrobe', 14.5, -2.5, 1.57, 'blue'],
-      ['wardrobe', -5, 4, 0, 'mint'],
-      ['wardrobe', 7.5, -9, 0, 'orange'],
-      ['wardrobe', -5.5, -3.5, 0, 'red'],
-      ['shelf', 13.5, -16.5, 1.57, 'white'],
-      ['chair', -6.5, 2.5, 0, 'purple'],
-      ['sofa', -17.5, -9, 0, 'teal'],
-      ['sofa', -14.5, -9, 0, 'pink'],
-      ['curtain', -4, -15, 0, 'yellow'],
-      ['wardrobe', -7, 5, 1.57, 'blue'],
+      ['bed', -16, -11, 1.6, 'pink'],
+      ['wardrobe', -7, -16, 0, 'blue'],
+      ['sofa', -11, -7, 0, 'mint'],
+      ['table', -16, -7, 0, 'orange'],
+      ['chair', -7, -11, 1.6, 'red'],
+      ['shelf', -11, -16, 3.1, 'yellow'],
+      ['sofa', 7, -11, 0, 'blue'],
+      ['bed', 11, -16, 0, 'yellow'],
+      ['desk', 16, -7, 1.6, 'pink'],
+      ['wardrobe', 16, -16, 3.1, 'teal'],
+      ['crate', 7, -16, 0, 'mint'],
+      ['curtain', 11, -7, 0, 'red'],
+      ['bed', -11, 16, 0, 'mint'],
+      ['wardrobe', -16, 11, 1.6, 'yellow'],
+      ['sofa', -7, 7, 3.1, 'red'],
+      ['table', -11, 7, 0, 'blue'],
+      ['chair', -16, 7, -1.6, 'purple'],
+      ['shelf', -7, 11, 0, 'pink'],
+      ['sofa', 11, 7, 0, 'orange'],
+      ['desk', 7, 11, 1.6, 'blue'],
+      ['wardrobe', 16, 16, 0, 'mint'],
+      ['table', 16, 11, 0, 'yellow'],
+      ['curtain', 7, 16, 0, 'teal'],
+      ['wardrobe', -18, 18, 0, 'red'],
+      ['shelf', 4.5, -18, 0, 'mint'],
+      ['curtain', -9, -9, 0, 'teal'],
+      ['wardrobe', -18, -13.5, 0, 'pink'],
+      ['shelf', -13.5, -18, 0, 'blue'],
+      ['curtain', 13.5, -18, 1.6, 'yellow'],
+      ['wardrobe', 18, -11, -1.6, 'mint'],
+      ['shelf', -13.5, 13.5, 1.6, 'red'],
+      ['curtain', 9, 18, 0, 'teal'],
+      ['shelf', 18, 4.5, 1.6, 'orange'],
+      ['sofa', -18, 4.5, 1.6, 'yellow'],
+      ['table', -4.5, -9, 0, 'mint'],
+      ['crate', 13.5, -9, 0, 'blue'],
+      ['chair', -8.2, 13.5, 0, 'pink'],
+      ['desk', 13.5, 9, 0, 'yellow'],
+      ['counter', 3.9, 8.4, 1.6, 'white'],
+      ['bed', 4.8, -7.1, 0, 'purple'],
+      ['shelf', -15.5, -4.2, 1.6, 'yellow'],
+      ['wardrobe', 14.5, -4.3, 0, 'blue'],
+      ['wardrobe', -5, 4, 3.1, 'mint'],
+      ['wardrobe', 8.3, -9, 0, 'orange'],
+      ['wardrobe', -5.5, -3.6, 0, 'red'],
+      ['shelf', 13.5, -14.9, 1.6, 'white'],
+      ['chair', -7.6, 4.5, 0, 'purple'],
+      ['sofa', -18.3, -4.5, 0, 'teal'],
+      ['sofa', -12.8, -10.7, 1.6, 'pink'],
+      ['curtain', -4.1, -15, 1.6, 'yellow'],
+      ['wardrobe', -4.2, 7.8, 1.6, 'blue'],
       ['curtain', -11, -14.5, 0, 'mint'],
-      ['wardrobe', -4, 8, 1.57, 'orange'],
+      ['wardrobe', -4, 13.6, 1.6, 'orange'],
       ['wardrobe', -10.5, 10, 0, 'white'],
-      ['wardrobe', 6.5, 18, 0, 'purple'],
-      ['wardrobe', -10, -4, 1.57, 'teal'],
-      ['curtain', 17.5, 15, 0, 'pink'],
-      ['wardrobe', -15.5, 5.5, 0, 'yellow'],
-      ['wardrobe', 4.5, 12.5, 0, 'blue'],
+      ['wardrobe', 5.7, 18, 0, 'purple'],
+      ['wardrobe', -7.7, -6.6, 1.6, 'teal'],
+      ['curtain', 18.3, 15, 1.6, 'pink'],
+      ['wardrobe', -14.9, 4.9, 0, 'yellow'],
+      ['wardrobe', 4.5, 13.3, 1.6, 'blue'],
       ['wardrobe', 15, 6, 0, 'orange'],
-      ['bed', -4, -13, 1.57, 'red'],
-      ['sofa', -14, -6.5, 1.57, 'white'],
-      ['sofa', -6.5, -13.5, 1.57, 'purple'],
-      ['sofa', -16.5, -16.5, 0, 'pink'],
-      ['sofa', 13, 13, 0, 'yellow'],
-      ['sofa', 7, 14, 0, 'blue'],
-      ['chair', -14.5, -4, 0, 'red'],
+      ['bed', -18.5, -17.5, 0, 'red'],
+      ['sofa', -8.9, -11.6, 1.6, 'white'],
+      ['sofa', -6.5, -18.3, 0, 'purple'],
+      ['sofa', -14.8, -14.8, 1.6, 'pink'],
+      ['sofa', 13, 13, 1.6, 'yellow'],
+      ['sofa', 7.8, 14, 0, 'blue'],
+      ['chair', -13.7, -4, 0, 'red'],
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
-    rugs: [[0, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
+    rugs: [[7.8, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
     palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter'],
     furniture: [
-      ['blackboard', -11, -16, 0, ''], ['desk', -16, -11, 0, 'blue'], ['chair', -16, -9, 0, 'red'],
-      ['desk', -11, -11, 0, 'yellow'], ['chair', -11, -9, 0, 'blue'], ['shelf', -7, -16, 0, 'mint'],
-      ['desk', -7, -7, 0, 'pink'], ['chair', -7, -4.5, 0, 'orange'], ['table', -16, -7, 0, 'teal'],
-      ['blackboard', 11, -16, 0, ''], ['desk', 16, -11, 0, 'mint'], ['chair', 16, -9, 0, 'yellow'],
-      ['desk', 11, -11, 0, 'red'], ['chair', 11, -9, 0, 'pink'], ['shelf', 7, -16, 0, 'blue'],
-      ['desk', 7, -7, 0, 'orange'], ['chair', 7, -4.5, 0, 'mint'], ['crate', 16, -7, 0, ''],
-      ['desk', -16, 11, 0, 'blue'], ['chair', -16, 13.5, 0, 'yellow'], ['desk', -11, 16, 0, 'pink'],
-      ['chair', -11, 13.5, 0, 'red'], ['shelf', -7, 11, 0, 'mint'], ['table', -7, 7, 0, 'orange'],
-      ['desk', 16, 11, 0, 'yellow'], ['chair', 16, 13.5, 0, 'blue'], ['desk', 11, 16, 0, 'mint'],
-      ['chair', 11, 13.5, 0, 'pink'], ['blackboard', 7, 16, 3.14, ''], ['counter', 16, 7, 1.57, 'white'],
-      ['shelf', -18, 4.5, 1.57, 'yellow'], ['blackboard', -9, 18, 0, ''], ['shelf', 13.5, 18, 0, 'blue'],
-      ['blackboard', 18, -4.5, 1.57, ''], ['shelf', -4.5, -9, 0, 'pink'],
-      ['blackboard', -18, -13.5, 1.57, ''], ['shelf', -13.5, -18, 0, 'red'], ['blackboard', 9, -18, 0, ''],
-      ['shelf', 18, -13.5, -1.57, 'mint'], ['blackboard', -13.5, 13.5, 0, ''], ['shelf', 13.5, 9, 1.57, 'yellow'],
-      ['desk', -13.5, -4.5, 0, 'blue'], ['table', 9, -9, 0, 'orange'],
-
-      ['shelf', -17.5, 9.5, 0, 'blue'],
+      ['blackboard', -11, -16, 0, ''],
+      ['desk', -16, -11, 0, 'blue'],
+      ['chair', -16, -9, 0, 'red'],
+      ['desk', -11, -11, 0, 'yellow'],
+      ['chair', -11, -9, 0, 'blue'],
+      ['shelf', -7, -16, 0, 'mint'],
+      ['desk', -7, -7, 0, 'pink'],
+      ['chair', -7, -4.5, 0, 'orange'],
+      ['table', -16, -7, 0, 'teal'],
+      ['blackboard', 11, -16, 0, ''],
+      ['desk', 16, -11, 0, 'mint'],
+      ['chair', 16, -9, 0, 'yellow'],
+      ['desk', 11, -11, 0, 'red'],
+      ['chair', 11, -9, 0, 'pink'],
+      ['shelf', 7, -16, 0, 'blue'],
+      ['desk', 7, -7, 0, 'orange'],
+      ['chair', 7, -4.5, 0, 'mint'],
+      ['crate', 16, -7, 0, ''],
+      ['desk', -16, 11, 0, 'blue'],
+      ['chair', -16, 13.5, 0, 'yellow'],
+      ['desk', -11, 16, 0, 'pink'],
+      ['chair', -11, 13.5, 0, 'red'],
+      ['shelf', -7, 11, 0, 'mint'],
+      ['table', -7, 7, 0, 'orange'],
+      ['desk', 16, 11, 0, 'yellow'],
+      ['chair', 16, 13.5, 0, 'blue'],
+      ['desk', 11, 16, 0, 'mint'],
+      ['chair', 11, 13.5, 0, 'pink'],
+      ['blackboard', 7, 16, 3.1, ''],
+      ['counter', 16, 7, 1.6, 'white'],
+      ['shelf', -18, 4.5, 1.6, 'yellow'],
+      ['blackboard', -9, 18, 0, ''],
+      ['shelf', 13.5, 18, 0, 'blue'],
+      ['blackboard', 18, -4.5, 1.6, ''],
+      ['shelf', -4.5, -9, 0, 'pink'],
+      ['blackboard', -18, -13.5, 0, ''],
+      ['shelf', -13.5, -18, 0, 'red'],
+      ['blackboard', 9, -18, 0, ''],
+      ['shelf', 18, -13.5, -1.6, 'mint'],
+      ['blackboard', -13.5, 13.5, 1.6, ''],
+      ['shelf', 13.5, 9, 1.6, 'yellow'],
+      ['desk', -13.5, -4.5, 0, 'blue'],
+      ['table', 8.2, -9, 0, 'orange'],
+      ['shelf', -18.3, 9.5, 1.6, 'blue'],
       ['blackboard', -6.5, -14.5, 0, 'mint'],
       ['chair', 14, -13.5, 0, 'orange'],
       ['shelf', 8, -13.5, 0, 'red'],
       ['shelf', -14, 17.5, 0, 'white'],
       ['chair', 13.5, -4.5, 0, 'purple'],
-      ['shelf', 2.5, -6.5, 0, 'teal'],
-      ['blackboard', -15, -8, 0, 'pink'],
-      ['shelf', 17.5, -8, 1.57, 'yellow'],
-      ['blackboard', -12, 15, 0, 'blue'],
+      ['shelf', 4.2, -6.5, 1.6, 'teal'],
+      ['blackboard', -13.4, -8, 1.6, 'pink'],
+      ['shelf', 18.3, -8, 1.6, 'yellow'],
+      ['blackboard', -8.8, 15, 1.6, 'blue'],
       ['shelf', 8, 12.5, 0, 'mint'],
       ['shelf', 13.5, 5.5, 0, 'orange'],
-      ['blackboard', -9.5, 2.5, 0, 'red'],
-      ['desk', -11.5, -14, 1.57, 'white'],
+      ['blackboard', -8.4, 4.3, 0, 'red'],
+      ['desk', -11.5, -14, 0, 'white'],
       ['desk', 7.5, -11, 0, 'purple'],
-      ['chair', 12, -8, 0, 'teal'],
-      ['chair', -8, 14, 0, 'pink'],
-      ['desk', 13.5, -9, 1.57, 'yellow'],
-      ['blackboard', -8.5, 7, 1.57, 'blue'],
-      ['desk', 15.5, -13, 1.57, 'mint'],
-      ['shelf', 14.5, 15, 0, 'orange'],
-      ['shelf', 5.5, -3.5, 0, 'red'],
+      ['chair', 12.8, -8, 0, 'teal'],
+      ['chair', -7.2, 14, 0, 'pink'],
+      ['desk', 13.5, -10.6, 1.6, 'yellow'],
+      ['blackboard', -9.3, 7, 1.6, 'blue'],
+      ['desk', 16.1, -13.6, 1.6, 'mint'],
+      ['shelf', 15.1, 15.6, 0, 'orange'],
+      ['shelf', 4.4, -3.5, 0, 'red'],
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
     palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate'],
     furniture: [
-      ['hospitalBed', -11, -11, 0, ''], ['curtain', -16, -11, 1.57, 'blue'], ['trolley', -7, -16, 0, 'mint'],
-      ['counter', -16, -7, 1.57, 'white'], ['chair', -11, -7, 0, 'blue'], ['shelf', -7, -11, 0, 'teal'],
-      ['hospitalBed', 11, -16, 0, ''], ['curtain', 16, -16, 1.57, 'pink'], ['trolley', 7, -11, 0, 'yellow'],
-      ['counter', 16, -11, 1.57, 'white'], ['chair', 11, -7, 0, 'mint'], ['shelf', 7, -7, 0, 'blue'],
-      ['hospitalBed', -16, 11, 1.57, ''], ['curtain', -11, 16, 0, 'mint'], ['trolley', -7, 7, 0, 'red'],
-      ['counter', -16, 16, 0, 'white'], ['chair', -7, 11, 0, 'pink'], ['bed', -11, 7, 0, 'blue'],
-      ['hospitalBed', 16, 7, -1.57, ''], ['curtain', 11, 11, 0, 'blue'], ['trolley', 7, 16, 0, 'teal'],
-      ['counter', 11, 16, 0, 'white'], ['chair', 16, 11, 0, 'yellow'], ['crate', 16, 16, 0, ''],
-      ['curtain', -18, 4.5, 1.57, 'yellow'], ['shelf', -9, -18, 0, 'pink'], ['curtain', 4.5, -13.5, 0, 'mint'],
-      ['shelf', -4.5, 9, 0, 'teal'], ['curtain', 18, -9, 1.57, 'blue'],
-      ['curtain', -18, -16, 1.57, 'pink'], ['shelf', -13.5, -18, 0, 'blue'], ['curtain', 9, -18, 0, 'mint'],
-      ['shelf', 18, -13.5, -1.57, 'yellow'], ['curtain', -13.5, 18, 0, 'red'], ['shelf', 13.5, 4.5, 1.57, 'teal'],
-      ['curtain', 4.5, 18, 0, 'blue'], ['hospitalBed', -18, 9, 1.57, ''], ['trolley', -13.5, -7, 0, 'red'],
-      ['chair', 9, -9, 0, 'pink'], ['bed', -9, 13.5, 0, 'yellow'], ['counter', 4.5, -7, 1.57, 'white'],
+      ['hospitalBed', -11, -11, 0, ''],
+      ['curtain', -16, -11, 1.6, 'blue'],
+      ['trolley', -7, -16, 0, 'mint'],
+      ['counter', -16, -7, 1.6, 'white'],
+      ['chair', -11, -7, 0, 'blue'],
+      ['shelf', -7, -11, 0, 'teal'],
+      ['hospitalBed', 11, -16, 0, ''],
+      ['curtain', 16, -16, 1.6, 'pink'],
+      ['trolley', 7, -11, 0, 'yellow'],
+      ['counter', 16, -11, 1.6, 'white'],
+      ['chair', 11, -7, 0, 'mint'],
+      ['shelf', 7, -7, 0, 'blue'],
+      ['hospitalBed', -16, 11, 1.6, ''],
+      ['curtain', -11, 16, 0, 'mint'],
+      ['trolley', -7, 7, 0, 'red'],
+      ['counter', -16, 16, 0, 'white'],
+      ['chair', -7, 11, 0, 'pink'],
+      ['bed', -11, 7, 0, 'blue'],
+      ['hospitalBed', 16, 7, -1.6, ''],
+      ['curtain', 11, 11, 0, 'blue'],
+      ['trolley', 7, 16, 0, 'teal'],
+      ['counter', 11, 16, 0, 'white'],
+      ['chair', 16, 11, 0, 'yellow'],
+      ['crate', 16, 16, 0, ''],
+      ['curtain', -18, 4.5, 1.6, 'yellow'],
+      ['shelf', -9, -18, 0, 'pink'],
+      ['curtain', 4.5, -13.5, 0, 'mint'],
+      ['shelf', -4.5, 9, 0, 'teal'],
+      ['curtain', 18, -9, 1.6, 'blue'],
+      ['curtain', -18, -16, 1.6, 'pink'],
+      ['shelf', -13.5, -18, 0, 'blue'],
+      ['curtain', 9, -18, 0, 'mint'],
+      ['shelf', 18, -13.5, -1.6, 'yellow'],
+      ['curtain', -13.5, 18, 0, 'red'],
+      ['shelf', 13.5, 4.5, 1.6, 'teal'],
+      ['curtain', 4.5, 18, 0, 'blue'],
+      ['hospitalBed', -18, 9, 1.6, ''],
+      ['trolley', -13.5, -7, 0, 'red'],
+      ['chair', 9, -9, 0, 'pink'],
+      ['bed', -9, 13.5, 1.6, 'yellow'],
+      ['counter', 4.5, -7, 1.6, 'white'],
       ['crate', 13.5, -4.5, 0, ''],
-      ['shelf', -3.5, -7.5, 1.57, 'mint'],
-      ['shelf', -5, -10, 1.57, 'red'],
+      ['shelf', -3.5, -7.5, 1.6, 'mint'],
+      ['shelf', -6.1, -8.9, 0, 'red'],
       ['curtain', 7.5, 6, 0, 'white'],
       ['curtain', -7.5, -14.5, 0, 'teal'],
-      ['shelf', -2.5, -14, 0, 'pink'],
-      ['hospitalBed', -13.5, -14, 1.57, 'yellow'],
-      ['shelf', 16.5, 14.5, 0, 'blue'],
-      ['shelf', -18, -12, 0, 'mint'],
-      ['shelf', 15.5, -5, 0, 'orange'],
-      ['shelf', -10.5, -2.5, 0, 'red'],
-      ['shelf', 9, -12.5, 0, 'white'],
-      ['shelf', -4, -15.5, 0, 'purple'],
-      ['curtain', -9.5, 10, 1.57, 'teal'],
-      ['curtain', -6.5, -6.5, 1.57, 'pink'],
-      ['shelf', -2.5, 15, 0, 'yellow'],
-      ['shelf', 16.5, 2.5, 0, 'blue'],
-      ['shelf', -7.5, -3, 0, 'mint'],
-      ['shelf', 17, -6.5, 0, 'orange'],
-      ['curtain', 15.5, -17.5, 0, 'red'],
-      ['shelf', 7.5, 15, 0, 'white'],
-      ['trolley', 12, 6.5, 0, 'purple'],
-      ['hospitalBed', -2.5, 12.5, 0, 'teal'],
-      ['curtain', -8.5, -11, 1.57, 'pink'],
-      ['hospitalBed', 17.5, 6, 1.57, 'yellow'],
-      ['hospitalBed', 18, -11.5, 0, 'blue'],
-      ['hospitalBed', 11, -14.5, 0, 'mint'],
-      ['hospitalBed', 12.5, -2.5, 1.57, 'orange'],
-      ['hospitalBed', -15.5, 3.5, 0, 'red'],
-      ['curtain', 15, -12, 1.57, 'white'],
-      ['hospitalBed', 10, 17.5, 0, 'purple'],
+      ['shelf', -4.2, -14, 0, 'pink'],
+      ['hospitalBed', -13.5, -14, 1.6, 'yellow'],
+      ['shelf', 15.9, 13.9, 0, 'blue'],
+      ['shelf', -18, -12, 1.6, 'mint'],
+      ['shelf', 15.5, -5, 1.6, 'orange'],
+      ['shelf', -8.9, -3.5, 0, 'red'],
+      ['shelf', 9, -12.5, 1.6, 'white'],
+      ['shelf', -4.2, -16.3, 0, 'purple'],
+      ['curtain', -9.5, 10, 0, 'teal'],
+      ['curtain', -6.5, -6.5, 1.6, 'pink'],
+      ['shelf', -4.2, 15, 0, 'yellow'],
+      ['shelf', 16.5, 3.5, 3.1, 'blue'],
+      ['shelf', -5.1, -3.5, 0, 'mint'],
+      ['shelf', 17.6, -5.9, 1.6, 'orange'],
+      ['curtain', 14.7, -17.5, 1.6, 'red'],
+      ['shelf', 7.5, 14.2, 0, 'white'],
+      ['trolley', 12.6, 7.1, 0, 'purple'],
+      ['hospitalBed', -4.2, 12.5, 0, 'teal'],
+      ['curtain', -8.5, -12.6, 0, 'pink'],
+      ['hospitalBed', 18.3, 6, 1.6, 'yellow'],
+      ['hospitalBed', 14, -11.5, 1.6, 'blue'],
+      ['hospitalBed', 12.1, -13.4, 1.6, 'mint'],
+      ['hospitalBed', 9.3, -4.2, 1.6, 'orange'],
+      ['hospitalBed', -15.5, 3.6, 0, 'red'],
+      ['curtain', 15, -8, 0, 'white'],
+      ['hospitalBed', 10.6, 18.1, 0, 'purple'],
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
-    rugs: [[-15, 0, 8, 5, 'red'], [15, 0, 8, 5, 'blue'], [0, 15, 8, 5, 'mint']],
+    rugs: [[-15, 5.3, 8, 5, 'red'], [15, 5.3, 8, 5, 'blue'], [6.8, 15, 8, 5, 'mint']],
     palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter'],
     furniture: [
-      ['shelf', -16, -11, 1.57, 'orange'], ['shelf', -11, -16, 0, 'blue'], ['desk', -7, -11, 0, 'yellow'],
-      ['chair', -7, -9, 0, 'red'], ['table', -16, -7, 0, 'mint'], ['shelf', -11, -7, 0, 'pink'],
-      ['shelf', -7, -16, 0, 'teal'], ['desk', -16, -16, 0, 'orange'], ['chair', -16, -13.5, 0, 'blue'],
-      ['shelf', 16, -11, -1.57, 'blue'], ['shelf', 11, -16, 0, 'pink'], ['desk', 7, -11, 0, 'mint'],
-      ['chair', 7, -9, 0, 'yellow'], ['table', 16, -7, 0, 'orange'], ['shelf', 11, -7, 0, 'red'],
-      ['shelf', 7, -16, 0, 'yellow'], ['desk', 16, -16, 0, 'blue'], ['chair', 16, -13.5, 0, 'pink'],
-      ['shelf', -16, 11, 1.57, 'mint'], ['shelf', -11, 16, 0, 'red'], ['desk', -7, 11, 0, 'blue'],
-      ['chair', -7, 13.5, 0, 'teal'], ['table', -16, 7, 0, 'yellow'], ['shelf', -11, 7, 0, 'orange'],
-      ['shelf', 16, 11, -1.57, 'pink'], ['shelf', 11, 16, 0, 'mint'], ['desk', 7, 11, 0, 'red'],
-      ['chair', 7, 13.5, 0, 'blue'], ['table', 16, 7, 0, 'purple'], ['counter', 11, 7, 0, 'white'],
-      ['shelf', -4.5, -4.5, 0, 'purple'], ['shelf', 4.5, 4.5, 0, 'yellow'],
-      ['shelf', -18, -4.5, 1.57, 'blue'], ['shelf', 9, -18, 0, 'pink'], ['shelf', -13.5, 18, 0, 'mint'],
-      ['shelf', 18, 13.5, -1.57, 'red'], ['desk', -13.5, -13.5, 0, 'teal'], ['chair', -13.5, -11, 0, 'yellow'],
-      ['table', 9, -9, 0, 'purple'], ['crate', -9, 9, 0, 'orange'], ['counter', 13.5, -13.5, 1.57, 'white'],
-      ['desk', -9, 13.5, 0, 'blue'], ['chair', 9, 9, 0, 'red'], ['crate', 4.5, -7, 0, 'mint'],
-      ['shelf', 14.5, 10.5, 1.57, 'orange'],
+      ['shelf', -16, -11, 1.6, 'orange'],
+      ['shelf', -11, -16, 0, 'blue'],
+      ['desk', -7, -11, 0, 'yellow'],
+      ['chair', -7, -9, 0, 'red'],
+      ['table', -16, -7, 0, 'mint'],
+      ['shelf', -11, -7, 0, 'pink'],
+      ['shelf', -7, -16, 0, 'teal'],
+      ['desk', -16, -16, 0, 'orange'],
+      ['chair', -16, -13.5, 0, 'blue'],
+      ['shelf', 16, -11, -1.6, 'blue'],
+      ['shelf', 11, -16, 0, 'pink'],
+      ['desk', 7, -11, 0, 'mint'],
+      ['chair', 7, -9, 0, 'yellow'],
+      ['table', 16, -7, 0, 'orange'],
+      ['shelf', 11, -7, 0, 'red'],
+      ['shelf', 7, -16, 0, 'yellow'],
+      ['desk', 16, -16, 0, 'blue'],
+      ['chair', 16, -13.5, 0, 'pink'],
+      ['shelf', -16, 11, 1.6, 'mint'],
+      ['shelf', -11, 16, 0, 'red'],
+      ['desk', -7, 11, 0, 'blue'],
+      ['chair', -7, 13.5, 0, 'teal'],
+      ['table', -16, 7, 0, 'yellow'],
+      ['shelf', -11, 7, 0, 'orange'],
+      ['shelf', 16, 11, -1.6, 'pink'],
+      ['shelf', 11, 16, 0, 'mint'],
+      ['desk', 7, 11, 0, 'red'],
+      ['chair', 7, 13.5, 0, 'blue'],
+      ['table', 16, 7, 0, 'purple'],
+      ['counter', 11, 7, 0, 'white'],
+      ['shelf', -4.5, -4.5, 0, 'purple'],
+      ['shelf', 4.5, 4.5, 0, 'yellow'],
+      ['shelf', -18, -4.5, 0, 'blue'],
+      ['shelf', 9, -18, 0, 'pink'],
+      ['shelf', -13.5, 18, 0, 'mint'],
+      ['shelf', 18, 13.5, -1.6, 'red'],
+      ['desk', -13.5, -13.5, 0, 'teal'],
+      ['chair', -13.5, -11, 0, 'yellow'],
+      ['table', 9.8, -9, 0, 'purple'],
+      ['crate', -9, 9, 0, 'orange'],
+      ['counter', 13.5, -13.5, 1.6, 'white'],
+      ['desk', -9, 13.5, 1.6, 'blue'],
+      ['chair', 9, 9, 0, 'red'],
+      ['crate', 4.5, -7, 0, 'mint'],
+      ['shelf', 13.9, 11.1, 1.6, 'orange'],
       ['chair', -9, 5, 0, 'red'],
-      ['chair', -6, 13.5, 0, 'white'],
-      ['shelf', -18, -15.5, 1.57, 'purple'],
-      ['shelf', -5, 17, 1.57, 'teal'],
-      ['desk', -5, 11.5, 1.57, 'pink'],
+      ['chair', -5.2, 13.5, 0, 'white'],
+      ['shelf', -18.5, -14.9, 1.6, 'purple'],
+      ['shelf', -5, 17, 1.6, 'teal'],
+      ['desk', -5, 9.1, 0, 'pink'],
       ['shelf', 11.5, 14, 0, 'yellow'],
       ['shelf', 5, -18, 0, 'blue'],
-      ['shelf', -15, 3, 1.57, 'mint'],
-      ['shelf', 7.5, 2.5, 0, 'orange'],
+      ['shelf', -15, 4.2, 1.6, 'mint'],
+      ['shelf', 8.3, 3.5, 3.1, 'orange'],
       ['chair', -6.5, 3.5, 0, 'red'],
-      ['shelf', 8.5, -13, 1.57, 'white'],
-      ['shelf', 8, 9, 1.57, 'purple'],
+      ['shelf', 8.5, -13, 0, 'white'],
+      ['shelf', 6.4, 9, 0, 'purple'],
       ['shelf', 10, 12, 0, 'teal'],
-      ['shelf', 11.5, -10.5, 0, 'pink'],
-      ['shelf', 6, 13.5, 1.57, 'yellow'],
-      ['shelf', 9.5, 5, 1.57, 'blue'],
-      ['shelf', -14, -9, 0, 'mint'],
-      ['desk', 2.5, 12, 0, 'orange'],
-      ['chair', 10, 9, 0, 'red'],
-      ['chair', 15, -14, 0, 'white'],
-      ['desk', 15, -5.5, 0, 'purple'],
+      ['shelf', 10.9, -11.1, 0, 'pink'],
+      ['shelf', 5.2, 13.5, 1.6, 'yellow'],
+      ['shelf', 13.5, 5, 0, 'blue'],
+      ['shelf', -13.2, -9, 0, 'mint'],
+      ['desk', 4.1, 16.8, 1.6, 'orange'],
+      ['chair', 10.8, 9, 0, 'red'],
+      ['chair', 18.2, -14, 0, 'white'],
+      ['desk', 15.6, -4.9, 0, 'purple'],
+      ['chair', -15, -18.2, 0, 'blue'],
     ] },
 ];
 const worldGroup = new THREE.Group();
@@ -1200,6 +1372,33 @@ function buildMap(idx) {
     w.position.set(wx, 4, wz);
     worldGroup.add(w);
   }
+  // Interior walls: cross corridor + 4 rooms (V5.0). Each wall line is split by
+  // its doorway gap; every segment gets a mesh and a box collider. Door frames
+  // are visual only (lintel + side posts) so the gap stays a full 2.0m wide.
+  for (const wl of WALL_LINES) {
+    for (const [a, b] of [[wl.from, wl.door - 1], [wl.door + 1, wl.to]]) {
+      const len = b - a;
+      const c = (a + b) / 2;
+      const seg = new THREE.Mesh(unitBox, wallMat);
+      seg.scale.set(wl.vertical ? 0.4 : len, 3.2, wl.vertical ? len : 0.4);
+      seg.position.set(wl.vertical ? wl.at : c, 1.6, wl.vertical ? c : wl.at);
+      worldGroup.add(seg);
+      if (wl.vertical) addBoxCollider(wl.at, c, 0.2, len / 2);
+      else addBoxCollider(c, wl.at, len / 2, 0.2);
+    }
+    const dx = wl.vertical ? wl.at : wl.door;
+    const dz = wl.vertical ? wl.door : wl.at;
+    const lintel = new THREE.Mesh(unitBox, doorMat);
+    lintel.scale.set(wl.vertical ? 0.44 : 2.3, 0.8, wl.vertical ? 2.3 : 0.44);
+    lintel.position.set(dx, 2.8, dz);
+    worldGroup.add(lintel);
+    for (const sd of [-1, 1]) {
+      const post = new THREE.Mesh(unitBox, doorMat);
+      post.scale.set(wl.vertical ? 0.5 : 0.18, 2.4, wl.vertical ? 0.18 : 0.5);
+      post.position.set(wl.vertical ? dx : dx + sd, 1.2, wl.vertical ? dz + sd : dz);
+      worldGroup.add(post);
+    }
+  }
   for (const wx of [-15, 0, 15]) {
     for (const [wz, horiz] of [[-19.9, true], [19.9, true]]) {
       const win = new THREE.Mesh(unitBox, winMat);
@@ -1227,29 +1426,77 @@ function buildMap(idx) {
   const srng = mulberry32(idx * 977 + 101);
   const placed = [];
   const allFurniture = def.furniture.map(([kind, x, z, rot, c]) => ({ kind, x, z, rot, c }));
-  for (const f of allFurniture) placed.push({ x: f.x, z: f.z, kind: f.kind });
-  const SPAWNS = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2], [0, 9], [0, -18]];
-  const clearSpot = (x, z, kind) => {
-    if (Math.abs(x) < 2.5 || Math.abs(z) < 2.5) return false;
+  for (const f of allFurniture) placed.push({ x: f.x, z: f.z, kind: f.kind, rot: f.rot || 0 });
+  const SPAWNS = [[0, 4], [1, 6], [-1, 6], [2, 2], [-2, 2], [0, 9], [0, -18]];
+  // Scatter must land inside a room rect with 0.6m margin from interior walls,
+  // never in the corridor cross, never in a doorway (0.8m clear on both sides).
+  const clearSpot = (x, z, kind, hx, hz) => {
+    if (roomOf(x, z) < 0) return false;
     if (Math.abs(x) > 18 || Math.abs(z) > 18) return false;
+    const bx0 = x - hx - 0.6, bx1 = x + hx + 0.6, bz0 = z - hz - 0.6, bz1 = z + hz + 0.6;
+    for (const wl of WALL_LINES) {
+      if (wl.vertical) {
+        if (bx0 < wl.at && bx1 > wl.at && (bz0 < -2.5 || bz1 > 2.5)) return false;
+      } else if (bz0 < wl.at && bz1 > wl.at && (bx0 < -2.5 || bx1 > 2.5)) return false;
+    }
+    for (const d of DOORS) {
+      if (x + hx > d.x - 1 && x - hx < d.x + 1 && z + hz > d.z - 1 && z - hz < d.z + 1) return false;
+      // Approach lane: 2m wide, 2.5m into the room from the door. A piece just
+      // outside the 2x2 zone can still seal the doorway (wall + piece leave
+      // under 0.7m for the 0.35-radius agent to pass).
+      const ax0 = d.vertical ? (d.x < 0 ? d.x - 2.5 : d.x) : d.x - 1;
+      const ax1 = d.vertical ? (d.x < 0 ? d.x : d.x + 2.5) : d.x + 1;
+      const az0 = d.vertical ? d.z - 1 : (d.z < 0 ? d.z - 2.5 : d.z);
+      const az1 = d.vertical ? d.z + 1 : (d.z < 0 ? d.z : d.z + 2.5);
+      if (x + hx > ax0 && x - hx < ax1 && z + hz > az0 && z - hz < az1) return false;
+    }
     for (const s of SPAWNS) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 6.25) return false;
     for (const p of placed) {
       const minD = (FURN[kind].big && FURN[p.kind].big) ? 5 : 3.2;
       if ((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z) < minD * minD) return false;
+      // AABB gap: centre distance alone allows a 0.5m slot when two long
+      // pieces line up along their long axes — under the 0.7m agent diameter,
+      // a trap. Require max(gapX, gapZ) >= 0.9m (same rule the hand-list
+      // redistribution enforces).
+      const ps = FURN[p.kind];
+      const psw = Math.abs(Math.sin(p.rot || 0)) > 0.7;
+      const phx = psw ? ps.d / 2 : ps.w / 2;
+      const phz = psw ? ps.w / 2 : ps.d / 2;
+      const gx = Math.max(p.x - phx - (x + hx), x - hx - (p.x + phx));
+      const gz = Math.max(p.z - phz - (z + hz), z - hz - (p.z + phz));
+      if (Math.max(gx, gz) < 0.9) return false;
     }
     return true;
   };
-  const scatterOne = (kind) => { for (let g = 0; g < 300; g++) { const x = (srng() * 2 - 1) * 18, z = (srng() * 2 - 1) * 18; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
   const ROTS = [0, 1.57, 3.14, -1.57];
+  const scatterOne = (kind, rot) => {
+    const spec = FURN[kind];
+    const sideways = Math.abs(Math.sin(rot)) > 0.7;
+    const hx = sideways ? spec.d / 2 : spec.w / 2;
+    const hz = sideways ? spec.w / 2 : spec.d / 2;
+    for (let g = 0; g < 300; g++) {
+      const x = Math.round((srng() * 2 - 1) * 18 * 10) / 10, z = Math.round((srng() * 2 - 1) * 18 * 10) / 10;
+      if (clearSpot(x, z, kind, hx, hz)) { placed.push({ x, z, kind, rot }); return [x, z]; }
+    }
+    return null;
+  };
   const tallKinds = def.palette.filter((k) => FURN[k].tall);
-  for (let i = 0; i < 60; i++) {
+  // V5.0: 400 tries (was 60) with a 90-piece cap — the smaller rooms place
+  // fewer pieces per try, and the approach-lane + AABB-gap rules reject more
+  // candidates, so the low maps need more attempts; the cap stops the dense
+  // maps overshooting 95.
+  for (let i = 0; i < 400; i++) {
+    if (allFurniture.length >= 90) break;
     const kind = (tallKinds.length && srng() < 0.5)
       ? tallKinds[Math.floor(srng() * tallKinds.length)]
       : def.palette[Math.floor(srng() * def.palette.length)];
-    const p = scatterOne(kind);
+    // V5.0: rotation is drawn BEFORE placement so the wall/door clearance check
+    // can use the piece's exact rotated half-extents.
+    const rot = ROTS[Math.floor(srng() * ROTS.length)];
+    const p = scatterOne(kind, rot);
     if (!p) continue;
     const c = FURN_COLORS[Math.floor(srng() * FURN_COLORS.length)];
-    allFurniture.push({ kind, x: p[0], z: p[1], rot: ROTS[Math.floor(srng() * ROTS.length)], c });
+    allFurniture.push({ kind, x: p[0], z: p[1], rot, c });
   }
   for (const f of allFurniture) {
     const spec = FURN[f.kind];
@@ -1270,6 +1517,9 @@ function buildMap(idx) {
     const s = Math.sin(rot), c = Math.cos(rot);
     const behindX = f.x - s * (spec.d / 2 + 0.45);
     const behindZ = f.z - c * (spec.d / 2 + 0.45);
+    // V5.0: skip spots that land inside a wall, a doorway, or another piece.
+    if (blockedByCollider(behindX, behindZ, 0.35)) continue;
+    if (roomOf(behindX, behindZ) < 0) continue;
     hideSpots.push({ x: Math.round(behindX * 10) / 10, z: Math.round(behindZ * 10) / 10, label: spec.label, taken: false });
   }
   ground.material.color.setHex(def.floor);
@@ -1435,16 +1685,41 @@ window.addEventListener('keyup', (e) => {
   keys[e.key.toLowerCase()] = false;
   if (e.key === 'Shift') runHeld = false;
 });
-let mouseDown = false;
-canvas.addEventListener('mousedown', (e) => { mouseDown = true; dragX = e.clientX; dragY = e.clientY; });
+// Mouse drag mirrors the touch pending-drag path (V5.0): the old canvas-only
+// mousedown never fired when a drag started on an action button, so mouse
+// drags from buttons did nothing. Window-level pending drag, 12px threshold.
+let mousePending = false;
+let mouseDrag = false;
+let pendMouseX = 0;
+let pendMouseY = 0;
+window.addEventListener('mousedown', (e) => {
+  const el = e.target;
+  if (el.closest && el.closest('#joy, #knob')) return;
+  if (e.clientX > window.innerWidth * 0.35) {
+    mousePending = true;
+    pendMouseX = e.clientX;
+    pendMouseY = e.clientY;
+  }
+});
 window.addEventListener('mousemove', (e) => {
-  if (!mouseDown) return;
+  if (mousePending) {
+    if (Math.hypot(e.clientX - pendMouseX, e.clientY - pendMouseY) > 12) {
+      mousePending = false;
+      mouseDrag = true;
+      dragX = e.clientX;
+      dragY = e.clientY;
+      runHeld = false;
+      suppressClick = true;
+    }
+    return;
+  }
+  if (!mouseDrag) return;
   camYaw -= (e.clientX - dragX) * 0.006;
   camPitch = Math.max(0.03, Math.min(0.7, camPitch + (e.clientY - dragY) * 0.004));
   dragX = e.clientX;
   dragY = e.clientY;
 });
-window.addEventListener('mouseup', () => { mouseDown = false; });
+window.addEventListener('mouseup', () => { mousePending = false; mouseDrag = false; });
 function toggleSneak() {
   if (gameState !== 'playing' || !player) return;
   sneakOn = !sneakOn;
@@ -1500,6 +1775,261 @@ function moveToward(p, tx, tz, speed, dt) {
   setClip(p, 'walk');
   return false;
 }
+// ---------- room-graph navigation (V5.0) ----------
+// Rooms connect only via the corridor (star topology), so a path is:
+// current room -> its nearest door -> corridor centre -> target room's door
+// -> target. A direct segment is used whenever it is clear of walls and furniture.
+function segClear(ax, az, bx, bz) {
+  if (losBlocked(ax, az, bx, bz)) return false;
+  const d = Math.hypot(bx - ax, bz - az);
+  const steps = Math.max(1, Math.ceil(d / 0.5));
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    if (blockedByCollider(ax + (bx - ax) * t, az + (bz - az) * t, 0.35)) return false;
+  }
+  return true;
+}
+function nearestDoor(x, z, room) {
+  let best = null;
+  let bestScore = 1e9;
+  for (const d of DOORS) {
+    if (d.room !== room) continue;
+    const dd = Math.hypot(d.x - x, d.z - z);
+    const score = segClear(x, z, d.x, d.z) ? dd : dd + 100;
+    if (score < bestScore) { bestScore = score; best = d; }
+  }
+  return best;
+}
+// Grid A* over a 0.25m lattice, for ONE leg (door -> hide spot, or any leg
+// the direct line cannot take because furniture blocks it). The room graph
+// (doors + hub) still picks the route between rooms; A* only routes the legs
+// inside a room, where a straight line wedges on furniture and a local
+// sidestep ping-pongs between the same two points forever. A cell is blocked
+// if blockedByCollider(cell, 0.35). 8-directional, no corner-cutting through
+// furniture. Binary heap keeps the worst case fast even on a 161x161 grid.
+function gridPath(sx, sz, tx, tz) {
+  const STEP = 0.25, HALF = 20, N = 161;
+  const toI = (v) => Math.round((v + HALF) / STEP);
+  const toV = (i) => i * STEP - HALF;
+  const key = (i, j) => i * 1000 + j;
+  const blocked = (i, j) => i < 0 || j < 0 || i >= N || j >= N || blockedByCollider(toV(i), toV(j), 0.35);
+  const nearestOpen = (i, j) => {
+    if (!blocked(i, j)) return [i, j];
+    for (let r = 1; r <= 4; r++) {
+      for (let di = -r; di <= r; di++) for (let dj = -r; dj <= r; dj++) {
+        if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+        if (!blocked(i + di, j + dj)) return [i + di, j + dj];
+      }
+    }
+    return null;
+  };
+  const s = nearestOpen(toI(sx), toI(sz));
+  const t = nearestOpen(toI(tx), toI(tz));
+  if (!s || !t) return null;
+  const heap = [];
+  const hpush = (e) => {
+    heap.push(e);
+    let k = heap.length - 1;
+    while (k > 0) {
+      const par = (k - 1) >> 1;
+      if (heap[par][0] <= heap[k][0]) break;
+      const tmp = heap[par]; heap[par] = heap[k]; heap[k] = tmp;
+      k = par;
+    }
+  };
+  const hpop = () => {
+    const top = heap[0], last = heap.pop();
+    if (heap.length) {
+      heap[0] = last;
+      let k = 0;
+      for (;;) {
+        const l = 2 * k + 1, r = l + 1;
+        let m = k;
+        if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
+        if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+        if (m === k) break;
+        const tmp = heap[m]; heap[m] = heap[k]; heap[k] = tmp;
+        k = m;
+      }
+    }
+    return top;
+  };
+  const gScore = new Map(), came = new Map(), closed = new Set();
+  const h = (i, j) => Math.hypot(toV(i) - tx, toV(j) - tz);
+  gScore.set(key(s[0], s[1]), 0);
+  hpush([h(s[0], s[1]), s[0], s[1]]);
+  while (heap.length) {
+    const cur = hpop();
+    const ci = cur[1], cj = cur[2], ck = key(ci, cj);
+    if (closed.has(ck)) continue;
+    closed.add(ck);
+    if (ci === t[0] && cj === t[1]) {
+      const cells = [];
+      let k = ck;
+      while (k !== key(s[0], s[1])) {
+        cells.unshift({ x: toV(Math.floor(k / 1000)), z: toV(k % 1000) });
+        k = came.get(k);
+      }
+      return cells;
+    }
+    const cg = gScore.get(ck);
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const ni = ci + di, nj = cj + dj;
+      if (blocked(ni, nj)) continue;
+      if (di && dj && (blocked(ci + di, cj) || blocked(ci, cj + dj))) continue;
+      const ng = cg + Math.hypot(di, dj) * STEP;
+      const nk = key(ni, nj);
+      if (ng < (gScore.has(nk) ? gScore.get(nk) : Infinity)) {
+        gScore.set(nk, ng);
+        came.set(nk, ck);
+        hpush([ng + h(ni, nj), ni, nj]);
+      }
+    }
+  }
+  return null;
+}
+// String-pull a grid path: from the current point, jump to the farthest cell
+// with a clear direct segment, so the agent walks straight lines, not a
+// 0.25m zigzag.
+function pullCells(cells, sx, sz) {
+  const out = [];
+  let cx = sx, cz = sz, i = 0;
+  while (i < cells.length) {
+    let j = cells.length - 1;
+    while (j > i && !segClear(cx, cz, cells[j].x, cells[j].z)) j--;
+    out.push(cells[j]);
+    cx = cells[j].x; cz = cells[j].z;
+    i = j + 1;
+  }
+  return out;
+}
+function planPath(sx, sz, tx, tz) {
+  if (segClear(sx, sz, tx, tz)) return [{ x: tx, z: tz }];
+  const sRoom = roomOf(sx, sz);
+  const tRoom = roomOf(tx, tz);
+  const raw = [];
+  if (sRoom >= 0 && sRoom !== tRoom) {
+    const d = nearestDoor(sx, sz, sRoom);
+    if (d) raw.push({ x: d.x, z: d.z });
+  }
+  if (tRoom >= 0 && tRoom !== sRoom) raw.push({ x: 0, z: 0 });
+  if (tRoom >= 0 && tRoom !== sRoom) {
+    const d = nearestDoor(tx, tz, tRoom);
+    if (d) raw.push({ x: d.x, z: d.z });
+  }
+  raw.push({ x: tx, z: tz });
+  // String-pull: from the current position, jump to the farthest waypoint on
+  // the route that is directly reachable. A straight corridor-to-door line
+  // cuts the wall corner where two walls meet, so the hub is kept whenever
+  // the door is not directly reachable.
+  const wps = [];
+  let cx = sx, cz = sz;
+  for (let i = 0; i < raw.length; i++) {
+    let j = raw.length - 1;
+    while (j > i && !segClear(cx, cz, raw[j].x, raw[j].z)) j--;
+    const wp = raw[j];
+    if (segClear(cx, cz, wp.x, wp.z)) {
+      wps.push(wp);
+    } else {
+      const cells = gridPath(cx, cz, wp.x, wp.z);
+      if (cells && cells.length) {
+        for (const c of pullCells(cells, cx, cz)) wps.push(c);
+        wps.push(wp);
+      } else {
+        wps.push(wp);
+      }
+    }
+    cx = wp.x;
+    cz = wp.z;
+    i = j;
+  }
+  return wps;
+}
+// A 2m sidestep perpendicular to the blocked direction, for getting around
+// a piece of furniture (or out of a tight hide pocket) when the straight line
+// is blocked. Returns null when no sidestep point is reachable.
+function sidestep(p, wp) {
+  const px = p.g.position.x, pz = p.g.position.z;
+  const dx = wp.x - px, dz = wp.z - pz;
+  const d = Math.hypot(dx, dz) || 1;
+  const ux = dx / d, uz = dz / d;
+  // Order: forward-diagonals first (slide around the obstacle while making
+  // progress), then pure perpendiculars, then 3m far sidesteps, then
+  // back-diagonals (retreat the way the agent came — the only escape when a
+  // wall is on one side and furniture on the other, e.g. hugging the south
+  // wall of a room with the door just past a piece).
+  const cands = [
+    { x: px - uz * 2 + ux, z: pz + ux * 2 + uz },
+    { x: px + uz * 2 + ux, z: pz - ux * 2 + uz },
+    { x: px - uz * 2, z: pz + ux * 2 },
+    { x: px + uz * 2, z: pz - ux * 2 },
+    { x: px - uz * 3, z: pz + ux * 3 },
+    { x: px + uz * 3, z: pz - ux * 3 },
+    { x: px - uz * 2 - ux, z: pz + ux * 2 - uz },
+    { x: px + uz * 2 - ux, z: pz - ux * 2 - uz },
+  ];
+  for (const c of cands) {
+    if (Math.abs(c.x) > 19.5 || Math.abs(c.z) > 19.5) continue;
+    if (blockedByCollider(c.x, c.z, 0.35)) continue;
+    if (segClear(px, pz, c.x, c.z)) return c;
+  }
+  return null;
+}
+// Returns true when the target is reached OR given up on (stuck > 4s);
+// p.navStuck tells the caller which one it was.
+function navigateTo(p, tx, tz, speed, dt) {
+  if (!p.nav || p.nav.tx !== tx || p.nav.tz !== tz) {
+    p.nav = { tx, tz, wps: planPath(p.g.position.x, p.g.position.z, tx, tz), i: 0, stuckT: 0, lastX: p.g.position.x, lastZ: p.g.position.z, steps: 0 };
+    p.navStuck = false;
+  }
+  const nav = p.nav;
+  const wp = nav.wps[nav.i];
+  if (moveToward(p, wp.x, wp.z, speed, dt)) {
+    nav.i++;
+    nav.stuckT = 0;
+    nav.steps = 0;
+    if (nav.i >= nav.wps.length) { p.nav = null; return true; }
+    return false;
+  }
+  const moved = Math.hypot(p.g.position.x - nav.lastX, p.g.position.z - nav.lastZ);
+  if (moved < 0.02) {
+    nav.stuckT += dt;
+    if (nav.stuckT > 0.6 && nav.steps < 6) {
+      const sd = sidestep(p, wp);
+      if (sd) {
+        nav.wps.splice(nav.i, 0, sd);
+        nav.steps++;
+        nav.stuckT = 0;
+        nav.lastX = p.g.position.x;
+        nav.lastZ = p.g.position.z;
+        return false;
+      }
+    }
+    if (nav.stuckT > 4) { p.nav = null; p.navStuck = true; return true; }
+  } else nav.stuckT = 0;
+  nav.lastX = p.g.position.x;
+  nav.lastZ = p.g.position.z;
+  return false;
+}
+function pickNearWalkable(cx, cz, rMin, rMax) {
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const rr = rMin + Math.random() * (rMax - rMin);
+    const x = Math.max(-19, Math.min(19, cx + Math.cos(a) * rr));
+    const z = Math.max(-19, Math.min(19, cz + Math.sin(a) * rr));
+    if (!blockedByCollider(x, z, 0.35)) return { x, z };
+  }
+  return { x: 0, z: 0 };
+}
+function pickRandomRoomPoint() {
+  for (let i = 0; i < 10; i++) {
+    const r = ROOMS[Math.floor(Math.random() * ROOMS.length)];
+    const x = r.x0 + 1 + Math.random() * (r.x1 - r.x0 - 2);
+    const z = r.z0 + 1 + Math.random() * (r.z1 - r.z0 - 2);
+    if (!blockedByCollider(x, z, 0.35)) return { x, z };
+  }
+  return { x: 0, z: 0 };
+}
 function playerMoveInput(dt) {
   if (!player || (gameState !== 'playing' && gameState !== 'countdown')) return;
   if (mode === 'online') {
@@ -1547,13 +2077,17 @@ function updateCamera(dt) {
   const fullDist = window.innerWidth < window.innerHeight ? 4.5 : 2.8;
   let d = fullDist;
   while (d > 0.8 && blockedByCollider(px + Math.sin(camYaw) * d, pz + Math.cos(camYaw) * d, 0.3)) d -= 0.2;
+  // V5.0: pull in further if a wall sits between the camera and the player.
+  while (d > 0.8 && losBlocked(px + Math.sin(camYaw) * d, pz + Math.cos(camYaw) * d, px, pz)) d -= 0.2;
   const h = 0.9 + d * Math.tan(camPitch);
   const cx = px + Math.sin(camYaw) * d;
   const cz = pz + Math.cos(camYaw) * d;
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
   camera.position.y += (h - camera.position.y) * Math.min(1, dt * 6);
   camera.position.z += (cz - camera.position.z) * Math.min(1, dt * 6);
-  camera.lookAt(px, 0.9, pz);
+  // V5.0: look slightly UP (at h + 0.35) instead of down at 0.9. With FOV 58 the
+  // floor drops from ~64% of the frame to ~38% at the 2.8m default distance.
+  camera.lookAt(px, h + 0.35, pz);
 }
 
 // ---------- game flow ----------
@@ -1568,10 +2102,14 @@ function clearPeople() {
 }
 function snapCameraBehind() {
   if (!player) return;
-  camYaw = 0;
+  // V5.0: camera goes BEHIND the player's facing direction (camYaw 0 + camera at
+  // pz + 3.2 showed the face). Yaw follows heading + PI, keeping updateCamera in sync.
+  camYaw = player.heading + Math.PI;
   camPitch = 0.14;
-  camera.position.set(player.g.position.x, 0.9 + 3.2 * Math.tan(camPitch), player.g.position.z + 3.2);
-  camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
+  const d = 3.2;
+  const h = 0.9 + d * Math.tan(camPitch);
+  camera.position.set(player.g.position.x - Math.sin(player.heading) * d, h, player.g.position.z - Math.cos(player.heading) * d);
+  camera.lookAt(player.g.position.x, h + 0.35, player.g.position.z);
 }
 function tryLandscape() {
   try { if (screen.orientation && screen.orientation.lock) { const p = screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
@@ -1618,7 +2156,23 @@ function startMode(m) {
     player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 1);
     player.g.position.set(0, 0, 4);
     const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
-    const spots = [...hideSpots].sort(() => Math.random() - 0.5).slice(0, 5);
+    // V5.0: spread the 5 AI hiders across rooms (round-robin, one room gets 2).
+    const byRoom = [[], [], [], []];
+    for (const sp of hideSpots) {
+      const rr = roomOf(sp.x, sp.z);
+      if (rr >= 0) byRoom[rr].push(sp);
+    }
+    for (const arr of byRoom) arr.sort(() => Math.random() - 0.5);
+    const roomOrder = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    const spots = [];
+    for (let i = 0; i < 5; i++) {
+      const arr = byRoom[roomOrder[i % 4]];
+      if (arr.length) spots.push(arr.pop());
+    }
+    if (spots.length < 5) {
+      const rest = hideSpots.filter((sp) => spots.indexOf(sp) < 0).sort(() => Math.random() - 0.5);
+      while (spots.length < 5 && rest.length) spots.push(rest.pop());
+    }
     names.forEach((nm, i) => {
       const c = SHIRT[(i + 1) % SHIRT.length];
       const h = makePerson(nm, c.hex, c.css, (i + 2) % MODELS.length);
@@ -1778,11 +2332,7 @@ function updateSeeker(dt, timeDt) {
   const dNow = dist2(seeker.g.position.x, seeker.g.position.z, px, pz);
   if (!seekerMemory && chaseT < 1.0 && dNow < 12) seekerMemory = { x: px, z: pz };
   if (seekerMemory) {
-    if (moveToward(seeker, seekerMemory.x, seekerMemory.z, 3.4 * DIFFS[difficulty].speed, dt)) { seekerMemory = null; seekerLoseT = 0; }
-    else {
-      seekerLoseT += timeDt;
-      if (seekerLoseT > 5) { seekerMemory = null; seekerLoseT = 0; }
-    }
+    if (navigateTo(seeker, seekerMemory.x, seekerMemory.z, 3.4 * DIFFS[difficulty].speed, dt)) { seekerMemory = null; seekerLoseT = 0; }
     return;
   }
   if (!seeker.target && seeker.waitT <= 0) {
@@ -1790,14 +2340,16 @@ function updateSeeker(dt, timeDt) {
     const late = timeLeft < 45;
     const nearP = late ? 0.7 : 0.45;
     if (r < nearP) {
-      const a = Math.random() * Math.PI * 2;
-      const rr = late ? 2 + Math.random() * 4 : 5 + Math.random() * 8;
-      seeker.target = { x: Math.max(-25, Math.min(25, px + Math.cos(a) * rr)), z: Math.max(-25, Math.min(25, pz + Math.sin(a) * rr)) };
+      const pt = pickNearWalkable(px, pz, late ? 2 : 5, late ? 6 : 13);
+      seeker.target = { x: pt.x, z: pt.z };
     } else if (r < 0.8) {
       const s = hideSpots[Math.floor(Math.random() * hideSpots.length)];
-      seeker.target = { x: s.x + (Math.random() * 2 - 1), z: s.z + (Math.random() * 2 - 1) };
+      const jx = s.x + (Math.random() * 2 - 1);
+      const jz = s.z + (Math.random() * 2 - 1);
+      seeker.target = blockedByCollider(jx, jz, 0.35) ? { x: s.x, z: s.z } : { x: jx, z: jz };
     } else {
-      seeker.target = { x: Math.random() * 40 - 20, z: Math.random() * 40 - 20 };
+      const pt = pickRandomRoomPoint();
+      seeker.target = { x: pt.x, z: pt.z };
     }
     seekerLoseT = 0;
   }
@@ -1808,13 +2360,10 @@ function updateSeeker(dt, timeDt) {
     return;
   }
   const searchSpeed = (timeLeft < 45 ? 3.6 : 3.0) * DIFFS[difficulty].speed;
-  if (moveToward(seeker, seeker.target.x, seeker.target.z, searchSpeed, dt)) {
+  if (navigateTo(seeker, seeker.target.x, seeker.target.z, searchSpeed, dt)) {
+    seeker.waitT = seeker.navStuck ? 0.5 : 1.0;
     seeker.target = null;
-    seeker.waitT = 1.0;
     seekerLoseT = 0;
-  } else {
-    seekerLoseT += timeDt;
-    if (seekerLoseT > 4) { seeker.target = null; seeker.waitT = 0.5; seekerLoseT = 0; }
   }
 }
 
@@ -1829,7 +2378,7 @@ function updateHiders(dt, timeDt) {
   }
   for (const h of hiders) {
     if (h.found && h.state === 'caught') {
-      if (moveToward(h, 0, 3 + hiders.indexOf(h) * 1.6, 3.2, dt)) h.state = 'done';
+      if (navigateTo(h, 0, 3 + hiders.indexOf(h) * 1.6, 3.2, dt)) h.state = 'done';
     }
   }
   nearestHider = null;
