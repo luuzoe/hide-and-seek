@@ -140,7 +140,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V3.8</p>
+    <p class="ver">Hide &amp; Seek • V3.9</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -911,6 +911,11 @@ const MAPS = [
       ['table', 15, 15, 0, 'orange'], ['wardrobe', 21, 9, -1.57, 'blue'], ['sofa', 9, 21, 0, 'mint'],
       ['desk', 15, 21, 1.57, 'yellow'], ['curtain', 21, 15, 0, 'pink'],
       ['wardrobe', -24, -24, 0, 'teal'], ['shelf', 6, -24, 0, 'red'], ['curtain', 6, 12, 0, 'yellow'],
+      ['wardrobe', -24, -12, 1.57, 'purple'], ['shelf', -12, -24, 0, 'red'], ['curtain', 12, -24, 0, 'blue'],
+      ['wardrobe', 24, -18, -1.57, 'yellow'], ['shelf', -18, 24, 0, 'teal'], ['curtain', 24, 12, 1.57, 'mint'],
+      ['wardrobe', -18, -18, 0, 'pink'], ['sofa', -24, 18, 1.57, 'blue'], ['table', -12, 12, 0, 'yellow'],
+      ['crate', -18, -12, 0, 'red'], ['chair', 12, -12, 0, 'orange'], ['desk', 18, 18, 0, 'mint'],
+      ['counter', 12, 18, 1.57, 'white'], ['bed', -6, -18, 1.57, 'teal'],
     ] },
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
@@ -925,6 +930,11 @@ const MAPS = [
       ['sofa', 15, 9, 0, 'orange'], ['desk', 9, 15, 1.57, 'blue'], ['wardrobe', 21, 21, 0, 'mint'],
       ['table', 21, 15, 0, 'yellow'], ['curtain', 9, 21, 0, 'teal'],
       ['wardrobe', -24, 24, 0, 'red'], ['shelf', 6, -24, 0, 'mint'], ['curtain', -12, -12, 0, 'teal'],
+      ['wardrobe', -24, -18, 1.57, 'pink'], ['shelf', -18, -24, 0, 'blue'], ['curtain', 18, -24, 0, 'yellow'],
+      ['wardrobe', 24, -15, -1.57, 'mint'], ['shelf', -18, 18, 0, 'red'], ['curtain', 12, 24, 0, 'teal'],
+      ['shelf', 24, 6, 1.57, 'orange'], ['sofa', -24, 6, 1.57, 'yellow'], ['table', -6, -12, 0, 'mint'],
+      ['crate', 18, -12, 0, 'blue'], ['chair', -12, 18, 0, 'pink'], ['desk', 18, 12, 0, 'yellow'],
+      ['counter', 6, 12, 1.57, 'white'], ['bed', 6, -18, 1.57, 'purple'],
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[0, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
@@ -942,6 +952,10 @@ const MAPS = [
       ['chair', 15, 18, 0, 'pink'], ['blackboard', 9, 21, 3.14, ''], ['counter', 21, 9, 1.57, 'white'],
       ['shelf', -24, 6, 1.57, 'yellow'], ['blackboard', -12, 24, 0, ''], ['shelf', 18, 24, 0, 'blue'],
       ['blackboard', 24, -6, 1.57, ''], ['shelf', -6, -12, 0, 'pink'],
+      ['blackboard', -24, -18, 1.57, ''], ['shelf', -18, -24, 0, 'red'], ['blackboard', 12, -24, 0, ''],
+      ['shelf', 24, -18, -1.57, 'mint'], ['blackboard', -18, 18, 0, ''], ['shelf', 18, 12, 1.57, 'yellow'],
+      ['desk', -18, -6, 0, 'blue'], ['table', 12, -12, 0, 'orange'],
+
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
@@ -957,6 +971,11 @@ const MAPS = [
       ['counter', 15, 21, 0, 'white'], ['chair', 21, 15, 0, 'yellow'], ['crate', 21, 21, 0, ''],
       ['curtain', -24, 6, 1.57, 'yellow'], ['shelf', -12, -24, 0, 'pink'], ['curtain', 6, -18, 0, 'mint'],
       ['shelf', -6, 12, 0, 'teal'], ['curtain', 24, -12, 1.57, 'blue'],
+      ['curtain', -24, -21, 1.57, 'pink'], ['shelf', -18, -24, 0, 'blue'], ['curtain', 12, -24, 0, 'mint'],
+      ['shelf', 24, -18, -1.57, 'yellow'], ['curtain', -18, 24, 0, 'red'], ['shelf', 18, 6, 1.57, 'teal'],
+      ['curtain', 6, 24, 0, 'blue'], ['hospitalBed', -24, 12, 1.57, ''], ['trolley', -18, -9, 0, 'red'],
+      ['chair', 12, -12, 0, 'pink'], ['bed', -12, 18, 0, 'yellow'], ['counter', 6, -9, 1.57, 'white'],
+      ['crate', 18, -6, 0, ''],
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-15, 0, 8, 5, 'red'], [15, 0, 8, 5, 'blue'], [0, 15, 8, 5, 'mint']],
@@ -973,6 +992,10 @@ const MAPS = [
       ['shelf', 21, 15, -1.57, 'pink'], ['shelf', 15, 21, 0, 'mint'], ['desk', 9, 15, 0, 'red'],
       ['chair', 9, 18, 0, 'blue'], ['table', 21, 9, 0, 'purple'], ['counter', 15, 9, 0, 'white'],
       ['shelf', -6, -6, 0, 'purple'], ['shelf', 6, 6, 0, 'yellow'],
+      ['shelf', -24, -6, 1.57, 'blue'], ['shelf', 12, -24, 0, 'pink'], ['shelf', -18, 24, 0, 'mint'],
+      ['shelf', 24, 18, -1.57, 'red'], ['desk', -18, -18, 0, 'teal'], ['chair', -18, -15, 0, 'yellow'],
+      ['table', 12, -12, 0, 'purple'], ['crate', -12, 12, 0, 'orange'], ['counter', 18, -18, 1.57, 'white'],
+      ['desk', -12, 18, 0, 'blue'], ['chair', 12, 12, 0, 'red'], ['crate', 6, -9, 0, 'mint'],
     ] },
 ];
 const worldGroup = new THREE.Group();
@@ -1042,10 +1065,10 @@ function buildMap(idx) {
     }
     return true;
   };
-  const scatterOne = (kind) => { for (let g = 0; g < 80; g++) { const x = (srng() * 2 - 1) * 23, z = (srng() * 2 - 1) * 23; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
+  const scatterOne = (kind) => { for (let g = 0; g < 120; g++) { const x = (srng() * 2 - 1) * 23, z = (srng() * 2 - 1) * 23; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
   const ROTS = [0, 1.57, 3.14, -1.57];
   const tallKinds = def.palette.filter((k) => FURN[k].tall);
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 22; i++) {
     const kind = (tallKinds.length && srng() < 0.5)
       ? tallKinds[Math.floor(srng() * tallKinds.length)]
       : def.palette[Math.floor(srng() * def.palette.length)];
