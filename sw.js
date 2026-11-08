@@ -1,4 +1,4 @@
-const CACHE = 'hs-v54';
+const CACHE = 'hs-v55';
 const SHELL = ['./', 'index.html', 'manifest.json', 'js/three.module.js', 'js/peerjs.min.js', 'js/addons/loaders/GLTFLoader.js', 'js/addons/utils/BufferGeometryUtils.js', 'js/addons/utils/SkeletonUtils.js'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

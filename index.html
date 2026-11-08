@@ -184,7 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.3</p>
+    <p class="ver">Hide &amp; Seek • V5.4</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -208,7 +208,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
     <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
-    <p>🎨 Characters (CC-BY) — Chibi Boy: Leon Nygaard; Max: varunpatel899; Mack: TikkiToon; Anime + Green: sonbeo131.</p>
+    <p>🎨 Characters (CC0) — Rogue, Rogue Hooded, Barbarian, Knight: KayKit; Fox: KhronosGroup glTF Sample Models.</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
@@ -536,18 +536,20 @@ const decoGeos = {
   patch: new THREE.CircleGeometry(2.2, 12),
 };
 
-// ---------- Sketchfab characters (CC-BY, credits in the How-to overlay) ----------
+// ---------- Animated characters (CC0, credits in the How-to overlay) ----------
+// KayKit Character Pack lite (Rogue/Hooded/Barbarian/Knight) + KhronosGroup Fox (seeker, slot 1).
+// All verified in the Node harness: real skeletons + walk/run/idle clips, sane skinned size.
 // 5 GLB models, preloaded at boot; each person uses one slot. All are skinned with
 // real Walk/Idle/Run clips (Farmer/Worker/Adventurer/Casual share the 24-clip
 // CharacterArmature set; T-Rex has Walk/Idle/Run). If a GLB is not loaded yet
 // (or fails to load), the person falls back to the code-built chibi, so a
 // character is never broken or missing. Normalised to ~0.9m tall at runtime.
 const MODELS = [
-  { url: 'models/boy.glb', name: 'Chibi Boy', author: 'Leon Nygaard' },
-  { url: 'models/max.glb', name: 'Max', author: 'varunpatel899' },
-  { url: 'models/mack.glb', name: 'Mack', author: 'TikkiToon' },
-  { url: 'models/anime.glb', name: 'Anime Chibi', author: 'sonbeo131' },
-  { url: 'models/green.glb', name: 'Green-haired Chibi', author: 'sonbeo131' },
+  { url: 'models/rogue.glb', name: 'Rogue', author: 'KayKit' },
+  { url: 'models/fox.glb', name: 'Fox', author: 'KhronosGroup' },
+  { url: 'models/rogue_hooded.glb', name: 'Rogue Hooded', author: 'KayKit' },
+  { url: 'models/barbarian.glb', name: 'Barbarian', author: 'KayKit' },
+  { url: 'models/knight.glb', name: 'Knight', author: 'KayKit' },
 ];
 const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null, animations: [] }));
 function normalizeModel(src) {
@@ -646,8 +648,11 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
       mixer = new THREE.AnimationMixer(bodyG);
       const pick = (re) => anims.find((a) => re.test(a.name.toLowerCase())) || null;
       clipWalk = pick(/walk/);
-      clipRun = pick(/run$/);
-      clipIdle = pick(/idle$/) || pick(/idle/);
+      clipRun = pick(/run/);
+      // Prefer a clip that STARTS with idle (Idle_A) — /idle$/ alone grabs
+      // Lie_Idle first (KayKit lists it before Idle_A), which would lie the
+      // character down while standing idle.
+      clipIdle = pick(/^idle/) || pick(/idle$/) || pick(/idle/);
     }
   } else {
     const chibi = makeChibi(colorHex, colorCss);
