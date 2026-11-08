@@ -184,7 +184,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.4</p>
+    <p class="ver">Hide &amp; Seek • V5.5</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -2235,9 +2235,13 @@ function updateCamera(dt) {
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
   camera.position.y += (h - camera.position.y) * Math.min(1, dt * 6);
   camera.position.z += (cz - camera.position.z) * Math.min(1, dt * 6);
-  // V5.0: look slightly UP (at h + 0.35) instead of down at 0.9. With FOV 58 the
-  // floor drops from ~64% of the frame to ~38% at the 2.8m default distance.
-  camera.lookAt(px, h + 0.35, pz);
+  // V5.4: look at the camera's own height (h), NOT h + 0.35. The old
+  // h + 0.35 lookAt put the frame's bottom edge at y≈0.10m at the 2.8m
+  // landscape distance, so the character's legs were cut off below the
+  // frame and the walk animation (mostly leg swing) was invisible.
+  // Looking at h puts the bottom edge at y≈-0.26m, so the full body
+  // (head to feet) is on screen and the walk reads.
+  camera.lookAt(px, h, pz);
 }
 
 // ---------- game flow ----------
@@ -2259,7 +2263,7 @@ function snapCameraBehind() {
   const d = 3.2;
   const h = 0.9 + d * Math.tan(camPitch);
   camera.position.set(player.g.position.x - Math.sin(player.heading) * d, h, player.g.position.z - Math.cos(player.heading) * d);
-  camera.lookAt(player.g.position.x, h + 0.35, player.g.position.z);
+  camera.lookAt(player.g.position.x, h, player.g.position.z);
 }
 function tryLandscape() {
   try { if (screen.orientation && screen.orientation.lock) { const p = screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
