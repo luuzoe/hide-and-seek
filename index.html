@@ -27,7 +27,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
 /* ---------- HUD ---------- */
-#hud{position:fixed;top:8px;left:8px;right:104px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
+#hud{position:fixed;top:8px;left:8px;right:116px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
 .pill{background:rgba(0,0,0,.5);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
 .pill b{color:var(--gold)}
 #warn{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
@@ -38,7 +38,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 /* ---------- controls ---------- */
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
-#btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
+#btns{position:fixed;right:26px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
 #btns button{min-width:52px;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 10px;touch-action:none;transition:transform .1s ease}
 #btns button:active{transform:scale(.93)}
 #runBtn{background:var(--blue)}
@@ -47,9 +47,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #actBtn{background:var(--green);display:none}
 #findBtn{background:var(--red);display:none}
 #muteBtn,#fsBtn,#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
-#muteBtn{right:8px}
-#fsBtn{right:56px}
-#cornerSetBtn{right:104px}
+#muteBtn{right:20px}
+#fsBtn{right:68px}
+#cornerSetBtn{right:116px}
 
 /* ---------- overlays, cards, buttons (shared) ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;animation:fadeIn .25s ease}
@@ -2428,13 +2428,15 @@ function updateCamera(dt) {
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
   camera.position.y += (h - camera.position.y) * Math.min(1, dt * 6);
   camera.position.z += (cz - camera.position.z) * Math.min(1, dt * 6);
-  // V5.4: look at the camera's own height (h), NOT h + 0.35. The old
-  // h + 0.35 lookAt put the frame's bottom edge at y≈0.10m at the 2.8m
-  // landscape distance, so the character's legs were cut off below the
-  // frame and the walk animation (mostly leg swing) was invisible.
-  // Looking at h puts the bottom edge at y≈-0.26m, so the full body
-  // (head to feet) is on screen and the walk reads.
-  camera.lookAt(px, h, pz);
+  // V5.9: look at the character's torso (y=0.5), NOT the camera height h.
+  // Looking at h worked at the full 2.8m distance, but when a wall pulls
+  // the camera in close (d=0.8, h=1.01m) a horizontal lookAt at h puts the
+  // feet 52deg below centre — far outside the 58deg FOV — so the player
+  // sank to the bottom edge and vanished, and the ground jumped up and
+  // down as d oscillated while walking (Zaw's video, 2026-11-08 20:09).
+  // Anchoring the lookAt to the torso keeps the full body on screen at
+  // every distance, so the ground stops shaking with the joystick.
+  camera.lookAt(px, 0.5, pz);
 }
 
 // ---------- game flow ----------
@@ -2456,7 +2458,7 @@ function snapCameraBehind() {
   const d = 3.2;
   const h = 0.9 + d * Math.tan(camPitch);
   camera.position.set(player.g.position.x - Math.sin(player.heading) * d, h, player.g.position.z - Math.cos(player.heading) * d);
-  camera.lookAt(player.g.position.x, h, player.g.position.z);
+  camera.lookAt(player.g.position.x, 0.5, player.g.position.z);
 }
 function tryLandscape() {
   try { if (screen.orientation && screen.orientation.lock) { const p = screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
