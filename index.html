@@ -39,16 +39,17 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 16px;touch-action:none;transition:transform .1s ease}
+#btns button{min-width:52px;height:40px;border-radius:999px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 10px;touch-action:none;transition:transform .1s ease}
 #btns button:active{transform:scale(.93)}
 #runBtn{background:var(--blue)}
 #sneakBtn{background:var(--brown)}
 #sneakBtn.on{background:var(--amber)}
 #actBtn{background:var(--green);display:none}
 #findBtn{background:var(--red);display:none}
-#muteBtn,#fsBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#muteBtn,#fsBtn,#cornerSetBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3)}
 #muteBtn{right:8px}
 #fsBtn{right:56px}
+#cornerSetBtn{right:104px}
 
 /* ---------- overlays, cards, buttons (shared) ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;animation:fadeIn .25s ease}
@@ -65,15 +66,18 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #start .card h1{background:none;-webkit-background-clip:initial;background-clip:initial;color:#fff;-webkit-text-fill-color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
 #start .ver{color:rgba(255,255,255,.8)}
 #start #best{color:rgba(255,255,255,.8)}
-.modeBtn{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;text-align:center;touch-action:none;box-shadow:var(--shadow-btn);transition:transform .12s ease, box-shadow .12s ease;background-image:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0) 55%)}
-.modeBtn:active{transform:scale(.97)}
-#modeHide{background:var(--green)}
-#modeSeek{background:var(--blue)}
-#modeOnline{background:var(--orange)}
-.bigBtn{width:100%;margin-top:12px;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
+.bigBtn{width:100%;margin-top:10px;padding:8px 12px;border:none;border-radius:999px;font-size:14px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
 .bigBtn:active{transform:scale(.97)}
-.ghostBtn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:14px;font-size:15px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
+.ghostBtn{width:100%;margin-top:8px;padding:7px 10px;border:none;border-radius:999px;font-size:13px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
 .ghostBtn:active{transform:scale(.97)}
+#startBtn{width:auto;display:block;margin:10px auto 0;padding:8px 30px;font-size:15px}
+#charPreview{display:block;margin:4px auto 0;width:140px;height:140px}
+#charPickBtn{width:auto;display:block;margin:4px auto 0;padding:4px 14px;font-size:13px}
+#charGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.charCard{background:#fff;border:2px solid #d7dee2;border-radius:14px;padding:8px 2px;font-size:12px;font-weight:700;color:var(--ink)}
+.charCard.sel{border-color:var(--green);background:#e8f5e9}
+.charCard .charEmoji{display:block;font-size:26px}
+.charCard .charNm{display:block;font-size:11px;margin-top:2px}
 #setName,#netName,#netJoinCode{width:100%;padding:12px;border:2px solid #d7dee2;border-radius:14px;font-size:16px;margin-top:8px;background:#fff;color:var(--ink)}
 #setName:focus,#netName:focus,#netJoinCode:focus{outline:none;border-color:var(--green)}
 .menuRow{display:flex;gap:8px}
@@ -119,8 +123,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (orientation:landscape){
   #start .card{max-width:340px;padding:10px 12px}
   #start .card h1{font-size:22px}
-  .modeRow{display:flex;gap:10px}
-  #start .modeRow .modeBtn{margin-top:0;flex:1;padding:14px 8px;font-size:16px;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
   #start .menuRow .ghostBtn{padding:11px 2px;font-size:13px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,.25)}
   #best{margin-top:8px}
   #hint{display:none}
@@ -159,6 +161,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div id="hint">Joystick နဲ့ လမ်း — ညာဘက်ကို ပွတ်ပြီး ကင်မရာ လှည့်</div>
 <button id="fsBtn" title="fullscreen">⛶</button>
 <button id="muteBtn" title="အသံ">🔊</button>
+<button id="cornerSetBtn" title="ဆက်တင်">⚙️</button>
 <div id="joy"><div id="knob"></div></div>
 <div id="btns">
   <button id="findBtn">👀 တွေ့ပြီ!</button>
@@ -187,15 +190,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V5.8</p>
-    <div class="modeRow">
-      <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
-      <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
-      <button class="modeBtn" id="modeOnline">👥 အွန်လိုင်း</button>
-    </div>
+    <p class="ver">Hide &amp; Seek • V5.9</p>
+    <canvas id="charPreview" width="140" height="140"></canvas>
+    <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
+    <button class="bigBtn" id="startBtn">▶ စမယ်</button>
     <p id="best"></p>
     <div class="menuRow">
-      <button class="ghostBtn" id="settingsBtn">⚙️ ဆက်တင်</button>
+      <button class="ghostBtn" id="menuOnlineBtn">👥 အွန်လိုင်း</button>
       <button class="ghostBtn" id="howtoBtn">📖 ကစားနည်း</button>
       <button class="ghostBtn" id="menuFsBtn">⛶ မျက်နှာပြင်</button>
       <button class="ghostBtn" id="installBtn">📲 Install</button>
@@ -205,14 +206,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="howto" style="display:none">
   <div class="card">
     <h2>📖 ဘယ်လို ဆော့ရမလဲ</h2>
-    <p>🙈 <b>ပုန်းသူ</b> — ၉၀ စက္ကန့် မတွေ့အောင် ပုန်း။</p>
-    <p>🔍 <b>ရှာသူ</b> — ပုန်းနေတဲ့ ၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ။</p>
+    <p>▶ <b>စမယ်</b> — ပုန်းသူ/ရှာသူ random ကျမယ်။</p>
+    <p>🎭 <b>ဇာတ်ကောင်</b> — ကြိုက်တာ ရွေး၊ တစ်ခါရွေးပြီး မှတ်ထားမယ်။</p>
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
     <p>❌ <b>မိသွားရင်</b> — ခေါင်းပေါ် ❌ ပေါ်ပြီး လှုပ်မရတော့ဘူး၊ ရှာသူ တွေ့တာ ဘယ်နှယောက်လဲ မြင်ရမယ်။ အကုန်မိရင် ပွဲပြီးမယ်။</p>
     <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
     <p>🚪 <b>ဗီရို</b> — အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ဗီရိုထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
-    <p>🎨 Characters (CC0) — Rogue, Rogue Hooded, Barbarian, Knight: KayKit; Fox: KhronosGroup glTF Sample Models.</p>
+    <p>🎨 Characters — KayKit (CC0), KhronosGroup (CC0), three.js (MIT).</p>
     <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
@@ -232,18 +233,27 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <h2>👥 သူငယ်ချင်းတွေနဲ့ ဆော့</h2>
     <p style="font-size:14px">၅ ယောက် ပြည့်မှ စလို့ရမယ် — တစ်ယောက်က အခန်းဖွင့်၊ ကျန်သူတွေ ကုဒ်နဲ့ ဝင်။ စတာနဲ့ random တစ်ယောက် ရှာသူ ဖြစ်မယ်။</p>
     <input id="netName" placeholder="မင်းနာမည် (ဥပမာ Zaw)" maxlength="12">
-    <button class="bigBtn" id="createBtn">🏠 အခန်းဖွင့်မယ်</button>
+    <div class="netRow">
+      <button class="bigBtn" id="createBtn">🏠 အခန်းဖွင့်မယ်</button>
+      <button class="bigBtn" id="inviteBtn" style="background:#ef6c00">📩 ဖိတ်မယ်</button>
+    </div>
     <div class="netRow">
       <input id="netJoinCode" placeholder="ကုဒ် ၄ လုံး" maxlength="4" style="text-transform:uppercase">
       <button class="bigBtn" id="joinBtn" style="background:#1565c0">ဝင်မယ်</button>
     </div>
     <div id="netCode" style="display:none"></div>
     <button class="ghostBtn" id="copyLinkBtn" style="display:none">🔗 လင့်ခ်ကူးမယ်</button>
-    <button class="bigBtn" id="inviteBtn" style="background:#ef6c00">📩 သူငယ်ချင်းကို ဖိတ်မယ်</button>
     <div id="netList"></div>
     <p id="netStatus"></p>
     <button class="bigBtn" id="netStartBtn" style="display:none">▶️ စဆော့မယ်</button>
     <button class="ghostBtn" id="netLeaveBtn">ထွက်မယ်</button>
+  </div>
+</div>
+<div class="overlay" id="charPick" style="display:none">
+  <div class="card">
+    <h2>🎭 ဇာတ်ကောင် ရွေး</h2>
+    <div id="charGrid"></div>
+    <button class="bigBtn" id="charOkBtn">✅ ရွေးမယ်</button>
   </div>
 </div>
 <div id="eyes">
@@ -314,6 +324,9 @@ let giggleT = 8;
 let warnT = 0;
 let caughtT = 0;
 let invitePending = false;
+let myCharIdx = null;
+let pendingStart = false;
+let pendingLobby = false;
 let seekerMemory = null;
 let seekerLoseT = 0;
 let chaseT = 0;
@@ -401,6 +414,75 @@ function setTagText(p, txt) {
     p.tag = nt;
     p.g.add(nt);
   } catch (e) {}
+}
+let pvRenderer = null;
+let pvScene = null;
+let pvCam = null;
+let pvGroup = null;
+let pvMixer = null;
+function buildCharPreview() {
+  const cv = $('charPreview');
+  if (!cv) return;
+  if (!pvRenderer) {
+    pvRenderer = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+    pvRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    pvRenderer.setSize(140, 140, false);
+    pvScene = new THREE.Scene();
+    pvScene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a5a, 1.1));
+    const dl = new THREE.DirectionalLight(0xffffff, 1.4);
+    dl.position.set(2, 3, 2);
+    pvScene.add(dl);
+    pvCam = new THREE.PerspectiveCamera(40, 1, 0.1, 20);
+    pvCam.position.set(0, 0.85, 2.4);
+    pvCam.lookAt(0, 0.55, 0);
+  }
+  if (pvGroup) {
+    pvScene.remove(pvGroup);
+    pvGroup = null;
+    pvMixer = null;
+  }
+  const cache = MODEL_CACHE[myCharIdx];
+  if (cache && cache.state === 'ok') {
+    pvGroup = normalizeModel(cloneSkinned(cache.scene));
+    const anims = cache.animations || [];
+    const idle = anims.find((a) => /^idle/i.test(a.name)) || anims.find((a) => /idle/i.test(a.name)) || null;
+    if (idle) {
+      pvMixer = new THREE.AnimationMixer(pvGroup);
+      pvMixer.clipAction(idle).play();
+    }
+  } else {
+    pvGroup = makeChibi(SHIRT[0].hex, SHIRT[0].css).bodyG;
+  }
+  pvScene.add(pvGroup);
+  const m = MODELS[myCharIdx];
+  $('charPickBtn').textContent = m ? m.emoji + ' ' + m.short : '🎭 ရွေး';
+}
+function saveChar() {
+  try { localStorage.setItem('hs_character', String(myCharIdx)); } catch (e) {}
+}
+function buildCharGrid() {
+  const grid = $('charGrid');
+  grid.innerHTML = '';
+  MODELS.forEach((m, i) => {
+    const b = document.createElement('button');
+    b.className = 'charCard' + (i === myCharIdx ? ' sel' : '');
+    b.innerHTML = '<span class="charEmoji">' + m.emoji + '</span><span class="charNm">' + m.short + '</span>';
+    b.addEventListener('click', () => {
+      myCharIdx = i;
+      saveChar();
+      buildCharPreview();
+      buildCharGrid();
+    });
+    grid.appendChild(b);
+  });
+}
+function openCharPick(fromStart) {
+  pendingStart = fromStart;
+  buildCharGrid();
+  $('charPick').style.display = 'flex';
+}
+function startSolo() {
+  startMode(Math.random() < 0.5 ? 'hide' : 'seek');
 }
 function fmtTime(s) {
   s = Math.max(0, Math.ceil(s));
@@ -587,17 +669,22 @@ const decoGeos = {
 // ---------- Animated characters (CC0, credits in the How-to overlay) ----------
 // KayKit Character Pack lite (Rogue/Hooded/Barbarian/Knight) + KhronosGroup Fox (seeker, slot 1).
 // All verified in the Node harness: real skeletons + walk/run/idle clips, sane skinned size.
-// 5 GLB models, preloaded at boot; each person uses one slot. All are skinned with
+// 10 GLB models, preloaded at boot; each person uses one slot. All are skinned with
 // real Walk/Idle/Run clips (Farmer/Worker/Adventurer/Casual share the 24-clip
 // CharacterArmature set; T-Rex has Walk/Idle/Run). If a GLB is not loaded yet
 // (or fails to load), the person falls back to the code-built chibi, so a
 // character is never broken or missing. Normalised to ~0.9m tall at runtime.
 const MODELS = [
-  { url: 'models/rogue.glb', name: 'Rogue', author: 'KayKit' },
-  { url: 'models/fox.glb', name: 'Fox', author: 'KhronosGroup' },
-  { url: 'models/rogue_hooded.glb', name: 'Rogue Hooded', author: 'KayKit' },
-  { url: 'models/barbarian.glb', name: 'Barbarian', author: 'KayKit' },
-  { url: 'models/knight.glb', name: 'Knight', author: 'KayKit' },
+  { url: 'models/rogue.glb', name: 'Rogue', short: 'Rogue', emoji: '🗡️', author: 'KayKit' },
+  { url: 'models/fox.glb', name: 'Fox', short: 'Fox', emoji: '🦊', author: 'KhronosGroup' },
+  { url: 'models/rogue_hooded.glb', name: 'Rogue Hooded', short: 'Hooded', emoji: '🎭', author: 'KayKit' },
+  { url: 'models/barbarian.glb', name: 'Barbarian', short: 'Barbarian', emoji: '🪓', author: 'KayKit' },
+  { url: 'models/knight.glb', name: 'Knight', short: 'Knight', emoji: '🛡️', author: 'KayKit' },
+  { url: 'models/mage.glb', name: 'Mage', short: 'Mage', emoji: '🧙', author: 'KayKit' },
+  { url: 'models/xbot.glb', name: 'Xbot', short: 'Xbot', emoji: '🤖', author: 'three.js' },
+  { url: 'models/soldier.glb', name: 'Soldier', short: 'Soldier', emoji: '🎖️', author: 'three.js' },
+  { url: 'models/cesiumman.glb', name: 'CesiumMan', short: 'Cesium', emoji: '🚶', author: 'KhronosGroup' },
+  { url: 'models/brainstem.glb', name: 'BrainStem', short: 'Brain', emoji: '🧠', author: 'KhronosGroup' },
 ];
 const MODEL_CACHE = MODELS.map(() => ({ state: 'loading', scene: null, animations: [] }));
 function normalizeModel(src) {
@@ -607,7 +694,10 @@ function normalizeModel(src) {
   // DO animate — with the cape hidden, the walk finally reads.
   // (The Fox has no cape; Hat/Helmet are head accessories and stay.)
   src.traverse((o) => { if (o.isMesh && /cape/i.test(o.name || '')) o.visible = false; });
-  const box = new THREE.Box3().setFromObject(src);
+  src.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  src.traverse((o) => { if (o.isSkinnedMesh) box.expandByObject(o); });
+  if (box.isEmpty()) box.setFromObject(src);
   const h = Math.max(0.01, box.max.y - box.min.y);
   const s = 0.9 / h;
   const inner = new THREE.Group();
@@ -623,6 +713,7 @@ function preloadModels() {
   MODELS.forEach((m, i) => {
     loader.load(m.url, (gltf) => {
       MODEL_CACHE[i] = { state: 'ok', scene: gltf.scene, animations: gltf.animations || [] };
+      if (i === myCharIdx) buildCharPreview();
     }, undefined, () => {
       MODEL_CACHE[i] = { state: 'fail', scene: null, animations: [] };
     });
@@ -703,6 +794,7 @@ function makePerson(name, colorHex, colorCss, modelIdx) {
       const pick = (re) => anims.find((a) => re.test(a.name.toLowerCase())) || null;
       clipWalk = pick(/walk/);
       clipRun = pick(/run/);
+      if (!clipWalk && anims.length === 1) clipWalk = anims[0];
       // Prefer a clip that STARTS with idle (Idle_A) — /idle$/ alone grabs
       // Lie_Idle first (KayKit lists it before Idle_A), which would lie the
       // character down while standing idle.
@@ -741,6 +833,10 @@ function updatePersonAnim(p, dt) {
       action.reset().fadeIn(0.2).play();
       p.curClip = want;
       p.curAction = action;
+    } else if (!want && p.curAction) {
+      p.curAction.fadeOut(0.2);
+      p.curAction = null;
+      p.curClip = null;
     }
     if (p.curAction) {
       if (p.moving) {
@@ -1085,7 +1181,7 @@ const FURN_COLORS = ['pink', 'yellow', 'blue', 'mint', 'orange', 'red', 'white',
 // (|x| >= 3.5 AND |z| >= 3.5); the cross |x| < 3.5 OR |z| < 3.5 stays empty.
 // ---------- multi-room layout (V5.0): cross corridor + 4 quadrant rooms ----------
 // Corridor cross: |x| <= 2.5 and |z| <= 2.5. Interior walls run along x=+-2.5
-// (|z|>2.5) and z=+-2.5 (|x|>2.5), 0.4m thick, 3.2m high. Each room has 2
+// (|z|>2.5) and z=+-2.5 (|x|>2.5), 0.4m thick, 4.6m high. Each room has 2
 // doorways (2.0m wide) into the corridor, one in each corridor-facing wall.
 const ROOMS = [
   { x0: -20, x1: -2.5, z0: -20, z1: -2.5 },
@@ -1556,11 +1652,11 @@ function buildMap(idx) {
   picSpots.forEach((ps, pi) => {
     const fr = new THREE.Mesh(unitBox, frameMat);
     fr.scale.set(0.1, 1.6, 2.4);
-    fr.position.set(ps[0], 2.0, ps[1]);
+    fr.position.set(ps[0], 2.6, ps[1]);
     worldGroup.add(fr);
     const inner = new THREE.Mesh(unitBox, MAT[picCols[pi]]);
     inner.scale.set(0.12, 1.3, 2.1);
-    inner.position.set(ps[0], 2.0, ps[1]);
+    inner.position.set(ps[0], 2.6, ps[1]);
     worldGroup.add(inner);
   });
   // Interior walls: cross corridor + 4 rooms (V5.0). Each wall line is split by
@@ -1571,8 +1667,8 @@ function buildMap(idx) {
       const len = b - a;
       const c = (a + b) / 2;
       const seg = new THREE.Mesh(unitBox, wallMat);
-      seg.scale.set(wl.vertical ? 0.4 : len, 3.2, wl.vertical ? len : 0.4);
-      seg.position.set(wl.vertical ? wl.at : c, 1.6, wl.vertical ? c : wl.at);
+      seg.scale.set(wl.vertical ? 0.4 : len, 4.6, wl.vertical ? len : 0.4);
+      seg.position.set(wl.vertical ? wl.at : c, 2.3, wl.vertical ? c : wl.at);
       worldGroup.add(seg);
       const sk2 = new THREE.Mesh(unitBox, skirtMat);
       sk2.scale.set(wl.vertical ? 0.5 : len, 0.5, wl.vertical ? len : 0.5);
@@ -1584,8 +1680,8 @@ function buildMap(idx) {
     const dx = wl.vertical ? wl.at : wl.door;
     const dz = wl.vertical ? wl.door : wl.at;
     const lintel = new THREE.Mesh(unitBox, doorMat);
-    lintel.scale.set(wl.vertical ? 0.44 : 2.3, 0.8, wl.vertical ? 2.3 : 0.44);
-    lintel.position.set(dx, 2.8, dz);
+    lintel.scale.set(wl.vertical ? 0.44 : 2.3, 2.2, wl.vertical ? 2.3 : 0.44);
+    lintel.position.set(dx, 3.5, dz);
     worldGroup.add(lintel);
     for (const sd of [-1, 1]) {
       const post = new THREE.Mesh(unitBox, doorMat);
@@ -2389,7 +2485,7 @@ function startMode(m) {
   endEl.style.display = 'none';
   if (!audioCtx) sfx('go');
   if (m === 'hide') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 0);
+    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
     player.g.position.set(0, 0, 9);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
     seeker.g.position.set(0, 0, -18);
@@ -2403,7 +2499,7 @@ function startMode(m) {
     modePill.textContent = '🙈 ပုန်းသူ';
     showWarn('🔍 ရှာသူ ရေတွက်နေတယ်!', 2.5);
   } else if (m === 'seek') {
-    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 1);
+    player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, myCharIdx);
     player.g.position.set(0, 0, 4);
     const names = ['ကိုကို', 'မမ', 'စုစု', 'ထက်ထက်', 'အောင်အောင်'];
     // V5.0: spread the 5 AI hiders across rooms (round-robin, one room gets 2).
@@ -2464,6 +2560,10 @@ function startMode(m) {
     $('eyesNum').textContent = '60';
     showWarn('🔍 ၅ ယောက် ပုန်းနေပြီ!', 2.5);
   }
+  $('roleTitle').textContent = m === 'hide' ? '🙈 မင်းက ပုန်းသူ!' : '🔍 မင်း ရှာသူ!';
+  $('roleTxt').textContent = m === 'hide' ? '၉၀ စက္ကန့် မတွေ့အောင် ပုန်း!' : '၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ!';
+  $('role').style.display = 'flex';
+  roleT = 2.5;
   snapCameraBehind();
 }
 function setSneakBtn() {
@@ -2812,6 +2912,10 @@ function updateHiders(dt, timeDt) {
 
 // ---------- HUD ----------
 function updateHUD(dt) {
+  if (roleT > 0) {
+    roleT -= dt;
+    if (roleT <= 0) $('role').style.display = 'none';
+  }
   if (mode === 'online') {
     timePill.textContent = fmtTime(netTimeLeft);
     const totalHiders = netPlayers.filter((p) => p.id !== netSeekerId).length;
@@ -2964,6 +3068,11 @@ function animate() {
   }
   updateConfetti(dt);
   renderer.render(scene, camera);
+  if (pvRenderer && startEl.style.display === 'flex') {
+    if (pvGroup) pvGroup.rotation.y += dt * 0.6;
+    if (pvMixer) pvMixer.update(dt);
+    pvRenderer.render(pvScene, pvCam);
+  }
 }
 
 // ---------- online multiplayer (PeerJS, host-authoritative) ----------
@@ -3032,7 +3141,7 @@ async function doShareInvite() {
     } catch (e2) { netStatus('လင့်ခ်: ' + link); }
   }
   setTimeout(() => {
-    $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 သူငယ်ချင်းကို ဖိတ်မယ်';
+    $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 ဖိတ်မယ်';
   }, 3000);
 }
 function netRenderLobby() {
@@ -3041,11 +3150,12 @@ function netRenderLobby() {
   netPlayers.forEach((p) => {
     const d = document.createElement('div');
     d.className = 'netPlayer';
-    d.innerHTML = '<span class="netDot" style="background:' + netColor(p.colorIdx).css + '"></span>' + escapeHtml(p.name) + (p.isHost ? ' 👑' : '') + (p.id === myPeerId ? ' (မင်း)' : '');
+    const cm = MODELS[(typeof p.model === 'number' ? p.model : p.colorIdx % MODELS.length)];
+    d.innerHTML = '<span style="font-size:22px">' + (cm ? cm.emoji : '🙂') + '</span><span class="netDot" style="background:' + netColor(p.colorIdx).css + '"></span>' + escapeHtml(p.name) + (p.isHost ? ' 👑' : '') + (p.id === myPeerId ? ' (မင်း)' : '');
     list.appendChild(d);
   });
   $('netStartBtn').style.display = isHost ? 'block' : 'none';
-  $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 သူငယ်ချင်းကို ဖိတ်မယ်';
+  $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 ဖိတ်မယ်';
   if (isHost) $('netStartBtn').textContent = '▶️ စဆော့မယ် (' + netPlayers.length + '/5)';
 }
 function openLobby() {
@@ -3070,7 +3180,7 @@ function createRoom() {
     isHost = true;
     myPeerId = id;
     myColorIdx = 0;
-    netPlayers = [{ id, name, colorIdx: 0, isHost: true }];
+    netPlayers = [{ id, name, colorIdx: 0, isHost: true, model: (myCharIdx === null ? 0 : myCharIdx) }];
     hostPos = {};
     netPhase = 'lobby';
     $('netCode').style.display = 'block';
@@ -3101,7 +3211,7 @@ function hostHandle(conn, msg) {
     if (netPhase !== 'lobby') { try { conn.send({ t: 'busy' }); } catch (e) {} return; }
     if (netPlayers.length >= 5) { try { conn.send({ t: 'full' }); } catch (e) {} return; }
     const colorIdx = netPlayers.length;
-    const p = { id: conn.peer, name: String(msg.name || 'Player').slice(0, 12), colorIdx, isHost: false };
+    const p = { id: conn.peer, name: String(msg.name || 'Player').slice(0, 12), colorIdx, isHost: false, model: (typeof msg.model === 'number' ? msg.model : colorIdx % MODELS.length) };
     netPlayers.push(p);
     try { conn.send({ t: 'welcome', id: conn.peer, colorIdx, players: netPlayers, code: roomCode }); } catch (e) {}
     hostSendAll({ t: 'lobby', players: netPlayers });
@@ -3258,7 +3368,7 @@ function joinRoom() {
     myPeerId = id;
     const conn = peerObj.connect('hs-' + code, { reliable: true });
     netConns['host'] = conn;
-    conn.on('open', () => { try { conn.send({ t: 'hello', name }); } catch (e) {} });
+    conn.on('open', () => { try { conn.send({ t: 'hello', name, model: myCharIdx }); } catch (e) {} });
     conn.on('data', (msg) => clientHandle(msg));
     conn.on('close', () => { if (!netLeaving) netLeave('Host ထွက်သွားပြီ'); });
     conn.on('error', () => {});
@@ -3342,7 +3452,7 @@ function netBeginRound() {
   netRole = (myPeerId === netSeekerId) ? 'seeker' : 'hider';
   const myIdx = Math.max(0, netPlayers.findIndex((p) => p.id === myPeerId));
   const myC = netColor(netPlayers[myIdx] ? netPlayers[myIdx].colorIdx : myColorIdx);
-  player = makePerson(myName || 'မင်း', myC.hex, myC.css, myIdx % MODELS.length);
+  player = makePerson(myName || 'မင်း', myC.hex, myC.css, myCharIdx === null ? myIdx % MODELS.length : myCharIdx);
   const hiderSpots = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2]];
   if (netRole === 'seeker') {
     player.g.position.set(0, 0, -18);
@@ -3355,7 +3465,7 @@ function netBeginRound() {
   netPlayers.forEach((p, i) => {
     if (p.id === myPeerId) return;
     const c = netColor(p.colorIdx);
-    const rp = makePerson(p.name, c.hex, c.css, i % MODELS.length);
+    const rp = makePerson(p.name, c.hex, c.css, (typeof p.model === 'number' ? p.model : i % MODELS.length));
     if (p.id === netSeekerId) {
       rp.g.position.set(0, 0, -18);
       rp.heading = Math.PI;
@@ -3423,10 +3533,6 @@ function applyNetState(pos, doors) {
 }
 function updateNet(dt, timeDt) {
   if (!player) return;
-  if (roleT > 0) {
-    roleT -= timeDt;
-    if (roleT <= 0) $('role').style.display = 'none';
-  }
   if (netRole === 'seeker' && netPhase === 'hide') $('eyesNum').textContent = Math.max(0, Math.ceil(netTimeLeft));
   if (isHost && netStarted) {
     hostPos[myPeerId] = { x: player.g.position.x, z: player.g.position.z, heading: player.heading, moving: player.moving, crouched: player.crouched, found: !!netFound[myPeerId], inside: player.insideWardrobe ? wardrobes.indexOf(player.insideWardrobe) : -1 };
@@ -3537,9 +3643,27 @@ $('howtoCloseBtn').addEventListener('click', () => { $('howto').style.display = 
 window.addEventListener('orientationchange', () => {
   if (!rotateDismissed) $('rotate').style.display = window.innerHeight > window.innerWidth ? 'flex' : 'none';
 });
-$('modeHide').addEventListener('click', () => startMode('hide'));
-$('modeSeek').addEventListener('click', () => startMode('seek'));
-$('modeOnline').addEventListener('click', openLobby);
+$('startBtn').addEventListener('click', () => {
+  if (myCharIdx === null) openCharPick(true);
+  else startSolo();
+});
+$('menuOnlineBtn').addEventListener('click', () => {
+  if (myCharIdx === null) {
+    pendingLobby = true;
+    openCharPick(false);
+  } else openLobby();
+});
+$('charPickBtn').addEventListener('click', () => openCharPick(false));
+$('charOkBtn').addEventListener('click', () => {
+  $('charPick').style.display = 'none';
+  if (pendingStart) {
+    pendingStart = false;
+    startSolo();
+  } else if (pendingLobby) {
+    pendingLobby = false;
+    openLobby();
+  }
+});
 $('againBtn').addEventListener('click', () => {
   if (mode === 'online') {
     endEl.style.display = 'none';
@@ -3551,7 +3675,7 @@ $('againBtn').addEventListener('click', () => {
     netRenderLobby();
     return;
   }
-  startMode(mode);
+  startSolo();
 });
 $('menuBtn').addEventListener('click', () => {
   if (mode === 'online') { netLeave(); return; }
@@ -3578,7 +3702,7 @@ function refreshSettingsUI() {
   $('setDiffBtn').textContent = '🎯 အခက်အခဲ: ' + DIFFS[difficulty].label;
   $('setName').value = myName || '';
 }
-$('settingsBtn').addEventListener('click', () => { refreshSettingsUI(); $('settings').style.display = 'flex'; });
+$('cornerSetBtn').addEventListener('click', () => { refreshSettingsUI(); $('settings').style.display = 'flex'; });
 $('setCloseBtn').addEventListener('click', () => { $('settings').style.display = 'none'; });
 $('setSoundBtn').addEventListener('click', () => {
   muted = !muted;
@@ -3611,6 +3735,11 @@ $('setResetBtn').addEventListener('click', () => {
 });
 $('muteBtn').textContent = muted ? '🔇' : '🔊';
 applyQuality();
+try {
+  const sv = parseInt(localStorage.getItem('hs_character') || '', 10);
+  if (sv >= 0 && sv < MODELS.length) myCharIdx = sv;
+} catch (e) {}
+buildCharPreview();
 buildMap(currentMapIdx);
 loadFill.style.width = '100%';
 loadTxt.textContent = 'ပြီးပြီ!';
