@@ -13,85 +13,121 @@
 <meta property="og:type" content="website">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --green:#2e7d32; --green-deep:#1b5e20; --blue:#1565c0; --orange:#ef6c00;
+  --red:#d32f2f; --brown:#795548; --amber:#f57c00; --gold:#ffd54a;
+  --cream:#fffdf5; --ink:#263238; --muted:#6d7c83; --line:rgba(38,50,56,.12);
+  --ghost:#eef2f3; --shadow-card:0 12px 32px rgba(0,0,0,.35);
+  --shadow-btn:0 3px 10px rgba(0,0,0,.22);
+  --brand:linear-gradient(135deg,#2e7d32,#ef6c00);
+}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#7ec850;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+/* ---------- HUD ---------- */
 #hud{position:fixed;top:8px;left:8px;right:104px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
-.pill{background:rgba(0,0,0,.45);color:#fff;padding:6px 10px;border-radius:16px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
-.pill b{color:#ffd54a}
-#warn{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:7px 12px;border-radius:14px;font-size:14px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
-#hint{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:12px;font-size:13px;z-index:5;white-space:nowrap;pointer-events:none}
+.pill{background:rgba(0,0,0,.5);color:#fff;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px)}
+.pill b{color:var(--gold)}
+#warn{position:fixed;top:56px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
+#hint{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:999px;font-size:13px;z-index:5;white-space:nowrap;pointer-events:none}
+#countNum{position:fixed;top:96px;left:50%;transform:translateX(-50%);font-size:64px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);z-index:9;pointer-events:none;opacity:.9;display:none}
+
+/* ---------- controls ---------- */
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35);padding:0 14px;touch-action:none}
-#runBtn{background:linear-gradient(135deg,#1e88e5,#0d47a1)}
-#sneakBtn{background:linear-gradient(135deg,#8d6e63,#4e342e)}
-#sneakBtn.on{background:linear-gradient(135deg,#fb8c00,#e65100)}
-#actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
-#findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
-#muteBtn{position:fixed;top:8px;right:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
-#fsBtn{position:fixed;top:8px;right:56px;z-index:12;width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
-.card{background:rgba(255,251,232,.96);border-radius:22px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
-.card h1{margin:0 0 4px;font-size:30px;background:linear-gradient(135deg,#2e7d32,#ef6c00);-webkit-background-clip:text;background-clip:text;color:transparent}
-.overlay{animation:fadeIn .25s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.card{animation:pop .3s ease}
-@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
-.modeBtn{transition:transform .12s ease, box-shadow .12s ease}
-.modeBtn:active{transform:scale(.97)}
-#btns button{transition:transform .1s ease}
+#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:var(--shadow-btn);padding:0 16px;touch-action:none;transition:transform .1s ease}
 #btns button:active{transform:scale(.93)}
-#setName{width:100%;padding:12px;border:2px solid #ccc;border-radius:12px;font-size:16px;margin-top:8px}
-.card h2{margin:0 0 8px;font-size:24px}
+#runBtn{background:var(--blue)}
+#sneakBtn{background:var(--brown)}
+#sneakBtn.on{background:var(--amber)}
+#actBtn{background:var(--green);display:none}
+#findBtn{background:var(--red);display:none}
+#muteBtn,#fsBtn{position:fixed;top:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#muteBtn{right:8px}
+#fsBtn{right:56px}
+
+/* ---------- overlays, cards, buttons (shared) ---------- */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.card{background:var(--cream);border-radius:20px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:var(--shadow-card);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.card h1{margin:0 0 4px;font-size:26px;background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card h2{margin:0 0 8px;font-size:22px;color:var(--ink)}
 .card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
-.modeBtn{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;font-size:16px;font-weight:700;color:#fff;text-align:center;touch-action:none}
-.ver{font-size:12px;color:#888;margin:2px 0 4px}
+.ver{font-size:12px;color:var(--muted);margin:2px 0 4px}
+.modeBtn{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;text-align:center;touch-action:none;box-shadow:var(--shadow-btn);transition:transform .12s ease, box-shadow .12s ease}
+.modeBtn:active{transform:scale(.97)}
+#modeHide{background:var(--green)}
+#modeSeek{background:var(--blue)}
+#modeOnline{background:var(--orange)}
+.bigBtn{width:100%;margin-top:12px;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;background:var(--green);box-shadow:var(--shadow-btn);transition:transform .12s ease}
+.bigBtn:active{transform:scale(.97)}
+.ghostBtn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:14px;font-size:15px;font-weight:700;color:var(--ink);background:var(--ghost);transition:transform .12s ease}
+.ghostBtn:active{transform:scale(.97)}
+#setName,#netName,#netJoinCode{width:100%;padding:12px;border:2px solid #d7dee2;border-radius:14px;font-size:16px;margin-top:8px;background:#fff;color:var(--ink)}
+#setName:focus,#netName:focus,#netJoinCode:focus{outline:none;border-color:var(--green)}
 .menuRow{display:flex;gap:8px}
 .menuRow .ghostBtn{flex:1}
+#best{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6}
 #howto .card{text-align:left}
+#howto .card p{margin:7px 0}
+
+/* ---------- full screens ---------- */
+#load{position:fixed;inset:0;background:var(--brand);z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;padding:20px;text-align:center}
+#load h1{font-size:32px;margin:0}
+#load p{margin:8px 0 0;font-size:15px}
+#loadBar{width:220px;height:12px;background:rgba(255,255,255,.35);border-radius:999px;margin-top:16px;overflow:hidden}
+#loadFill{height:100%;width:5%;background:#fff;border-radius:999px}
+#loadTxt{margin-top:10px;font-size:14px}
+#splash{position:fixed;inset:0;background:var(--brand);z-index:70;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
+#splash h1{font-size:52px;margin:0;text-shadow:0 4px 16px rgba(0,0,0,.3)}
+#splash .sub{font-size:18px;margin:10px 0 28px;opacity:.95}
+#splashBtn{padding:18px 44px;border:none;border-radius:18px;font-size:24px;font-weight:800;color:var(--green);background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#splashBtn:active{transform:scale(.96)}
+#splash .tip{font-size:14px;margin-top:20px;opacity:.85}
+#rotate{position:fixed;inset:0;background:var(--green-deep);z-index:80;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
+#rotate .big{font-size:64px;animation:rot 1.6s ease-in-out infinite}
+@keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+#eyes{position:fixed;inset:0;background:#000;z-index:31;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
+#eyesNum{font-size:110px;font-weight:800;line-height:1}
+#role{position:fixed;inset:0;z-index:32;display:none;align-items:center;justify-content:center;pointer-events:none;padding:20px}
+#role .card{max-width:340px}
+
+/* ---------- lobby ---------- */
+#lobby .card{text-align:left}
+#lobby .card h2{text-align:center}
+#netList{margin:10px 0}
+.netPlayer{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:6px;font-size:15px;font-weight:600;color:var(--ink)}
+.netDot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+#netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:14px;padding:8px;margin:8px 0}
+.netRow{display:flex;gap:8px}
+.netRow button{flex:1}
+.netRow .bigBtn{margin-top:8px}
+#netStatus{font-size:14px;color:#c62828;min-height:20px;text-align:center}
+
+/* ---------- landscape: compact cards ---------- */
 @media (orientation:landscape){
   #start .card{max-width:660px;padding:14px 18px}
   #start .card h1{font-size:22px}
   .modeRow{display:flex;gap:10px}
   .modeRow .modeBtn{margin-top:0;flex:1;padding:10px 8px;font-size:14px}
+  .menuRow .ghostBtn{padding:9px;font-size:14px}
+  #best{margin-top:8px}
   #hint{display:none}
+  #settings .card{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 18px}
+  #settings .card h2{grid-column:1/-1;margin:0;font-size:20px}
+  #settings .card .ghostBtn,#settings .card .bigBtn{margin-top:0}
+  #setName{grid-column:1/-1;margin-top:0}
+  #setResetBtn{grid-column:1/-1}
+  #setCloseBtn{grid-column:1/-1}
+  #howto .card{padding:14px 18px}
+  #howto .card h2{font-size:20px}
+  #howto .card p{font-size:14px;margin:6px 0}
+  #lobby .card{padding:14px 18px}
+  #lobby .card h2{font-size:20px}
+  #end .card{padding:14px 18px}
 }
-.modeBtn small{display:block;font-size:13px;font-weight:400;opacity:.92;margin-top:2px}
-#modeHide{background:#2e7d32}
-#modeSeek{background:#1565c0}
-#modeOnline{background:#ef6c00}
-.bigBtn{width:100%;margin-top:12px;padding:12px;border:none;border-radius:12px;font-size:16px;font-weight:700;color:#fff;background:#2e7d32}
-.ghostBtn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#333;background:#eee}
-#best{font-size:13px;color:#555;margin-top:10px;line-height:1.6}
-#load{position:fixed;inset:0;background:#7ec850;z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;padding:20px;text-align:center}
-#load h1{font-size:32px;margin:0}
-#loadBar{width:220px;height:12px;background:rgba(255,255,255,.35);border-radius:6px;margin-top:16px;overflow:hidden}
-#loadFill{height:100%;width:5%;background:#fff;border-radius:6px}
-#loadTxt{margin-top:10px;font-size:14px}
-#splash{position:fixed;inset:0;background:linear-gradient(135deg,#2e7d32,#ef6c00);z-index:70;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
-#splash h1{font-size:52px;margin:0;text-shadow:0 4px 16px rgba(0,0,0,.3)}
-#splash .sub{font-size:18px;margin:10px 0 28px;opacity:.95}
-#splashBtn{padding:18px 44px;border:none;border-radius:20px;font-size:24px;font-weight:800;color:#2e7d32;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-#splashBtn:active{transform:scale(.96)}
-#splash .tip{font-size:14px;margin-top:20px;opacity:.85}
-#countNum{position:fixed;top:96px;left:50%;transform:translateX(-50%);font-size:64px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);z-index:9;pointer-events:none;opacity:.9;display:none}
-#lobby .card{text-align:left}
-#netList{margin:10px 0}
-.netPlayer{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;margin-top:6px;font-size:15px;font-weight:600}
-.netDot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
-#netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:12px;padding:8px;margin:8px 0}
-#netName,#netJoinCode{width:100%;padding:12px;border:2px solid #ccc;border-radius:12px;font-size:16px;margin-top:8px}
-.netRow{display:flex;gap:8px}
-.netRow button{flex:1}
-#netStatus{font-size:14px;color:#c62828;min-height:20px;text-align:center}
-#eyes{position:fixed;inset:0;background:#000;z-index:31;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:20px}
-#eyesNum{font-size:110px;font-weight:800;line-height:1}
-#role{position:fixed;inset:0;z-index:32;display:none;align-items:center;justify-content:center;pointer-events:none;padding:20px}
-#role .card{max-width:340px}
-#rotate{position:fixed;inset:0;background:#1b5e20;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:24px}
-#rotate .big{font-size:64px;animation:rot 1.6s ease-in-out infinite}
-@keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
 @media (orientation:portrait){#rotate{display:flex}}
 @media(pointer:fine){#joy{display:none}#hint{display:block}}
 @media(max-width:700px){#hint{display:none}}
@@ -140,7 +176,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V4.0</p>
+    <p class="ver">Hide &amp; Seek • V4.2</p>
     <div class="modeRow">
       <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
       <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
@@ -223,7 +259,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // ---------- state (all declared before any use) ----------
-const BOUND = 26;
+const BOUND = 20;
 const canvas = document.getElementById('game');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -241,7 +277,7 @@ let elapsed = 0;
 let foundCount = 0;
 let roundOver = false;
 let camYaw = 0;
-let camPitch = 0.16;
+let camPitch = 0.14;
 let muted = localStorage.getItem('hs_muted') === '1';
 let quality = localStorage.getItem('hs_quality') || 'high';
 function applyQuality() {
@@ -269,6 +305,10 @@ const joy = { active: false, x: 0, y: 0, id: null };
 let dragId = null;
 let dragX = 0;
 let dragY = 0;
+let pendingDragId = null;
+let pendX = 0;
+let pendY = 0;
+let suppressClick = false;
 let runHeld = false;
 let sneakOn = false;
 let hiddenSpot = null;
@@ -405,7 +445,7 @@ function nameSprite(text, color) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: true, transparent: true }));
-  sp.scale.set(2.4, 0.6, 1);
+  sp.scale.set(0.8, 0.2, 1);
   return sp;
 }
 
@@ -416,7 +456,7 @@ const sun = new THREE.DirectionalLight(0xfff2d0, 1.6);
 sun.position.set(30, 45, 20);
 scene.add(sun);
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(62, 62),
+  new THREE.PlaneGeometry(46, 46),
   new THREE.MeshLambertMaterial({ color: 0xffffff })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -902,100 +942,234 @@ const MAPS = [
     rugs: [[-12, -12, 7, 5, 'red'], [12, 12, 7, 5, 'blue'], [-12, 15, 6, 4, 'mint']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
-      ['bed', -15, -15, 0, 'blue'], ['wardrobe', -21, -9, 1.57, 'mint'], ['sofa', -9, -21, 3.14, 'red'],
-      ['table', -21, -21, 0, 'yellow'], ['chair', -15, -9, 0.5, 'orange'], ['shelf', -9, -9, 0, 'purple'],
-      ['wardrobe', 15, -15, 0, 'pink'], ['bed', 21, -21, 1.57, 'mint'], ['desk', 9, -9, -1.57, 'blue'],
-      ['shelf', 21, -9, 1.57, 'yellow'], ['crate', 15, -21, 0, 'red'], ['sofa', 21, -15, 3.14, 'teal'],
-      ['sofa', -15, 15, 0, 'teal'], ['counter', -21, 9, 1.57, 'white'], ['shelf', -9, 21, 0, 'purple'],
-      ['bed', -21, 21, 3.14, 'pink'], ['chair', -9, 15, 1.57, 'blue'], ['curtain', -15, 9, 0, 'red'],
-      ['table', 15, 15, 0, 'orange'], ['wardrobe', 21, 9, -1.57, 'blue'], ['sofa', 9, 21, 0, 'mint'],
-      ['desk', 15, 21, 1.57, 'yellow'], ['curtain', 21, 15, 0, 'pink'],
-      ['wardrobe', -24, -24, 0, 'teal'], ['shelf', 6, -24, 0, 'red'], ['curtain', 6, 12, 0, 'yellow'],
-      ['wardrobe', -24, -12, 1.57, 'purple'], ['shelf', -12, -24, 0, 'red'], ['curtain', 12, -24, 0, 'blue'],
-      ['wardrobe', 24, -18, -1.57, 'yellow'], ['shelf', -18, 24, 0, 'teal'], ['curtain', 24, 12, 1.57, 'mint'],
-      ['wardrobe', -18, -18, 0, 'pink'], ['sofa', -24, 18, 1.57, 'blue'], ['table', -12, 12, 0, 'yellow'],
-      ['crate', -18, -12, 0, 'red'], ['chair', 12, -12, 0, 'orange'], ['desk', 18, 18, 0, 'mint'],
-      ['counter', 12, 18, 1.57, 'white'], ['bed', -6, -18, 1.57, 'teal'],
+      ['bed', -11, -11, 0, 'blue'], ['wardrobe', -16, -7, 1.57, 'mint'], ['sofa', -7, -16, 3.14, 'red'],
+      ['table', -16, -16, 0, 'yellow'], ['chair', -11, -7, 0.5, 'orange'], ['shelf', -7, -7, 0, 'purple'],
+      ['wardrobe', 11, -11, 0, 'pink'], ['bed', 16, -16, 1.57, 'mint'], ['desk', 7, -7, -1.57, 'blue'],
+      ['shelf', 16, -7, 1.57, 'yellow'], ['crate', 11, -16, 0, 'red'],
+      ['sofa', -11, 11, 0, 'teal'], ['counter', -16, 7, 1.57, 'white'], ['shelf', -7, 16, 0, 'purple'],
+      ['bed', -16, 16, 3.14, 'pink'], ['chair', -7, 11, 1.57, 'blue'], ['curtain', -11, 7, 0, 'red'],
+      ['table', 11, 11, 0, 'orange'], ['wardrobe', 16, 7, -1.57, 'blue'], ['sofa', 7, 16, 0, 'mint'],
+      ['desk', 11, 16, 1.57, 'yellow'], ['curtain', 16, 11, 0, 'pink'],
+      ['wardrobe', -18, -18, 0, 'teal'], ['shelf', 4.5, -18, 0, 'red'], ['curtain', 4.5, 9, 0, 'yellow'],
+      ['wardrobe', -18, -9, 1.57, 'purple'], ['shelf', -9, -18, 0, 'red'], ['curtain', 9, -18, 0, 'blue'],
+      ['wardrobe', 18, -13.5, -1.57, 'yellow'], ['shelf', -13.5, 18, 0, 'teal'], ['curtain', 18, 9, 1.57, 'mint'],
+      ['wardrobe', -13.5, -13.5, 0, 'pink'], ['sofa', -18, 13.5, 1.57, 'blue'], ['table', -9, 9, 0, 'yellow'],
+      ['crate', -13.5, -9, 0, 'red'], ['chair', 9, -9, 0, 'orange'], ['desk', 13.5, 13.5, 0, 'mint'],
+      ['counter', 9, 13.5, 1.57, 'white'], ['bed', -4.5, -13.5, 1.57, 'teal'],
+      ['wardrobe', 3, 15, 0, 'pink'],
+      ['shelf', 9.5, 16.5, 1.57, 'yellow'],
+      ['wardrobe', 5.5, -7.5, 1.57, 'blue'],
+      ['wardrobe', 13.5, -11.5, 1.57, 'mint'],
+      ['wardrobe', -18, 8.5, 0, 'orange'],
+      ['sofa', -4.5, -11.5, 0, 'white'],
+      ['chair', -16, 11, 0, 'purple'],
+      ['wardrobe', 18, 5, 0, 'teal'],
+      ['sofa', 14.5, -14, 0, 'pink'],
+      ['curtain', -15.5, -4.5, 0, 'yellow'],
+      ['curtain', 17.5, -6, 1.57, 'blue'],
+      ['curtain', -5.5, -6, 0, 'mint'],
+      ['curtain', 17.5, -17.5, 0, 'red'],
+      ['sofa', -9, -12.5, 1.57, 'white'],
+      ['wardrobe', 13, 9, 0, 'purple'],
+      ['chair', -18, -16.5, 0, 'teal'],
+      ['wardrobe', 13.5, 17, 1.57, 'pink'],
+      ['wardrobe', -11.5, 14, 0, 'yellow'],
+      ['wardrobe', -12.5, -4.5, 0, 'blue'],
+      ['sofa', -17.5, -14, 0, 'mint'],
+      ['bed', 10, -6.5, 0, 'orange'],
+      ['sofa', -2.5, -10, 0, 'red'],
+      ['bed', -14, -2.5, 1.57, 'white'],
+      ['chair', 4.5, -3, 0, 'purple'],
+      ['wardrobe', 13, -9, 0, 'teal'],
+      ['sofa', 5, 10, 0, 'pink'],
+      ['wardrobe', 16, 17, 1.57, 'yellow'],
+      ['wardrobe', -6.5, -2.5, 0, 'blue'],
+      ['curtain', -16, 9.5, 0, 'mint'],
+      ['chair', -3, -2.5, 0, 'orange'],
+      ['wardrobe', 9, -3.5, 0, 'red'],
+      ['curtain', -7, 5.5, 0, 'white'],
+      ['wardrobe', 17, 12.5, 0, 'purple'],
     ] },
   { name: 'အိမ်ကြီး', icon: '🏠', floor: 0xd7b98a, wall: 0xf3e2c7, sky: 0xffe0b2, fog: 0xf0d0a0,
     rugs: [[-15, -9, 8, 5, 'blue'], [15, 15, 8, 5, 'red'], [9, -18, 6, 4, 'yellow']],
     palette: ['bed', 'wardrobe', 'sofa', 'desk', 'table', 'chair', 'shelf', 'crate', 'counter', 'curtain'],
     furniture: [
-      ['bed', -21, -15, 1.57, 'pink'], ['wardrobe', -9, -21, 0, 'blue'], ['sofa', -15, -9, 0, 'mint'],
-      ['table', -21, -9, 0, 'orange'], ['chair', -9, -15, 1.57, 'red'], ['shelf', -15, -21, 3.14, 'yellow'],
-      ['sofa', 9, -15, 0, 'blue'], ['bed', 15, -21, 0, 'yellow'], ['desk', 21, -9, 1.57, 'pink'],
-      ['wardrobe', 21, -21, 3.14, 'teal'], ['crate', 9, -21, 0, 'mint'], ['curtain', 15, -9, 0, 'red'],
-      ['bed', -15, 21, 0, 'mint'], ['wardrobe', -21, 15, 1.57, 'yellow'], ['sofa', -9, 9, 3.14, 'red'],
-      ['table', -15, 9, 0, 'blue'], ['chair', -21, 9, -1.57, 'purple'], ['shelf', -9, 15, 0, 'pink'],
-      ['sofa', 15, 9, 0, 'orange'], ['desk', 9, 15, 1.57, 'blue'], ['wardrobe', 21, 21, 0, 'mint'],
-      ['table', 21, 15, 0, 'yellow'], ['curtain', 9, 21, 0, 'teal'],
-      ['wardrobe', -24, 24, 0, 'red'], ['shelf', 6, -24, 0, 'mint'], ['curtain', -12, -12, 0, 'teal'],
-      ['wardrobe', -24, -18, 1.57, 'pink'], ['shelf', -18, -24, 0, 'blue'], ['curtain', 18, -24, 0, 'yellow'],
-      ['wardrobe', 24, -15, -1.57, 'mint'], ['shelf', -18, 18, 0, 'red'], ['curtain', 12, 24, 0, 'teal'],
-      ['shelf', 24, 6, 1.57, 'orange'], ['sofa', -24, 6, 1.57, 'yellow'], ['table', -6, -12, 0, 'mint'],
-      ['crate', 18, -12, 0, 'blue'], ['chair', -12, 18, 0, 'pink'], ['desk', 18, 12, 0, 'yellow'],
-      ['counter', 6, 12, 1.57, 'white'], ['bed', 6, -18, 1.57, 'purple'],
+      ['bed', -16, -11, 1.57, 'pink'], ['wardrobe', -7, -16, 0, 'blue'], ['sofa', -11, -7, 0, 'mint'],
+      ['table', -16, -7, 0, 'orange'], ['chair', -7, -11, 1.57, 'red'], ['shelf', -11, -16, 3.14, 'yellow'],
+      ['sofa', 7, -11, 0, 'blue'], ['bed', 11, -16, 0, 'yellow'], ['desk', 16, -7, 1.57, 'pink'],
+      ['wardrobe', 16, -16, 3.14, 'teal'], ['crate', 7, -16, 0, 'mint'], ['curtain', 11, -7, 0, 'red'],
+      ['bed', -11, 16, 0, 'mint'], ['wardrobe', -16, 11, 1.57, 'yellow'], ['sofa', -7, 7, 3.14, 'red'],
+      ['table', -11, 7, 0, 'blue'], ['chair', -16, 7, -1.57, 'purple'], ['shelf', -7, 11, 0, 'pink'],
+      ['sofa', 11, 7, 0, 'orange'], ['desk', 7, 11, 1.57, 'blue'], ['wardrobe', 16, 16, 0, 'mint'],
+      ['table', 16, 11, 0, 'yellow'], ['curtain', 7, 16, 0, 'teal'],
+      ['wardrobe', -18, 18, 0, 'red'], ['shelf', 4.5, -18, 0, 'mint'], ['curtain', -9, -9, 0, 'teal'],
+      ['wardrobe', -18, -13.5, 1.57, 'pink'], ['shelf', -13.5, -18, 0, 'blue'], ['curtain', 13.5, -18, 0, 'yellow'],
+      ['wardrobe', 18, -11, -1.57, 'mint'], ['shelf', -13.5, 13.5, 0, 'red'], ['curtain', 9, 18, 0, 'teal'],
+      ['shelf', 18, 4.5, 1.57, 'orange'], ['sofa', -18, 4.5, 1.57, 'yellow'], ['table', -4.5, -9, 0, 'mint'],
+      ['crate', 13.5, -9, 0, 'blue'], ['chair', -9, 13.5, 0, 'pink'], ['desk', 13.5, 9, 0, 'yellow'],
+      ['counter', 4.5, 9, 1.57, 'white'], ['bed', 4.5, -13.5, 1.57, 'purple'],
+      ['shelf', -15.5, -2.5, 1.57, 'yellow'],
+      ['wardrobe', 14.5, -2.5, 1.57, 'blue'],
+      ['wardrobe', -5, 4, 0, 'mint'],
+      ['wardrobe', 7.5, -9, 0, 'orange'],
+      ['wardrobe', -5.5, -3.5, 0, 'red'],
+      ['shelf', 13.5, -16.5, 1.57, 'white'],
+      ['chair', -6.5, 2.5, 0, 'purple'],
+      ['sofa', -17.5, -9, 0, 'teal'],
+      ['sofa', -14.5, -9, 0, 'pink'],
+      ['curtain', -4, -15, 0, 'yellow'],
+      ['wardrobe', -7, 5, 1.57, 'blue'],
+      ['curtain', -11, -14.5, 0, 'mint'],
+      ['wardrobe', -4, 8, 1.57, 'orange'],
+      ['wardrobe', -10.5, 10, 0, 'white'],
+      ['wardrobe', 6.5, 18, 0, 'purple'],
+      ['wardrobe', -10, -4, 1.57, 'teal'],
+      ['curtain', 17.5, 15, 0, 'pink'],
+      ['wardrobe', -15.5, 5.5, 0, 'yellow'],
+      ['wardrobe', 4.5, 12.5, 0, 'blue'],
+      ['wardrobe', 15, 6, 0, 'orange'],
+      ['bed', -4, -13, 1.57, 'red'],
+      ['sofa', -14, -6.5, 1.57, 'white'],
+      ['sofa', -6.5, -13.5, 1.57, 'purple'],
+      ['sofa', -16.5, -16.5, 0, 'pink'],
+      ['sofa', 13, 13, 0, 'yellow'],
+      ['sofa', 7, 14, 0, 'blue'],
+      ['chair', -14.5, -4, 0, 'red'],
     ] },
   { name: 'ကျောင်း', icon: '🏫', floor: 0xc8b088, wall: 0xe8f0d8, sky: 0xe8f5d8, fog: 0xd8e8c0,
     rugs: [[0, -12, 10, 5, 'blue'], [-12, 12, 7, 5, 'red'], [12, 12, 7, 5, 'mint']],
     palette: ['desk', 'chair', 'shelf', 'blackboard', 'table', 'crate', 'counter'],
     furniture: [
-      ['blackboard', -15, -21, 0, ''], ['desk', -21, -15, 0, 'blue'], ['chair', -21, -12, 0, 'red'],
-      ['desk', -15, -15, 0, 'yellow'], ['chair', -15, -12, 0, 'blue'], ['shelf', -9, -21, 0, 'mint'],
-      ['desk', -9, -9, 0, 'pink'], ['chair', -9, -6, 0, 'orange'], ['table', -21, -9, 0, 'teal'],
-      ['blackboard', 15, -21, 0, ''], ['desk', 21, -15, 0, 'mint'], ['chair', 21, -12, 0, 'yellow'],
-      ['desk', 15, -15, 0, 'red'], ['chair', 15, -12, 0, 'pink'], ['shelf', 9, -21, 0, 'blue'],
-      ['desk', 9, -9, 0, 'orange'], ['chair', 9, -6, 0, 'mint'], ['crate', 21, -9, 0, ''],
-      ['desk', -21, 15, 0, 'blue'], ['chair', -21, 18, 0, 'yellow'], ['desk', -15, 21, 0, 'pink'],
-      ['chair', -15, 18, 0, 'red'], ['shelf', -9, 15, 0, 'mint'], ['table', -9, 9, 0, 'orange'],
-      ['desk', 21, 15, 0, 'yellow'], ['chair', 21, 18, 0, 'blue'], ['desk', 15, 21, 0, 'mint'],
-      ['chair', 15, 18, 0, 'pink'], ['blackboard', 9, 21, 3.14, ''], ['counter', 21, 9, 1.57, 'white'],
-      ['shelf', -24, 6, 1.57, 'yellow'], ['blackboard', -12, 24, 0, ''], ['shelf', 18, 24, 0, 'blue'],
-      ['blackboard', 24, -6, 1.57, ''], ['shelf', -6, -12, 0, 'pink'],
-      ['blackboard', -24, -18, 1.57, ''], ['shelf', -18, -24, 0, 'red'], ['blackboard', 12, -24, 0, ''],
-      ['shelf', 24, -18, -1.57, 'mint'], ['blackboard', -18, 18, 0, ''], ['shelf', 18, 12, 1.57, 'yellow'],
-      ['desk', -18, -6, 0, 'blue'], ['table', 12, -12, 0, 'orange'],
+      ['blackboard', -11, -16, 0, ''], ['desk', -16, -11, 0, 'blue'], ['chair', -16, -9, 0, 'red'],
+      ['desk', -11, -11, 0, 'yellow'], ['chair', -11, -9, 0, 'blue'], ['shelf', -7, -16, 0, 'mint'],
+      ['desk', -7, -7, 0, 'pink'], ['chair', -7, -4.5, 0, 'orange'], ['table', -16, -7, 0, 'teal'],
+      ['blackboard', 11, -16, 0, ''], ['desk', 16, -11, 0, 'mint'], ['chair', 16, -9, 0, 'yellow'],
+      ['desk', 11, -11, 0, 'red'], ['chair', 11, -9, 0, 'pink'], ['shelf', 7, -16, 0, 'blue'],
+      ['desk', 7, -7, 0, 'orange'], ['chair', 7, -4.5, 0, 'mint'], ['crate', 16, -7, 0, ''],
+      ['desk', -16, 11, 0, 'blue'], ['chair', -16, 13.5, 0, 'yellow'], ['desk', -11, 16, 0, 'pink'],
+      ['chair', -11, 13.5, 0, 'red'], ['shelf', -7, 11, 0, 'mint'], ['table', -7, 7, 0, 'orange'],
+      ['desk', 16, 11, 0, 'yellow'], ['chair', 16, 13.5, 0, 'blue'], ['desk', 11, 16, 0, 'mint'],
+      ['chair', 11, 13.5, 0, 'pink'], ['blackboard', 7, 16, 3.14, ''], ['counter', 16, 7, 1.57, 'white'],
+      ['shelf', -18, 4.5, 1.57, 'yellow'], ['blackboard', -9, 18, 0, ''], ['shelf', 13.5, 18, 0, 'blue'],
+      ['blackboard', 18, -4.5, 1.57, ''], ['shelf', -4.5, -9, 0, 'pink'],
+      ['blackboard', -18, -13.5, 1.57, ''], ['shelf', -13.5, -18, 0, 'red'], ['blackboard', 9, -18, 0, ''],
+      ['shelf', 18, -13.5, -1.57, 'mint'], ['blackboard', -13.5, 13.5, 0, ''], ['shelf', 13.5, 9, 1.57, 'yellow'],
+      ['desk', -13.5, -4.5, 0, 'blue'], ['table', 9, -9, 0, 'orange'],
 
+      ['shelf', -17.5, 9.5, 0, 'blue'],
+      ['blackboard', -6.5, -14.5, 0, 'mint'],
+      ['chair', 14, -13.5, 0, 'orange'],
+      ['shelf', 8, -13.5, 0, 'red'],
+      ['shelf', -14, 17.5, 0, 'white'],
+      ['chair', 13.5, -4.5, 0, 'purple'],
+      ['shelf', 2.5, -6.5, 0, 'teal'],
+      ['blackboard', -15, -8, 0, 'pink'],
+      ['shelf', 17.5, -8, 1.57, 'yellow'],
+      ['blackboard', -12, 15, 0, 'blue'],
+      ['shelf', 8, 12.5, 0, 'mint'],
+      ['shelf', 13.5, 5.5, 0, 'orange'],
+      ['blackboard', -9.5, 2.5, 0, 'red'],
+      ['desk', -11.5, -14, 1.57, 'white'],
+      ['desk', 7.5, -11, 0, 'purple'],
+      ['chair', 12, -8, 0, 'teal'],
+      ['chair', -8, 14, 0, 'pink'],
+      ['desk', 13.5, -9, 1.57, 'yellow'],
+      ['blackboard', -8.5, 7, 1.57, 'blue'],
+      ['desk', 15.5, -13, 1.57, 'mint'],
+      ['shelf', 14.5, 15, 0, 'orange'],
+      ['shelf', 5.5, -3.5, 0, 'red'],
     ] },
   { name: 'ဆေးရုံ', icon: '🏥', floor: 0xd8e8e0, wall: 0xf0f8f0, sky: 0xe0f0e8, fog: 0xcfe0d8,
     rugs: [[-12, -15, 7, 5, 'blue'], [12, 15, 7, 5, 'mint'], [15, -12, 6, 4, 'pink']],
     palette: ['hospitalBed', 'trolley', 'counter', 'chair', 'shelf', 'curtain', 'bed', 'crate'],
     furniture: [
-      ['hospitalBed', -15, -15, 0, ''], ['curtain', -21, -15, 1.57, 'blue'], ['trolley', -9, -21, 0, 'mint'],
-      ['counter', -21, -9, 1.57, 'white'], ['chair', -15, -9, 0, 'blue'], ['shelf', -9, -15, 0, 'teal'],
-      ['hospitalBed', 15, -21, 0, ''], ['curtain', 21, -21, 1.57, 'pink'], ['trolley', 9, -15, 0, 'yellow'],
-      ['counter', 21, -15, 1.57, 'white'], ['chair', 15, -9, 0, 'mint'], ['shelf', 9, -9, 0, 'blue'],
-      ['hospitalBed', -21, 15, 1.57, ''], ['curtain', -15, 21, 0, 'mint'], ['trolley', -9, 9, 0, 'red'],
-      ['counter', -21, 21, 0, 'white'], ['chair', -9, 15, 0, 'pink'], ['bed', -15, 9, 0, 'blue'],
-      ['hospitalBed', 21, 9, -1.57, ''], ['curtain', 15, 15, 0, 'blue'], ['trolley', 9, 21, 0, 'teal'],
-      ['counter', 15, 21, 0, 'white'], ['chair', 21, 15, 0, 'yellow'], ['crate', 21, 21, 0, ''],
-      ['curtain', -24, 6, 1.57, 'yellow'], ['shelf', -12, -24, 0, 'pink'], ['curtain', 6, -18, 0, 'mint'],
-      ['shelf', -6, 12, 0, 'teal'], ['curtain', 24, -12, 1.57, 'blue'],
-      ['curtain', -24, -21, 1.57, 'pink'], ['shelf', -18, -24, 0, 'blue'], ['curtain', 12, -24, 0, 'mint'],
-      ['shelf', 24, -18, -1.57, 'yellow'], ['curtain', -18, 24, 0, 'red'], ['shelf', 18, 6, 1.57, 'teal'],
-      ['curtain', 6, 24, 0, 'blue'], ['hospitalBed', -24, 12, 1.57, ''], ['trolley', -18, -9, 0, 'red'],
-      ['chair', 12, -12, 0, 'pink'], ['bed', -12, 18, 0, 'yellow'], ['counter', 6, -9, 1.57, 'white'],
-      ['crate', 18, -6, 0, ''],
+      ['hospitalBed', -11, -11, 0, ''], ['curtain', -16, -11, 1.57, 'blue'], ['trolley', -7, -16, 0, 'mint'],
+      ['counter', -16, -7, 1.57, 'white'], ['chair', -11, -7, 0, 'blue'], ['shelf', -7, -11, 0, 'teal'],
+      ['hospitalBed', 11, -16, 0, ''], ['curtain', 16, -16, 1.57, 'pink'], ['trolley', 7, -11, 0, 'yellow'],
+      ['counter', 16, -11, 1.57, 'white'], ['chair', 11, -7, 0, 'mint'], ['shelf', 7, -7, 0, 'blue'],
+      ['hospitalBed', -16, 11, 1.57, ''], ['curtain', -11, 16, 0, 'mint'], ['trolley', -7, 7, 0, 'red'],
+      ['counter', -16, 16, 0, 'white'], ['chair', -7, 11, 0, 'pink'], ['bed', -11, 7, 0, 'blue'],
+      ['hospitalBed', 16, 7, -1.57, ''], ['curtain', 11, 11, 0, 'blue'], ['trolley', 7, 16, 0, 'teal'],
+      ['counter', 11, 16, 0, 'white'], ['chair', 16, 11, 0, 'yellow'], ['crate', 16, 16, 0, ''],
+      ['curtain', -18, 4.5, 1.57, 'yellow'], ['shelf', -9, -18, 0, 'pink'], ['curtain', 4.5, -13.5, 0, 'mint'],
+      ['shelf', -4.5, 9, 0, 'teal'], ['curtain', 18, -9, 1.57, 'blue'],
+      ['curtain', -18, -16, 1.57, 'pink'], ['shelf', -13.5, -18, 0, 'blue'], ['curtain', 9, -18, 0, 'mint'],
+      ['shelf', 18, -13.5, -1.57, 'yellow'], ['curtain', -13.5, 18, 0, 'red'], ['shelf', 13.5, 4.5, 1.57, 'teal'],
+      ['curtain', 4.5, 18, 0, 'blue'], ['hospitalBed', -18, 9, 1.57, ''], ['trolley', -13.5, -7, 0, 'red'],
+      ['chair', 9, -9, 0, 'pink'], ['bed', -9, 13.5, 0, 'yellow'], ['counter', 4.5, -7, 1.57, 'white'],
+      ['crate', 13.5, -4.5, 0, ''],
+      ['shelf', -3.5, -7.5, 1.57, 'mint'],
+      ['shelf', -5, -10, 1.57, 'red'],
+      ['curtain', 7.5, 6, 0, 'white'],
+      ['curtain', -7.5, -14.5, 0, 'teal'],
+      ['shelf', -2.5, -14, 0, 'pink'],
+      ['hospitalBed', -13.5, -14, 1.57, 'yellow'],
+      ['shelf', 16.5, 14.5, 0, 'blue'],
+      ['shelf', -18, -12, 0, 'mint'],
+      ['shelf', 15.5, -5, 0, 'orange'],
+      ['shelf', -10.5, -2.5, 0, 'red'],
+      ['shelf', 9, -12.5, 0, 'white'],
+      ['shelf', -4, -15.5, 0, 'purple'],
+      ['curtain', -9.5, 10, 1.57, 'teal'],
+      ['curtain', -6.5, -6.5, 1.57, 'pink'],
+      ['shelf', -2.5, 15, 0, 'yellow'],
+      ['shelf', 16.5, 2.5, 0, 'blue'],
+      ['shelf', -7.5, -3, 0, 'mint'],
+      ['shelf', 17, -6.5, 0, 'orange'],
+      ['curtain', 15.5, -17.5, 0, 'red'],
+      ['shelf', 7.5, 15, 0, 'white'],
+      ['trolley', 12, 6.5, 0, 'purple'],
+      ['hospitalBed', -2.5, 12.5, 0, 'teal'],
+      ['curtain', -8.5, -11, 1.57, 'pink'],
+      ['hospitalBed', 17.5, 6, 1.57, 'yellow'],
+      ['hospitalBed', 18, -11.5, 0, 'blue'],
+      ['hospitalBed', 11, -14.5, 0, 'mint'],
+      ['hospitalBed', 12.5, -2.5, 1.57, 'orange'],
+      ['hospitalBed', -15.5, 3.5, 0, 'red'],
+      ['curtain', 15, -12, 1.57, 'white'],
+      ['hospitalBed', 10, 17.5, 0, 'purple'],
     ] },
   { name: 'စာကြည့်တိုက်', icon: '📚', floor: 0xb89a6a, wall: 0xe8dcc0, sky: 0xf0e0b8, fog: 0xe0d0a0,
     rugs: [[-15, 0, 8, 5, 'red'], [15, 0, 8, 5, 'blue'], [0, 15, 8, 5, 'mint']],
     palette: ['shelf', 'desk', 'chair', 'table', 'crate', 'counter'],
     furniture: [
-      ['shelf', -21, -15, 1.57, 'orange'], ['shelf', -15, -21, 0, 'blue'], ['desk', -9, -15, 0, 'yellow'],
-      ['chair', -9, -12, 0, 'red'], ['table', -21, -9, 0, 'mint'], ['shelf', -15, -9, 0, 'pink'],
-      ['shelf', -9, -21, 0, 'teal'], ['desk', -21, -21, 0, 'orange'], ['chair', -21, -18, 0, 'blue'],
-      ['shelf', 21, -15, -1.57, 'blue'], ['shelf', 15, -21, 0, 'pink'], ['desk', 9, -15, 0, 'mint'],
-      ['chair', 9, -12, 0, 'yellow'], ['table', 21, -9, 0, 'orange'], ['shelf', 15, -9, 0, 'red'],
-      ['shelf', 9, -21, 0, 'yellow'], ['desk', 21, -21, 0, 'blue'], ['chair', 21, -18, 0, 'pink'],
-      ['shelf', -21, 15, 1.57, 'mint'], ['shelf', -15, 21, 0, 'red'], ['desk', -9, 15, 0, 'blue'],
-      ['chair', -9, 18, 0, 'teal'], ['table', -21, 9, 0, 'yellow'], ['shelf', -15, 9, 0, 'orange'],
-      ['shelf', 21, 15, -1.57, 'pink'], ['shelf', 15, 21, 0, 'mint'], ['desk', 9, 15, 0, 'red'],
-      ['chair', 9, 18, 0, 'blue'], ['table', 21, 9, 0, 'purple'], ['counter', 15, 9, 0, 'white'],
-      ['shelf', -6, -6, 0, 'purple'], ['shelf', 6, 6, 0, 'yellow'],
-      ['shelf', -24, -6, 1.57, 'blue'], ['shelf', 12, -24, 0, 'pink'], ['shelf', -18, 24, 0, 'mint'],
-      ['shelf', 24, 18, -1.57, 'red'], ['desk', -18, -18, 0, 'teal'], ['chair', -18, -15, 0, 'yellow'],
-      ['table', 12, -12, 0, 'purple'], ['crate', -12, 12, 0, 'orange'], ['counter', 18, -18, 1.57, 'white'],
-      ['desk', -12, 18, 0, 'blue'], ['chair', 12, 12, 0, 'red'], ['crate', 6, -9, 0, 'mint'],
+      ['shelf', -16, -11, 1.57, 'orange'], ['shelf', -11, -16, 0, 'blue'], ['desk', -7, -11, 0, 'yellow'],
+      ['chair', -7, -9, 0, 'red'], ['table', -16, -7, 0, 'mint'], ['shelf', -11, -7, 0, 'pink'],
+      ['shelf', -7, -16, 0, 'teal'], ['desk', -16, -16, 0, 'orange'], ['chair', -16, -13.5, 0, 'blue'],
+      ['shelf', 16, -11, -1.57, 'blue'], ['shelf', 11, -16, 0, 'pink'], ['desk', 7, -11, 0, 'mint'],
+      ['chair', 7, -9, 0, 'yellow'], ['table', 16, -7, 0, 'orange'], ['shelf', 11, -7, 0, 'red'],
+      ['shelf', 7, -16, 0, 'yellow'], ['desk', 16, -16, 0, 'blue'], ['chair', 16, -13.5, 0, 'pink'],
+      ['shelf', -16, 11, 1.57, 'mint'], ['shelf', -11, 16, 0, 'red'], ['desk', -7, 11, 0, 'blue'],
+      ['chair', -7, 13.5, 0, 'teal'], ['table', -16, 7, 0, 'yellow'], ['shelf', -11, 7, 0, 'orange'],
+      ['shelf', 16, 11, -1.57, 'pink'], ['shelf', 11, 16, 0, 'mint'], ['desk', 7, 11, 0, 'red'],
+      ['chair', 7, 13.5, 0, 'blue'], ['table', 16, 7, 0, 'purple'], ['counter', 11, 7, 0, 'white'],
+      ['shelf', -4.5, -4.5, 0, 'purple'], ['shelf', 4.5, 4.5, 0, 'yellow'],
+      ['shelf', -18, -4.5, 1.57, 'blue'], ['shelf', 9, -18, 0, 'pink'], ['shelf', -13.5, 18, 0, 'mint'],
+      ['shelf', 18, 13.5, -1.57, 'red'], ['desk', -13.5, -13.5, 0, 'teal'], ['chair', -13.5, -11, 0, 'yellow'],
+      ['table', 9, -9, 0, 'purple'], ['crate', -9, 9, 0, 'orange'], ['counter', 13.5, -13.5, 1.57, 'white'],
+      ['desk', -9, 13.5, 0, 'blue'], ['chair', 9, 9, 0, 'red'], ['crate', 4.5, -7, 0, 'mint'],
+      ['shelf', 14.5, 10.5, 1.57, 'orange'],
+      ['chair', -9, 5, 0, 'red'],
+      ['chair', -6, 13.5, 0, 'white'],
+      ['shelf', -18, -15.5, 1.57, 'purple'],
+      ['shelf', -5, 17, 1.57, 'teal'],
+      ['desk', -5, 11.5, 1.57, 'pink'],
+      ['shelf', 11.5, 14, 0, 'yellow'],
+      ['shelf', 5, -18, 0, 'blue'],
+      ['shelf', -15, 3, 1.57, 'mint'],
+      ['shelf', 7.5, 2.5, 0, 'orange'],
+      ['chair', -6.5, 3.5, 0, 'red'],
+      ['shelf', 8.5, -13, 1.57, 'white'],
+      ['shelf', 8, 9, 1.57, 'purple'],
+      ['shelf', 10, 12, 0, 'teal'],
+      ['shelf', 11.5, -10.5, 0, 'pink'],
+      ['shelf', 6, 13.5, 1.57, 'yellow'],
+      ['shelf', 9.5, 5, 1.57, 'blue'],
+      ['shelf', -14, -9, 0, 'mint'],
+      ['desk', 2.5, 12, 0, 'orange'],
+      ['chair', 10, 9, 0, 'red'],
+      ['chair', 15, -14, 0, 'white'],
+      ['desk', 15, -5.5, 0, 'purple'],
     ] },
 ];
 const worldGroup = new THREE.Group();
@@ -1019,21 +1193,21 @@ function buildMap(idx) {
   const wallMat = new THREE.MeshLambertMaterial({ color: def.wall });
   const winMat = new THREE.MeshLambertMaterial({ color: 0xbfe3ff });
   const doorMat = new THREE.MeshLambertMaterial({ color: 0x8d6e63 });
-  const wallGeoH = new THREE.BoxGeometry(53.2, 8, 0.6);
-  const wallGeoV = new THREE.BoxGeometry(0.6, 8, 53.2);
-  for (const [wx, wz, geo] of [[0, -26.3, wallGeoH], [0, 26.3, wallGeoH], [-26.3, 0, wallGeoV], [26.3, 0, wallGeoV]]) {
+  const wallGeoH = new THREE.BoxGeometry(41.2, 8, 0.6);
+  const wallGeoV = new THREE.BoxGeometry(0.6, 8, 41.2);
+  for (const [wx, wz, geo] of [[0, -20.3, wallGeoH], [0, 20.3, wallGeoH], [-20.3, 0, wallGeoV], [20.3, 0, wallGeoV]]) {
     const w = new THREE.Mesh(geo, wallMat);
     w.position.set(wx, 4, wz);
     worldGroup.add(w);
   }
   for (const wx of [-15, 0, 15]) {
-    for (const [wz, horiz] of [[-25.9, true], [25.9, true]]) {
+    for (const [wz, horiz] of [[-19.9, true], [19.9, true]]) {
       const win = new THREE.Mesh(unitBox, winMat);
       win.scale.set(2.2, 1.6, 0.12);
       win.position.set(wx, 4.5, wz);
       worldGroup.add(win);
     }
-    for (const wx2 of [-25.9, 25.9]) {
+    for (const wx2 of [-19.9, 19.9]) {
       const win = new THREE.Mesh(unitBox, winMat);
       win.scale.set(0.12, 1.6, 2.2);
       win.position.set(wx2, 4.5, wx);
@@ -1042,7 +1216,7 @@ function buildMap(idx) {
   }
   const door = new THREE.Mesh(unitBox, doorMat);
   door.scale.set(2.0, 3.2, 0.12);
-  door.position.set(18, 1.6, 25.9);
+  door.position.set(18, 1.6, 19.9);
   worldGroup.add(door);
   for (const [rx, rz, rw, rd, rc] of def.rugs) {
     const rug = new THREE.Mesh(unitBox, MAT[rc]);
@@ -1054,21 +1228,21 @@ function buildMap(idx) {
   const placed = [];
   const allFurniture = def.furniture.map(([kind, x, z, rot, c]) => ({ kind, x, z, rot, c }));
   for (const f of allFurniture) placed.push({ x: f.x, z: f.z, kind: f.kind });
-  const SPAWNS = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2], [0, 9], [0, -24]];
+  const SPAWNS = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2], [0, 9], [0, -18]];
   const clearSpot = (x, z, kind) => {
-    if (Math.abs(x) < 3.5 || Math.abs(z) < 3.5) return false;
-    if (Math.abs(x) > 24 || Math.abs(z) > 24) return false;
-    for (const s of SPAWNS) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 4) return false;
+    if (Math.abs(x) < 2.5 || Math.abs(z) < 2.5) return false;
+    if (Math.abs(x) > 18 || Math.abs(z) > 18) return false;
+    for (const s of SPAWNS) if ((x - s[0]) * (x - s[0]) + (z - s[1]) * (z - s[1]) < 6.25) return false;
     for (const p of placed) {
-      const minD = (FURN[kind].big && FURN[p.kind].big) ? 7 : 3.5;
+      const minD = (FURN[kind].big && FURN[p.kind].big) ? 5 : 3.2;
       if ((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z) < minD * minD) return false;
     }
     return true;
   };
-  const scatterOne = (kind) => { for (let g = 0; g < 120; g++) { const x = (srng() * 2 - 1) * 23, z = (srng() * 2 - 1) * 23; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
+  const scatterOne = (kind) => { for (let g = 0; g < 300; g++) { const x = (srng() * 2 - 1) * 18, z = (srng() * 2 - 1) * 18; if (clearSpot(x, z, kind)) { placed.push({ x, z, kind }); return [Math.round(x * 10) / 10, Math.round(z * 10) / 10]; } } return null; };
   const ROTS = [0, 1.57, 3.14, -1.57];
   const tallKinds = def.palette.filter((k) => FURN[k].tall);
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 60; i++) {
     const kind = (tallKinds.length && srng() < 0.5)
       ? tallKinds[Math.floor(srng() * tallKinds.length)]
       : def.palette[Math.floor(srng() * def.palette.length)];
@@ -1197,10 +1371,21 @@ joyEl.addEventListener('touchstart', (e) => { e.preventDefault(); joyStart(e.cha
 window.addEventListener('touchmove', (e) => {
   for (const t of e.changedTouches) {
     if (joy.active && t.identifier === joy.id) { e.preventDefault(); joyMove(t); }
+    else if (pendingDragId !== null && t.identifier === pendingDragId) {
+      if (Math.hypot(t.clientX - pendX, t.clientY - pendY) > 12) {
+        dragId = pendingDragId;
+        pendingDragId = null;
+        dragX = t.clientX;
+        dragY = t.clientY;
+        runHeld = false;
+        suppressClick = true;
+        e.preventDefault();
+      }
+    }
     else if (dragId !== null && t.identifier === dragId) {
       e.preventDefault();
       camYaw -= (t.clientX - dragX) * 0.006;
-      camPitch = Math.max(0.08, Math.min(0.9, camPitch + (t.clientY - dragY) * 0.004));
+      camPitch = Math.max(0.03, Math.min(0.7, camPitch + (t.clientY - dragY) * 0.004));
       dragX = t.clientX;
       dragY = t.clientY;
     }
@@ -1210,20 +1395,35 @@ window.addEventListener('touchend', (e) => {
   for (const t of e.changedTouches) {
     joyEnd(t);
     if (t.identifier === dragId) dragId = null;
+    if (t.identifier === pendingDragId) pendingDragId = null;
   }
+  setTimeout(() => { suppressClick = false; }, 0);
 });
 window.addEventListener('touchcancel', (e) => {
   for (const t of e.changedTouches) {
     joyEnd(t);
     if (t.identifier === dragId) dragId = null;
+    if (t.identifier === pendingDragId) pendingDragId = null;
   }
+  suppressClick = false;
   runHeld = false;
 });
+window.addEventListener('click', (e) => {
+  if (suppressClick) {
+    e.preventDefault();
+    e.stopPropagation();
+    suppressClick = false;
+  }
+}, true);
 window.addEventListener('touchstart', (e) => {
   const t = e.changedTouches[0];
   const el = t.target;
-  if (el.closest && el.closest('#joy, #knob, button')) return;
-  if (t.clientX > window.innerWidth * 0.35) { dragId = t.identifier; dragX = t.clientX; dragY = t.clientY; }
+  if (el.closest && el.closest('#joy, #knob')) return;
+  if (t.clientX > window.innerWidth * 0.35) {
+    pendingDragId = t.identifier;
+    pendX = t.clientX;
+    pendY = t.clientY;
+  }
 }, { passive: true });
 window.addEventListener('keydown', (e) => {
   keys[e.key.toLowerCase()] = true;
@@ -1240,7 +1440,7 @@ canvas.addEventListener('mousedown', (e) => { mouseDown = true; dragX = e.client
 window.addEventListener('mousemove', (e) => {
   if (!mouseDown) return;
   camYaw -= (e.clientX - dragX) * 0.006;
-  camPitch = Math.max(0.08, Math.min(0.9, camPitch + (e.clientY - dragY) * 0.004));
+  camPitch = Math.max(0.03, Math.min(0.7, camPitch + (e.clientY - dragY) * 0.004));
   dragX = e.clientX;
   dragY = e.clientY;
 });
@@ -1347,7 +1547,7 @@ function updateCamera(dt) {
   const fullDist = window.innerWidth < window.innerHeight ? 4.5 : 2.8;
   let d = fullDist;
   while (d > 0.8 && blockedByCollider(px + Math.sin(camYaw) * d, pz + Math.cos(camYaw) * d, 0.3)) d -= 0.2;
-  const h = 1.25 + camPitch * 2.5;
+  const h = 0.9 + d * Math.tan(camPitch);
   const cx = px + Math.sin(camYaw) * d;
   const cz = pz + Math.cos(camYaw) * d;
   camera.position.x += (cx - camera.position.x) * Math.min(1, dt * 6);
@@ -1369,8 +1569,8 @@ function clearPeople() {
 function snapCameraBehind() {
   if (!player) return;
   camYaw = 0;
-  camPitch = 0.16;
-  camera.position.set(player.g.position.x, 1.8, player.g.position.z + 3.2);
+  camPitch = 0.14;
+  camera.position.set(player.g.position.x, 0.9 + 3.2 * Math.tan(camPitch), player.g.position.z + 3.2);
   camera.lookAt(player.g.position.x, 0.9, player.g.position.z);
 }
 function tryLandscape() {
@@ -1405,7 +1605,7 @@ function startMode(m) {
     player = makePerson('မင်း', SHIRT[0].hex, SHIRT[0].css, 0);
     player.g.position.set(0, 0, 9);
     seeker = makePerson('ရှာသူ', 0xe53935, '#e53935', 1);
-    seeker.g.position.set(0, 0, -24);
+    seeker.g.position.set(0, 0, -18);
     seeker.isSeeker = true;
     seeker.heading = Math.PI;
     seeker.g.rotation.y = Math.PI;
@@ -1426,6 +1626,7 @@ function startMode(m) {
       h.homeSpot = spots[i];
       spots[i].taken = true;
       setCrouch(h, true);
+      h.tag.visible = false;
       hiders.push(h);
     });
     timeLeft = 120;
@@ -1467,6 +1668,7 @@ function doFind() {
   if (gameState !== 'playing' || !nearestHider || !player) return;
   const h = nearestHider;
   h.found = true;
+  h.tag.visible = true;
   h.state = 'caught';
   setCrouch(h, false);
   foundCount++;
@@ -1705,6 +1907,7 @@ function animate() {
       countT -= timeDt;
       if (countT <= 0) {
         gameState = 'playing';
+        camPitch = 0.14;
         sfx('go');
         if (mode === 'seek') { $('eyes').style.display = 'none'; showWarn('🔍 စရှာပြီ!', 1.2); }
         else showWarn('🔍 ရှာသူ လာရှာပြီ!', 1.2);
@@ -1869,6 +2072,8 @@ function hostCatch(target) {
 }
 function netOnCaught(id) {
   netFound[id] = true;
+  const rp = remotePeople[id];
+  if (rp) rp.tag.visible = true;
   const p = netPlayers.find((x) => x.id === id);
   if (id === myPeerId) {
     setCrouch(player, false);
@@ -1998,6 +2203,7 @@ function clientHandle(msg) {
     netPhase = msg.phase;
     netTimeLeft = msg.timeLeft;
     if (netPhase === 'seek') {
+      camPitch = 0.14;
       $('eyes').style.display = 'none';
       sfx('go');
       showWarn('🔍 စရှာပြီ!', 2);
@@ -2033,7 +2239,7 @@ function netBeginRound() {
   player = makePerson(myName || 'မင်း', myC.hex, myC.css, myIdx % MODELS.length);
   const hiderSpots = [[0, 4], [3, 6], [-4, 6], [2, 2], [-2, 2]];
   if (netRole === 'seeker') {
-    player.g.position.set(0, 0, -24);
+    player.g.position.set(0, 0, -18);
     player.heading = Math.PI;
     player.g.rotation.y = Math.PI;
   } else {
@@ -2045,7 +2251,7 @@ function netBeginRound() {
     const c = netColor(p.colorIdx);
     const rp = makePerson(p.name, c.hex, c.css, i % MODELS.length);
     if (p.id === netSeekerId) {
-      rp.g.position.set(0, 0, -24);
+      rp.g.position.set(0, 0, -18);
       rp.heading = Math.PI;
       rp.g.rotation.y = Math.PI;
       rp.isSeeker = true;
@@ -2058,6 +2264,12 @@ function netBeginRound() {
     rp.tz = rp.g.position.z;
     remotePeople[p.id] = rp;
   });
+  if (netRole === 'seeker') {
+    for (const id in remotePeople) {
+      const rp = remotePeople[id];
+      if (!rp.isSeeker) rp.tag.visible = false;
+    }
+  }
   modePill.textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ' : '🙈 မင်းက ပုန်းသူ';
   $('roleTitle').textContent = netRole === 'seeker' ? '🔍 မင်းက ရှာသူ!' : '🙈 မင်းက ပုန်းသူ!';
   $('roleTxt').textContent = netRole === 'seeker'
@@ -2086,6 +2298,7 @@ function applyNetState(pos) {
     rp.netCrouched = !!s.crouched;
     if (s.found && !rp.found) {
       rp.found = true;
+      rp.tag.visible = true;
       setCrouch(rp, false);
       rp.state = 'caught';
     }
@@ -2105,6 +2318,7 @@ function updateNet(dt, timeDt) {
       if (netPhase === 'hide' && netTimeLeft <= 0) {
         netPhase = 'seek';
         netTimeLeft = 180;
+        camPitch = 0.14;
         hostSendAll({ t: 'phase', phase: 'seek', timeLeft: 180 });
         if (netRole === 'seeker') $('eyes').style.display = 'none';
         sfx('go');
