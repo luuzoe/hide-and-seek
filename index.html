@@ -11,7 +11,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#79a85b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
-#hud{position:fixed;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
+#hud{position:fixed;top:8px;left:8px;right:56px;display:flex;gap:6px;flex-wrap:wrap;z-index:10;pointer-events:none}
 .pill{background:rgba(0,0,0,.65);color:#fff;padding:7px 12px;border-radius:16px;font-size:14px;font-weight:600}
 .pill b{color:#ffd54a}
 #warn{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:rgba(211,47,47,.92);color:#fff;padding:9px 16px;border-radius:14px;font-size:16px;font-weight:700;z-index:11;display:none;text-align:center;max-width:92vw}
@@ -19,15 +19,15 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #btns{position:fixed;right:14px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35);padding:0 14px}
+#btns button{min-width:64px;height:52px;border-radius:16px;border:none;font-size:15px;font-weight:700;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35);padding:0 14px;touch-action:none}
 #runBtn{background:#1565c0}
 #sneakBtn{background:#5d4037}
 #sneakBtn.on{background:#ef6c00}
 #actBtn{background:#2e7d32;display:none}
 #findBtn{background:#c62828;display:none}
 #muteBtn{position:fixed;top:8px;right:8px;z-index:12;width:40px;height:40px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:18px}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
-.card{background:#fffbe8;border-radius:22px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.card{background:rgba(255,251,232,.96);border-radius:22px;padding:20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .card h1{margin:0 0 4px;font-size:30px;background:linear-gradient(135deg,#2e7d32,#ef6c00);-webkit-background-clip:text;background-clip:text;color:transparent}
 .overlay{animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -40,7 +40,18 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #setName{width:100%;padding:12px;border:2px solid #ccc;border-radius:12px;font-size:16px;margin-top:8px}
 .card h2{margin:0 0 8px;font-size:24px}
 .card p{margin:8px 0;line-height:1.55;font-size:15px;color:#333}
-.modeBtn{display:block;width:100%;margin-top:10px;padding:14px;border:none;border-radius:14px;font-size:17px;font-weight:700;color:#fff;text-align:left}
+.modeBtn{display:block;width:100%;margin-top:10px;padding:14px;border:none;border-radius:14px;font-size:17px;font-weight:700;color:#fff;text-align:center;touch-action:none}
+.ver{font-size:12px;color:#888;margin:2px 0 4px}
+.menuRow{display:flex;gap:8px}
+.menuRow .ghostBtn{flex:1}
+#howto .card{text-align:left}
+@media (orientation:landscape) and (max-height:520px){
+  #start .card{max-width:660px;padding:14px 18px}
+  #start .card h1{font-size:22px}
+  .modeRow{display:flex;gap:10px}
+  .modeRow .modeBtn{margin-top:0;flex:1;padding:12px 8px;font-size:15px}
+  #hint{display:none}
+}
 .modeBtn small{display:block;font-size:13px;font-weight:400;opacity:.92;margin-top:2px}
 #modeHide{background:#2e7d32}
 #modeSeek{background:#1565c0}
@@ -108,13 +119,28 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p><b>Hide &amp; Seek — မြန်မာရွာထဲ</b> <span style="color:#888">V2.2</span><br>အိမ်နောက်၊ သစ်ပင်နောက်၊ ကောက်ရိုးပုံနောက် — ပုန်းစရာနေရာ ၁၂ ခု ရှိတယ်။ ရှာသူကို မတွေ့အောင် ပုန်း၊ ဒါမှမဟုတ် ပုန်းနေသူတွေကို အကုန်ရှာ။</p>
-    <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ လုပ်မယ်<small>ရှာသူ လာမရှာခင် ပုန်း — စက္ကန့် ၉၀ မတွေ့အောင် နေနိုင်ရင် နိုင်</small></button>
-    <button class="modeBtn" id="modeSeek">🔍 ရှာသူ လုပ်မယ်<small>ပုန်းနေတဲ့ သူငယ်ချင်း ၅ ယောက်ကို ၂ မိနစ်အတွင်း အကုန်ရှာ</small></button>
-    <button class="modeBtn" id="modeHot">👥 သူငယ်ချင်းတွေနဲ့ အွန်လိုင်းဆော့<small>အခန်းဖွင့်၊ သူငယ်ချင်း ၅ ယောက်ထိ invite — random တစ်ယောက် ရှာသူ၊ ၁၅ စက္ကန့်ပုန်း၊ ၃ မိနစ်ရှာ</small></button>
+    <p class="ver">Hide &amp; Seek • V2.3</p>
+    <div class="modeRow">
+      <button class="modeBtn" id="modeHide">🙈 ပုန်းသူ</button>
+      <button class="modeBtn" id="modeSeek">🔍 ရှာသူ</button>
+      <button class="modeBtn" id="modeHot">👥 အွန်လိုင်း</button>
+    </div>
     <p id="best"></p>
-    <p style="font-size:13px;color:#666">လမ်းလျှောက်: Joystick / WASD • ပြေး: ပြေးမယ် ခလုတ် / Shift • ချောင်းသွား: C • ပုန်း/တွေ့ပြီ: E</p>
-    <button class="ghostBtn" id="settingsBtn">⚙️ ဆက်တင်</button>
+    <div class="menuRow">
+      <button class="ghostBtn" id="settingsBtn">⚙️ ဆက်တင်</button>
+      <button class="ghostBtn" id="howtoBtn">📖 ဘယ်လို ဆော့ရမလဲ</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="howto" style="display:none">
+  <div class="card">
+    <h2>📖 ဘယ်လို ဆော့ရမလဲ</h2>
+    <p>🙈 <b>ပုန်းသူ</b> — ၉၀ စက္ကန့် မတွေ့အောင် ပုန်း။</p>
+    <p>🔍 <b>ရှာသူ</b> — ပုန်းနေတဲ့ ၅ ယောက်ကို ၂ မိနစ်အတွင်း ရှာ။</p>
+    <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၁၅ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
+    <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
+    <p>🗺️ <b>Map</b> — ပွဲတိုင်း ရွာ / ကျောင်း / ဈေး / လယ် / ဘုရား ထဲက တစ်ခု random ကျမယ်။</p>
+    <button class="bigBtn" id="howtoCloseBtn">ပြီးပြီ</button>
   </div>
 </div>
 <div class="overlay" id="settings" style="display:none">
@@ -818,6 +844,13 @@ window.addEventListener('touchend', (e) => {
     if (t.identifier === dragId) dragId = null;
   }
 });
+window.addEventListener('touchcancel', (e) => {
+  for (const t of e.changedTouches) {
+    joyEnd(t);
+    if (t.identifier === dragId) dragId = null;
+  }
+  runHeld = false;
+});
 canvas.addEventListener('touchstart', (e) => {
   const t = e.changedTouches[0];
   if (t.clientX > window.innerWidth * 0.35) { dragId = t.identifier; dragX = t.clientX; dragY = t.clientY; }
@@ -852,6 +885,7 @@ function toggleSneak() {
 $('sneakBtn').addEventListener('click', toggleSneak);
 $('runBtn').addEventListener('touchstart', (e) => { e.preventDefault(); runHeld = true; }, { passive: false });
 $('runBtn').addEventListener('touchend', () => { runHeld = false; });
+$('runBtn').addEventListener('touchcancel', () => { runHeld = false; });
 $('runBtn').addEventListener('mousedown', () => { runHeld = true; });
 $('runBtn').addEventListener('mouseup', () => { runHeld = false; });
 $('actBtn').addEventListener('click', doAction);
@@ -1776,6 +1810,8 @@ function netLeave(msg) {
 // ---------- wire up + init ----------
 let rotateDismissed = false;
 $('rotateOk').addEventListener('click', () => { rotateDismissed = true; $('rotate').style.display = 'none'; });
+$('howtoBtn').addEventListener('click', () => { $('howto').style.display = 'flex'; });
+$('howtoCloseBtn').addEventListener('click', () => { $('howto').style.display = 'none'; });
 window.addEventListener('orientationchange', () => {
   if (!rotateDismissed) $('rotate').style.display = window.innerHeight > window.innerWidth ? 'flex' : 'none';
 });
