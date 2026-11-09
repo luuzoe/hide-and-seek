@@ -42,15 +42,22 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 /* ---------- controls ---------- */
 #joy{position:fixed;left:16px;bottom:16px;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.65);z-index:10;touch-action:none;box-shadow:0 0 0 4px rgba(255,255,255,.08), inset 0 0 20px rgba(255,255,255,.15)}
 #knob{position:absolute;left:39px;top:39px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.35)}
-#btns{position:fixed;right:26px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:10;align-items:flex-end}
-#btns button{min-width:52px;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);padding:0 10px;touch-action:none;transition:transform .1s ease}
+#btns{position:fixed;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:10;align-items:flex-end}
+#btns button{min-width:44px;height:38px;border-radius:10px;border:none;font-size:12px;font-weight:700;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);padding:0 8px;touch-action:none;transition:transform .1s ease;opacity:.92}
+#miniRow{display:flex;gap:6px}
+#miniRow button{height:36px;min-width:44px;font-size:13px;padding:0 7px}
 #btns button:active{transform:scale(.93)}
 #runBtn{background:linear-gradient(135deg,#1e88e5,#0d47a1)}
+#runBtn.on{filter:brightness(1.35)}
 #sneakBtn{background:linear-gradient(135deg,#8d6e63,#5d4037)}
 #sneakBtn.on{background:var(--amber)}
-#actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none}
-#findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none}
-#quitBtn{background:linear-gradient(135deg,#78909c,#455a64)}
+#actBtn{background:linear-gradient(135deg,#43a047,#1b5e20);display:none;height:44px;min-width:76px;font-size:14px;opacity:1}
+@keyframes actPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#actBtn.pulse{animation:actPulse 1s ease-in-out infinite}
+@keyframes dangerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+#dangerPill.hot{animation:dangerPulse .5s ease-in-out infinite}
+#findBtn{background:linear-gradient(135deg,#e53935,#b71c1c);display:none;height:44px;min-width:76px;font-size:14px;opacity:1}
+#quitBtn{background:linear-gradient(135deg,rgba(120,144,156,.85),rgba(69,90,100,.85));height:30px;font-size:12px;opacity:.9}
 #chatBtn{background:linear-gradient(135deg,#7b1fa2,#4a148c);display:none}
 #giggleBtn{background:linear-gradient(135deg,#fb8c00,#e65100);display:none}
 #chatPanel{position:fixed;left:16px;bottom:150px;width:264px;max-width:72vw;background:rgba(18,26,20,.94);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:12px;z-index:35;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -67,7 +74,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #lobbyScores{font-size:12px;text-align:left;margin:6px 0}
 .mapPickLabel{font-size:13px;font-weight:700;text-align:center;margin-bottom:4px}
 .mapPickRow{display:flex;gap:6px;justify-content:center}
-.mapBtn{flex:1;border:1px solid rgba(0,0,0,.15);border-radius:10px;background:#fff;font-size:18px;padding:6px 0}
+.mapBtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid rgba(0,0,0,.15);border-radius:10px;background:#fff;font-size:20px;padding:6px 0 4px}
+.mapBtn span{font-size:10px;font-weight:700;color:var(--ink)}
+#mapPick.locked{opacity:.65}
+#mapPick.locked .mapBtn{pointer-events:none}
 .mapBtn.on{background:#c8e6c9;border-color:#43a047}
 #cornerSetBtn{position:fixed;top:8px;z-index:35;width:40px;height:40px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:#fff;font-size:18px;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.3);border-radius:10px}
 #cornerSetBtn{right:20px}
@@ -140,12 +150,19 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #role .card{max-width:340px}
 
 /* ---------- lobby ---------- */
+#lobby.overlay{background:rgba(0,0,0,.35)}
 #lobby .card{text-align:left}
 #lobby .card h2{text-align:center}
 #netList{margin:10px 0}
 .netPlayer{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:6px;font-size:15px;font-weight:600;color:var(--ink)}
+.netPlayer .pEmoji{font-size:26px;flex:0 0 auto}
+.netPlayer .pInfo{flex:1;text-align:left;line-height:1.25;min-width:0}
+.netPlayer .pInfo b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.netPlayer .pInfo i{display:block;font-style:normal;font-size:11px;color:var(--muted)}
+.netPlayer.me{background:#e8f5e9;border-color:#43a047}
+.netPlayer.empty{border:1px dashed rgba(0,0,0,.3);background:transparent;color:var(--muted);justify-content:center;font-weight:600}
 .netDot{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
-#netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:14px;padding:8px;margin:8px 0}
+#netCode{font-size:34px;font-weight:800;letter-spacing:8px;text-align:center;background:#e8f5e9;border-radius:14px;padding:8px;margin:8px 0;cursor:pointer}
 .netRow{display:flex;gap:8px;align-items:center}
 #netJoinCode{width:auto;flex:1 1 0%;min-width:0;margin-top:8px;padding:10px;font-size:15px}
 #joinBtn{flex:0 0 auto;width:auto;padding:8px 18px}
@@ -189,6 +206,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="pill" id="mapPill">🗺️</div>
   <div class="pill">⏱ <b id="timePill">0:00</b></div>
   <div class="pill" id="scorePill">ပုန်းတမ်း</div>
+  <div class="pill" id="hiddenPill" style="display:none;background:linear-gradient(135deg,#2e7d32,#1b5e20)">🫣 ပုန်းနေတယ်</div>
+  <div class="pill" id="dangerPill" style="display:none">💓</div>
   <div class="pill" id="caughtPill" style="display:none;background:#c62828;color:#fff">😢 မိသွားပြီ — စောင့်နေ</div>
 </div>
 <div id="warn"></div>
@@ -200,10 +219,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div id="btns">
   <button id="findBtn">👀 တွေ့ပြီ!</button>
   <button id="actBtn">🫣 ပုန်းမယ်</button>
-  <button id="sneakBtn">🐢 ချောင်း</button>
-  <button id="runBtn">🏃 ပြေးမယ်</button>
-  <button id="giggleBtn">😂 ရယ်မယ်</button>
-  <button id="chatBtn">💬 စကားပြော</button>
+  <div id="miniRow">
+    <button id="sneakBtn">🐢 ချောင်း</button>
+    <button id="runBtn">🏃 ပြေး</button>
+    <button id="giggleBtn">😂</button>
+    <button id="chatBtn">💬</button>
+  </div>
   <button id="quitBtn">🚪 ထွက်</button>
 </div>
 <div id="chatPanel" style="display:none">
@@ -233,14 +254,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 </div>
 <div id="splash">
   <h1>🙈 ပုန်းတမ်း</h1>
-  <div class="sub">Hide &amp; Seek • V6.8</div>
+  <div class="sub">Hide &amp; Seek • V7.0</div>
   <button id="splashBtn">▶ စဆော့မယ်</button>
   <div class="tip">📱 အလျားလိုက် လှည့်ပြီး ဆော့ပါ</div>
 </div>
 <div class="overlay" id="start" style="display:none">
   <div class="card">
     <h1>🙈 ပုန်းတမ်း</h1>
-    <p class="ver">Hide &amp; Seek • V6.8</p>
+    <p class="ver">Hide &amp; Seek • V7.0</p>
     <canvas id="charPreview" width="140" height="140"></canvas>
     <button class="ghostBtn" id="charPickBtn">🎭 ရွေး</button>
     <button class="bigBtn" id="startBtn">▶ စမယ်</button>
@@ -259,7 +280,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <p>🎭 <b>ဇာတ်ကောင်</b> — ကြိုက်တာ ရွေး၊ တစ်ခါရွေးပြီး မှတ်ထားမယ်။</p>
     <p>👥 <b>အွန်လိုင်း</b> — အခန်းဖွင့်၊ ကုဒ်ပို့၊ ၅ ယောက် ပြည့်မှ စ။ Random တစ်ယောက် ရှာသူ။ ၆၀ စက္ကန့် ပုန်း၊ ၃ မိနစ် ရှာ။</p>
     <p>❌ <b>မိသွားရင်</b> — ခေါင်းပေါ် ❌ ပေါ်ပြီး လှုပ်မရတော့ဘူး၊ ရှာသူ တွေ့တာ ဘယ်နှယောက်လဲ မြင်ရမယ်။ အကုန်မိရင် ပွဲပြီးမယ်။</p>
-    <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🏃 ပြေး၊ 🐢 ချောင်း၊ 🫣 ပုန်း / 👀 တွေ့ပြီ။</p>
+    <p>🕹️ <b>ထိန်းချုပ်</b> — ဘယ် joystick လမ်း၊ ညာဘက် ပွတ်ရင် ကင်မရာ၊ 🫣 ပုန်း / 👀 တွေ့ပြီ၊ 🐢 ချောင်း၊ 🏃 ပြေး။</p>
+    <p>🔔 <b>ခေါင်းလောင်း</b> — ပုန်းသူ တီးရင် ရှာချိန် ၁၀ စက္ကန့် လျော့မယ် (တစ်ပွဲ ၃ ခု)။</p>
+    <p>🎭 <b>ကိုယ်ပွား</b> — ပုန်းနေရင်း နှိပ်ရင် အတုထွက်သွားပြီး ရှာသူကို လှည့်စားမယ် (တစ်ပွဲ ၁ ကြိမ်)။</p>
+    <p>💓 <b>နှလုံးခုန်</b> — ရှာသူ နီးလာရင် နှလုံးခုန်သံ မြန်လာမယ်။</p>
     <p>🚪 <b>ဗီရို / လော့ကာ / သေတ္တာ</b> — ရောင်စုံတံခါးရှိတဲ့ ပစ္စည်းတွေပဲ ဖွင့်လို့ရတယ်။ အနားရောက်ရင် တံခါးဖွင့်/ပိတ်လို့ရတယ်၊ ထဲ ဝင်ပုန်းလို့လည်း ရတယ်။</p>
     <p>🗺️ <b>Map</b> — ပွဲတိုင်း တိုက်ခန်း / အိမ်ကြီး / ကျောင်း / ဆေးရုံ / စာကြည့်တိုက် ထဲက တစ်ခု random ကျမယ်။</p>
     <p>🎨 Characters — KayKit (CC0), KhronosGroup (CC0), three.js (MIT).</p>
@@ -296,12 +320,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div id="mapPick" style="display:none">
       <div class="mapPickLabel">🗺️ Map ရွေး</div>
       <div class="mapPickRow">
-        <button class="mapBtn" data-m="-1">🎲</button>
-        <button class="mapBtn" data-m="0">🏢</button>
-        <button class="mapBtn" data-m="1">🏠</button>
-        <button class="mapBtn" data-m="2">🏫</button>
-        <button class="mapBtn" data-m="3">🏥</button>
-        <button class="mapBtn" data-m="4">📚</button>
+        <button class="mapBtn" data-m="-1">🎲<span>Random</span></button>
+        <button class="mapBtn" data-m="0">🏢<span>တိုက်ခန်း</span></button>
+        <button class="mapBtn" data-m="1">🏠<span>အိမ်ကြီး</span></button>
+        <button class="mapBtn" data-m="2">🏫<span>ကျောင်း</span></button>
+        <button class="mapBtn" data-m="3">🏥<span>ဆေးရုံ</span></button>
+        <button class="mapBtn" data-m="4">📚<span>စာကြည့်တိုက်</span></button>
       </div>
     </div>
     <div id="lobbyScores"></div>
@@ -380,6 +404,7 @@ let audioCtx = null;
 const colliders = [];
 const hideSpots = [];
 const wardrobes = [];
+const tasks = [];
 let nearestWardrobe = null;
 const people = [];
 let player = null;
@@ -412,6 +437,7 @@ let runHeld = false;
 let sneakOn = false;
 let hiddenSpot = null;
 let nearestSpot = null;
+let nearestTask = null;
 let nearestHider = null;
 let bestHide = parseInt(localStorage.getItem('hs_best_hide') || '0', 10);
 let bestSeek = parseInt(localStorage.getItem('hs_best_seek') || '0', 10);
@@ -458,6 +484,8 @@ function sfx(name) {
   else if (name === 'giggle') { beep(980, 0.08, 'sine', 0.12); beep(1240, 0.08, 'sine', 0.12, 0.09); beep(980, 0.1, 'sine', 0.12, 0.18); }
   else if (name === 'win') { [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.22, 'triangle', 0.2, i * 0.13)); }
   else if (name === 'hide') beep(392, 0.15, 'sine', 0.15);
+  else if (name === 'beat') { beep(55, 0.1, 'sine', 0.35); beep(50, 0.12, 'sine', 0.3, 0.14); }
+  else if (name === 'task') { beep(1047, 0.12, 'sine', 0.2); beep(1319, 0.2, 'sine', 0.2, 0.1); }
 }
 function showWarn(txt, secs) {
   warnEl.textContent = txt;
@@ -1190,36 +1218,61 @@ function makeBigCrate(c) {
 function makePlant(c) {
   const g = new THREE.Group();
   const pot = new THREE.Mesh(unitCyl, MAT.trunk);
-  pot.scale.set(0.55, 0.55, 0.55);
-  pot.position.y = 0.28;
+  pot.scale.set(0.62, 0.5, 0.62);
+  pot.position.y = 0.25;
   g.add(pot);
+  const rim = new THREE.Mesh(unitCyl, MAT.darkorange);
+  rim.scale.set(0.66, 0.1, 0.66);
+  rim.position.y = 0.5;
+  g.add(rim);
   const soil = new THREE.Mesh(unitCyl, MAT.black);
-  soil.scale.set(0.45, 0.08, 0.45);
-  soil.position.y = 0.55;
+  soil.scale.set(0.55, 0.06, 0.55);
+  soil.position.y = 0.52;
   g.add(soil);
-  const stem = new THREE.Mesh(unitCyl, MAT.trunk);
-  stem.scale.set(0.08, 1.2, 0.08);
-  stem.position.y = 1.1;
-  g.add(stem);
-  const leafCols = [MAT.darkgreen, MAT.mint];
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2;
-    const leaf = new THREE.Mesh(unitSphere, leafCols[i % 2]);
-    leaf.scale.set(0.5, 0.45, 0.5);
-    leaf.position.set(Math.cos(a) * 0.35, 1.05, Math.sin(a) * 0.35);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + 0.5;
+    const stem = new THREE.Mesh(unitCyl, MAT.trunk);
+    stem.scale.set(0.06, 0.7, 0.06);
+    stem.position.set(Math.cos(a) * 0.16, 0.85, Math.sin(a) * 0.16);
+    stem.rotation.z = Math.cos(a) * 0.25;
+    stem.rotation.x = -Math.sin(a) * 0.25;
+    g.add(stem);
+  }
+  const leafCols = [MAT.leaf1, MAT.leaf2, MAT.leaf3, MAT.mint];
+  const spots = [
+    [0, 0.85, 0, 0.5], [0.4, 0.95, 0.15, 0.42], [-0.38, 0.9, -0.1, 0.44],
+    [0.1, 1.05, -0.35, 0.42], [-0.2, 1.1, 0.3, 0.4], [0.3, 1.2, -0.2, 0.38],
+    [-0.3, 1.25, 0.05, 0.36], [0, 1.35, 0, 0.4], [0.15, 1.5, 0.1, 0.32],
+    [-0.12, 1.55, -0.08, 0.3],
+  ];
+  for (let i = 0; i < spots.length; i++) {
+    const sp = spots[i];
+    const leaf = new THREE.Mesh(unitSphere, leafCols[i % leafCols.length]);
+    leaf.scale.set(sp[3], sp[3] * 0.62, sp[3]);
+    leaf.position.set(sp[0], sp[1], sp[2]);
+    leaf.rotation.y = i * 1.3;
     g.add(leaf);
   }
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2;
-    const leaf = new THREE.Mesh(unitSphere, leafCols[i % 2]);
-    leaf.scale.set(0.55, 0.45, 0.55);
-    leaf.position.set(Math.cos(a) * 0.3, 1.7 + (i % 2) * 0.25, Math.sin(a) * 0.3);
-    g.add(leaf);
-  }
-  const top = new THREE.Mesh(unitSphere, MAT.darkgreen);
-  top.scale.set(0.6, 0.5, 0.6);
-  top.position.y = 2.05;
-  g.add(top);
+  return g;
+}
+function makeBell() {
+  const g = new THREE.Group();
+  const post = new THREE.Mesh(unitCyl, MAT.grey);
+  post.scale.set(0.07, 1.1, 0.07);
+  post.position.y = 0.55;
+  g.add(post);
+  const base = new THREE.Mesh(unitCyl, MAT.darkblue);
+  base.scale.set(0.22, 0.12, 0.22);
+  base.position.y = 0.06;
+  g.add(base);
+  const bell = new THREE.Mesh(unitSphere, new THREE.MeshBasicMaterial({ color: 0xffd54a }));
+  bell.scale.set(0.26, 0.32, 0.26);
+  bell.position.y = 1.25;
+  g.add(bell);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.55, 24), new THREE.MeshBasicMaterial({ color: 0xffd54a, side: THREE.DoubleSide, transparent: true, opacity: 0.7 }));
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.04;
+  g.add(ring);
   return g;
 }
 function makeSofa(c) {
@@ -1937,6 +1990,7 @@ function buildMap(idx) {
   colliders.length = 0;
   hideSpots.length = 0;
   wardrobes.length = 0;
+  tasks.length = 0;
   const wallMat = new THREE.MeshLambertMaterial({ color: def.wall });
   const skirtMat = new THREE.MeshLambertMaterial({ color: def.accent });
   const frameMat = new THREE.MeshLambertMaterial({ color: 0x6d4c41 });
@@ -2185,6 +2239,22 @@ function buildMap(idx) {
     if (roomOf(behindX, behindZ) < 0) continue;
     hideSpots.push({ x: Math.round(behindX * 10) / 10, z: Math.round(behindZ * 10) / 10, label: spec.label, taken: false });
   }
+  for (let ri = 0; ri < Math.min(3, ROOMS.length); ri++) {
+    const r = ROOMS[ri];
+    const ccx = (r.x0 + r.x1) / 2, ccz = (r.z0 + r.z1) / 2;
+    let pt = null;
+    for (let k = 0; k < 20; k++) {
+      const px = r.x0 + 1 + Math.random() * Math.max(0.1, (r.x1 - r.x0) - 2);
+      const pz = r.z0 + 1 + Math.random() * Math.max(0.1, (r.z1 - r.z0) - 2);
+      if (!blockedByCollider(px, pz, 0.3)) { pt = { x: px, z: pz }; break; }
+    }
+    if (!pt) pt = pickNearWalkable(ccx, ccz, 2, 6);
+    const bg = makeBell();
+    bg.position.set(pt.x, 0, pt.z);
+    worldGroup.add(bg);
+    addBoxCollider(pt.x, pt.z, 0.2, 0.2);
+    tasks.push({ x: pt.x, z: pt.z, done: false, bell: bg.children[2], ring: bg.children[3] });
+  }
   if (floorTex) floorTex.dispose();
   floorTex = floorTexture('#' + def.floor.toString(16).padStart(6, '0'));
   floorTex.wrapS = THREE.RepeatWrapping;
@@ -2409,7 +2479,7 @@ function toggleSneak() {
   sneakOn = !sneakOn;
   setCrouch(player, sneakOn);
   $('sneakBtn').classList.toggle('on', sneakOn);
-  $('sneakBtn').textContent = sneakOn ? '🐢 ချောင်းနေတယ်' : '🐢 ချောင်း';
+  $('sneakBtn').textContent = '🐢 ချောင်း';
 }
 $('sneakBtn').addEventListener('click', toggleSneak);
 $('runBtn').addEventListener('touchstart', (e) => { e.preventDefault(); runHeld = true; }, { passive: false });
@@ -2748,6 +2818,7 @@ function playerMoveInput(dt) {
     setClip(player, 'walk');
     if (player.hidden) {
       player.hidden = false;
+      setCrouch(player, player.crouched);
       showWarn('ရွှေ့လိုက်ပြီ — ထပ်ပုန်းဖို့ နေရာရှာ!', 1.4);
     }
     if (runHeld && !player.crouched && elapsed - lastNoiseT > 1.2) {
@@ -2891,6 +2962,9 @@ function startMode(m) {
   caughtSurvived = 0;
   roundOver = false;
   seekerMemory = null;
+  popDecoy();
+  decoyLeft = 1;
+  beatT = 0;
   chaseT = 0;
   lastNoiseT = 0;
   giggleT = 8;
@@ -2936,7 +3010,7 @@ function startMode(m) {
 }
 function setSneakBtn() {
   $('sneakBtn').classList.toggle('on', sneakOn);
-  $('sneakBtn').textContent = sneakOn ? '🐢 ချောင်းနေတယ်' : '🐢 ချောင်း';
+  $('sneakBtn').textContent = '🐢 ချောင်း';
 }
 function wardrobeNear(x, z, r) {
   let best = null;
@@ -2944,6 +3018,16 @@ function wardrobeNear(x, z, r) {
   for (const w of wardrobes) {
     const d = dist2(x, z, w.x, w.z);
     if (d < bestD) { best = w; bestD = d; }
+  }
+  return best;
+}
+function nearestTaskFor(px, pz) {
+  let best = null;
+  let bestD = 2.5;
+  for (const t of tasks) {
+    if (t.done) continue;
+    const d = dist2(px, pz, t.x, t.z);
+    if (d < bestD) { bestD = d; best = t; }
   }
   return best;
 }
@@ -3005,6 +3089,7 @@ function enterWardrobe(w) {
   player.hidden = true;
   sneakOn = true;
   setCrouch(player, true);
+  player.bodyG.scale.y = 0.55;
   setSneakBtn();
   player.tag.visible = false;
   w.target = 0;
@@ -3037,6 +3122,7 @@ function ejectFromWardrobe(p) {
   p.insideWardrobe = null;
   w.inside = null;
   p.hidden = false;
+  setCrouch(p, false);
   p.tag.visible = true;
 }
 function toggleWardrobeLocal(w) {
@@ -3078,10 +3164,20 @@ function doAction() {
   if (gameState !== 'playing' && gameState !== 'countdown') return;
   if (!player) return;
   if (player.insideWardrobe) { exitWardrobe(); return; }
+  if (nearestTask && !player.hidden && gameState === 'playing') {
+    const dTask = dist2(player.g.position.x, player.g.position.z, nearestTask.x, nearestTask.z);
+    const dSpot = nearestSpot ? dist2(player.g.position.x, player.g.position.z, nearestSpot.x, nearestSpot.z) : 1e9;
+    const dWard = nearestWardrobe ? dist2(player.g.position.x, player.g.position.z, nearestWardrobe.x, nearestWardrobe.z) : 1e9;
+    if (dTask < Math.min(dSpot, dWard)) { completeTask(nearestTask); return; }
+  }
   if (canUseDoors() && nearestWardrobe) {
     const w = nearestWardrobe;
     if (isHiderRole() && w.target === 1) { enterWardrobe(w); return; }
     toggleWardrobeLocal(w);
+    return;
+  }
+  if (mode === 'hide' && player.hidden && !player.insideWardrobe && decoyLeft > 0) {
+    dropDecoy();
     return;
   }
   if (mode === 'hide' && nearestSpot && !player.hidden) {
@@ -3090,9 +3186,64 @@ function doAction() {
     player.hidden = true;
     sneakOn = true;
     setCrouch(player, true);
+    player.bodyG.scale.y = 0.55;
     setSneakBtn();
     sfx('hide');
     showWarn('🫣 ပုန်းနေပြီ — မလှုပ်နဲ့!', 2);
+  }
+  if (nearestTask && !player.hidden && gameState === 'playing') {
+    completeTask(nearestTask);
+    return;
+  }
+}
+function completeTask(t) {
+  if (!t || t.done) return;
+  t.done = true;
+  t.bell.material.color.setHex(0x9e9e9e);
+  t.ring.visible = false;
+  sfx('task');
+  if (mode === 'hide') {
+    timeLeft = Math.max(0, timeLeft - 10);
+    showWarn('🔔 -10 စက္ကန့်!', 1.5);
+  } else if (mode === 'online') {
+    if (isHost) {
+      netTimeLeft = Math.max(0, netTimeLeft - 10);
+      hostSendAll({ t: 'taskDone', idx: tasks.indexOf(t), timeLeft: netTimeLeft });
+      showWarn('🔔 -10 စက္ကန့်!', 1.5);
+    } else {
+      try { netConns['host'].send({ t: 'task', idx: tasks.indexOf(t) }); } catch (e) {}
+    }
+  }
+}
+function dropDecoy() {
+  if (decoyLeft <= 0 || decoy || mode !== 'hide') return;
+  decoyLeft--;
+  const c = makeChibi(player.colorHex, player.colorCss);
+  const dg = new THREE.Group();
+  dg.add(c.bodyG);
+  dg.position.set(player.g.position.x, 0, player.g.position.z);
+  scene.add(dg);
+  const ang = Math.random() * Math.PI * 2;
+  decoy = { g: dg, dx: Math.sin(ang), dz: Math.cos(ang), t: 0, ttl: 12 };
+  seekerMemory = { x: player.g.position.x, z: player.g.position.z };
+  memoryIsDecoy = true;
+  sfx('hide');
+  showWarn('🎭 ကိုယ်ပွားထွက်သွားပြီ!', 1.5);
+}
+function popDecoy() {
+  if (!decoy) return;
+  scene.remove(decoy.g);
+  decoy = null;
+  memoryIsDecoy = false;
+}
+function updateDecoy(dt) {
+  if (!decoy) return;
+  decoy.t += dt;
+  decoy.ttl -= dt;
+  if (decoy.ttl <= 0) { popDecoy(); return; }
+  if (decoy.t < 4) {
+    tryMove(decoy, decoy.dx * 3.0 * dt, decoy.dz * 3.0 * dt);
+    decoy.g.rotation.y = Math.atan2(decoy.dx, decoy.dz);
   }
 }
 function doFind() {
@@ -3109,6 +3260,7 @@ function doFind() {
 function endRound(win, title, txt) {
   if (roundOver) return;
   roundOver = true;
+  popDecoy();
   gameState = 'roundEnd';
   if (mode === 'hide' && !win) {
     const survived = playerCaught ? caughtSurvived : Math.round(90 - timeLeft);
@@ -3164,6 +3316,14 @@ function updateConfetti(dt) {
 
 // ---------- seeker AI ----------
 // V6.3: vision works for any person (player or AI hider).
+function seekerPos() {
+  if (mode === 'hide' && seeker) return { x: seeker.g.position.x, z: seeker.g.position.z };
+  if (mode === 'online' && netSeekerId && remotePeople[netSeekerId]) {
+    const rp = remotePeople[netSeekerId];
+    return { x: rp.g.position.x, z: rp.g.position.z };
+  }
+  return null;
+}
 function seekerCanSeePerson(p) {
   if (!seeker || !p) return false;
   if (p.insideWardrobe) return false;
@@ -3193,6 +3353,9 @@ function catchPlayerSolo() {
   caughtSurvived = Math.round(90 - timeLeft);
   if (player.insideWardrobe) ejectFromWardrobe(player);
   player.hidden = false;
+  sneakOn = false;
+  setCrouch(player, false);
+  setSneakBtn();
   player.tag.visible = true;
   setTagText(player, (myName || 'မင်း') + ' ❌');
   sfx('caught');
@@ -3281,6 +3444,11 @@ function updateSeeker(dt, timeDt) {
     if (w) seeker.checkW = w;
   }
   if (seekerMemory) {
+    if (memoryIsDecoy && decoy) {
+      seekerMemory.x = decoy.g.position.x;
+      seekerMemory.z = decoy.g.position.z;
+      if (dist2(seeker.g.position.x, seeker.g.position.z, decoy.g.position.x, decoy.g.position.z) < 2.0) { popDecoy(); seekerMemory = null; seekerLoseT = 0; return; }
+    }
     if (navigateTo(seeker, seekerMemory.x, seekerMemory.z, 3.4 * DIFFS[difficulty].speed, dt)) { seekerMemory = null; seekerLoseT = 0; seekerCheckWardrobe(); }
     return;
   }
@@ -3365,6 +3533,23 @@ function updateHUD(dt) {
   const showGiggle = (mode === 'hide' || (mode === 'online' && netRole === 'hider')) && gameState === 'playing' && !playerCaught && !netFound[myPeerId];
   $('giggleBtn').style.display = showGiggle ? 'block' : 'none';
   $('giggleBtn').style.opacity = giggleCdT > 0 ? '0.45' : '';
+  $('hiddenPill').style.display = (player && player.hidden) ? 'block' : 'none';
+  $('runBtn').classList.toggle('on', runHeld);
+  if (beatT > 0) beatT -= dt;
+  const skPos = seekerPos();
+  const isHiderNow = (mode === 'hide' || (mode === 'online' && netRole === 'hider')) && gameState === 'playing' && !playerCaught && !netFound[myPeerId] && player && skPos;
+  let band = 0;
+  if (isHiderNow) {
+    const dSk = dist2(player.g.position.x, player.g.position.z, skPos.x, skPos.z);
+    if (dSk < 4) band = 3;
+    else if (dSk < 8) band = 2;
+    else if (dSk < 14) band = 1;
+    if (band > 0 && beatT <= 0) { sfx('beat'); beatT = band === 3 ? 0.45 : band === 2 ? 0.8 : 1.4; }
+  }
+  const dp = $('dangerPill');
+  dp.style.display = band > 0 ? 'block' : 'none';
+  dp.style.background = band === 3 ? 'linear-gradient(135deg,#c62828,#7f0000)' : band === 2 ? 'linear-gradient(135deg,#ef6c00,#bf360c)' : 'linear-gradient(135deg,#2e7d32,#1b5e20)';
+  dp.classList.toggle('hot', band === 3);
   if (roleT > 0) {
     roleT -= dt;
     if (roleT <= 0) $('role').style.display = 'none';
@@ -3379,6 +3564,7 @@ function updateHUD(dt) {
     scorePill.classList.toggle('count', netPhase === 'seek');
     nearestWardrobe = null;
     if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
+    nearestTask = (netRole === 'hider' && netPhase === 'seek' && player) ? nearestTaskFor(player.g.position.x, player.g.position.z) : null;
     $('actBtn').style.display = 'none';
     if (player && player.insideWardrobe) {
       $('actBtn').textContent = '🚪 ထွက်မယ်';
@@ -3392,6 +3578,14 @@ function updateHUD(dt) {
         $('actBtn').style.display = 'block';
       } else {
         $('actBtn').textContent = '🚪 ဖွင့်';
+        $('actBtn').style.display = 'block';
+      }
+    }
+    if (netRole === 'hider' && netPhase === 'seek' && nearestTask) {
+      const dTask = dist2(player.g.position.x, player.g.position.z, nearestTask.x, nearestTask.z);
+      const dWard = nearestWardrobe ? dist2(player.g.position.x, player.g.position.z, nearestWardrobe.x, nearestWardrobe.z) : 1e9;
+      if ($('actBtn').style.display === 'none' || dTask < dWard) {
+        $('actBtn').textContent = '🔔 တီးမယ်';
         $('actBtn').style.display = 'block';
       }
     }
@@ -3455,9 +3649,11 @@ function updateHUD(dt) {
       const d = dist2(player.g.position.x, player.g.position.z, s.x, s.z);
       if (d < best) { best = d; nearestSpot = s; }
     }
+    nearestTask = nearestTaskFor(player.g.position.x, player.g.position.z);
   }
   if (player && canUseDoors()) nearestWardrobe = nearestFrontWardrobe(player.g.position.x, player.g.position.z);
   $('actBtn').style.display = 'none';
+  $('actBtn').classList.remove('pulse');
   $('findBtn').style.display = 'none';
   if (!playerCaught && player && player.insideWardrobe) {
     $('actBtn').textContent = '🚪 ထွက်မယ်';
@@ -3475,6 +3671,21 @@ function updateHUD(dt) {
     }
   } else if (!playerCaught && (gameState === 'playing' || gameState === 'countdown') && mode === 'hide' && nearestSpot) {
     $('actBtn').textContent = '🫣 ပုန်းမယ် (' + nearestSpot.label + ')';
+    $('actBtn').style.display = 'block';
+    $('actBtn').classList.add('pulse');
+  }
+  if (!playerCaught && gameState === 'playing' && mode === 'hide' && nearestTask) {
+    const dTask = dist2(player.g.position.x, player.g.position.z, nearestTask.x, nearestTask.z);
+    const dSpot = nearestSpot ? dist2(player.g.position.x, player.g.position.z, nearestSpot.x, nearestSpot.z) : 1e9;
+    const dWard = nearestWardrobe ? dist2(player.g.position.x, player.g.position.z, nearestWardrobe.x, nearestWardrobe.z) : 1e9;
+    if ($('actBtn').style.display === 'none' || dTask < Math.min(dSpot, dWard)) {
+      $('actBtn').textContent = '🔔 တီးမယ်';
+      $('actBtn').style.display = 'block';
+      $('actBtn').classList.remove('pulse');
+    }
+  }
+  if ($('actBtn').style.display === 'none' && !playerCaught && gameState === 'playing' && mode === 'hide' && player.hidden && !player.insideWardrobe && decoyLeft > 0) {
+    $('actBtn').textContent = '🎭 ကိုယ်ပွား';
     $('actBtn').style.display = 'block';
   }
   if (!playerCaught && gameState === 'playing' && mode === 'seek' && nearestHider) $('findBtn').style.display = 'block';
@@ -3543,6 +3754,7 @@ function animate() {
         if (roundOver) break;
       }
       updateCamera(dt);
+      updateDecoy(dt);
       for (const p of people) updatePersonAnim(p, dt);
       for (const p of people) {
         if (p.emoteT > 0) {
@@ -3658,6 +3870,10 @@ function sendEmote(emoji) {
   else { try { netConns['host'].send({ t: 'emote', emoji }); } catch (e) {} }
 }
 let giggleCdT = 0;
+let beatT = 0;
+let decoyLeft = 1;
+let decoy = null;
+let memoryIsDecoy = false;
 function doGiggle() {
   if (giggleCdT > 0) return;
   if (!isHiderRole()) return;
@@ -3724,11 +3940,20 @@ function netRenderLobby() {
     const d = document.createElement('div');
     d.className = 'netPlayer';
     const cm = MODELS[(typeof p.model === 'number' ? p.model : p.colorIdx % MODELS.length)];
-    d.innerHTML = '<span style="font-size:22px">' + (cm ? cm.emoji : '🙂') + '</span><span class="netDot" style="background:' + netColor(p.colorIdx).css + '"></span>' + escapeHtml(p.name) + (p.isHost ? ' 👑' : '') + (p.id === myPeerId ? ' (မင်း)' : '');
+    const isMe = p.id === myPeerId;
+    if (isMe) d.classList.add('me');
+    d.innerHTML = '<span class="pEmoji">' + (cm ? cm.emoji : '🙂') + '</span><span class="pInfo"><b>' + escapeHtml(p.name) + (p.isHost ? ' 👑' : '') + (isMe ? ' · မင်း' : '') + '</b><i>' + (cm ? cm.short : '') + '</i></span><span class="netDot" style="background:' + netColor(p.colorIdx).css + '"></span>';
     list.appendChild(d);
   });
+  for (let i = netPlayers.length; i < 5; i++) {
+    const d = document.createElement('div');
+    d.className = 'netPlayer empty';
+    d.textContent = '➕ စောင့်နေတယ်';
+    list.appendChild(d);
+  }
   $('netStartBtn').style.display = isHost ? 'block' : 'none';
-  $('mapPick').style.display = isHost ? 'block' : 'none';
+  $('mapPick').style.display = 'block';
+  $('mapPick').classList.toggle('locked', !isHost);
   renderMapPick();
   renderLobbyScores();
   $('inviteBtn').textContent = roomCode ? '📩 ဖိတ်မယ် (ကုဒ် ' + roomCode + ')' : '📩 ဖိတ်မယ်';
@@ -3797,7 +4022,7 @@ function hostHandle(conn, msg) {
     const p = { id: conn.peer, name: String(msg.name || 'Player').slice(0, 12), colorIdx, isHost: false, model: (typeof msg.model === 'number' ? msg.model : colorIdx % MODELS.length) };
     netPlayers.push(p);
     try { conn.send({ t: 'welcome', id: conn.peer, colorIdx, players: netPlayers, code: roomCode }); } catch (e) {}
-    hostSendAll({ t: 'lobby', players: netPlayers });
+    hostSendAll({ t: 'lobby', players: netPlayers, mapIdx: hostMapIdx });
     netRenderLobby();
     sfx('found');
   } else if (msg.t === 'pos') {
@@ -3826,6 +4051,18 @@ function hostHandle(conn, msg) {
     showEmoteBubble(remotePeople[conn.peer], '😂');
     sfx('giggle');
     hostSendAll({ t: 'giggle', id: conn.peer, name: nm });
+  } else if (msg.t === 'task') {
+    if (!netStarted || netPhase !== 'seek') return;
+    const p = netPlayers.find((x) => x.id === conn.peer);
+    if (!p || p.id === netSeekerId || netFound[conn.peer]) return;
+    const t = tasks[msg.idx];
+    if (!t || t.done) return;
+    t.done = true;
+    t.bell.material.color.setHex(0x9e9e9e);
+    t.ring.visible = false;
+    netTimeLeft = Math.max(0, netTimeLeft - 10);
+    hostSendAll({ t: 'taskDone', idx: msg.idx, timeLeft: netTimeLeft });
+    sfx('task');
   } else if (msg.t === 'catch') {
     if (conn.peer !== netSeekerId) return;
     hostCatch(msg.target);
@@ -3908,12 +4145,12 @@ function netPlayerLeft(id) {
   if (netStarted) {
     if (id === netSeekerId) { hostEndRound('hiders'); return; }
     const remaining = netPlayers.filter((p) => p.id !== netSeekerId && !netFound[p.id]).length;
-    hostSendAll({ t: 'lobby', players: netPlayers });
+    hostSendAll({ t: 'lobby', players: netPlayers, mapIdx: hostMapIdx });
     netRenderLobby();
     if (remaining <= 0) { hostEndRound('seeker'); return; }
     hostSendAll({ t: 'state', phase: netPhase, timeLeft: Math.ceil(netTimeLeft), players: netPlayers, pos: hostPos, found: netFound, seekerId: netSeekerId, doors: wardrobes.map((w) => w.target) });
   } else {
-    hostSendAll({ t: 'lobby', players: netPlayers });
+    hostSendAll({ t: 'lobby', players: netPlayers, mapIdx: hostMapIdx });
     netRenderLobby();
   }
 }
@@ -4031,6 +4268,7 @@ function clientHandle(msg) {
     netRenderLobby();
   } else if (msg.t === 'lobby') {
     netPlayers = msg.players;
+    if (typeof msg.mapIdx === 'number') hostMapIdx = msg.mapIdx;
     netRenderLobby();
   } else if (msg.t === 'busy') {
     netStatus('ပွဲ ကစားနေပြီ — ပြီးမှ ထပ်ဝင်ကြည့်ပါ');
@@ -4060,6 +4298,12 @@ function clientHandle(msg) {
       sfx('go');
       showWarn('🔍 စရှာပြီ!', 2);
     }
+  } else if (msg.t === 'taskDone') {
+    const t = tasks[msg.idx];
+    if (t && !t.done) { t.done = true; t.bell.material.color.setHex(0x9e9e9e); t.ring.visible = false; }
+    if (typeof msg.timeLeft === 'number') netTimeLeft = msg.timeLeft;
+    sfx('task');
+    showWarn('🔔 -10 စက္ကန့်!', 1.5);
   } else if (msg.t === 'chat') {
     if (msg.id === myPeerId) return;
     chatAdd(msg.name || 'Player', String(msg.text || '').slice(0, 60));
@@ -4351,6 +4595,10 @@ $('menuBtn').addEventListener('click', () => {
   quitToMenu();
 });
 $('createBtn').addEventListener('click', createRoom);
+$('netCode').addEventListener('click', () => {
+  if (!roomCode) return;
+  try { navigator.clipboard.writeText(roomCode); netStatus('✅ ကုဒ်ကူးပြီးပြီ'); } catch (e) { netStatus('ကုဒ်: ' + roomCode); }
+});
 $('joinBtn').addEventListener('click', joinRoom);
 $('netStartBtn').addEventListener('click', hostStart);
 $('rematchBtn').addEventListener('click', () => {
